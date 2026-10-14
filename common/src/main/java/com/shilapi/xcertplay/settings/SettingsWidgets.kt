@@ -154,28 +154,19 @@ object SettingsWidgets {
             textCol.addView(descView)
             row.addView(textCol, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             row.addView(switch)
-            // The whole row is the target; the switch stays out of the focus order so D-pad stops once.
-            switch.isFocusable = false
-            row.isFocusable = true
-            row.background = android.graphics.drawable.RippleDrawable(
-                ColorStateList.valueOf(theme.ripple), null, android.graphics.drawable.ColorDrawable(Color.WHITE))
-            row.foreground = android.graphics.drawable.StateListDrawable().apply {
+            // Only the switch is interactive; labels and row whitespace never change its state.
+            row.isClickable = false
+            row.isFocusable = false
+            switch.isFocusable = true
+            switch.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+            switch.contentDescription = listOf(contentDescription, description)
+                .filter { it.isNotBlank() }.joinToString(". ")
+            switch.foreground = android.graphics.drawable.StateListDrawable().apply {
                 addState(intArrayOf(android.R.attr.state_focused), android.graphics.drawable.GradientDrawable().apply {
                     setColor(Color.TRANSPARENT)
                     cornerRadius = theme.dp(context, 12).toFloat()
                     setStroke(theme.dp(context, 3), theme.focusRing)
                 })
-            }
-            row.setOnClickListener { if (switch.isEnabled) switch.toggle() }
-            switch.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            row.accessibilityDelegate = object : View.AccessibilityDelegate() {
-                override fun onInitializeAccessibilityNodeInfo(host: View, info: android.view.accessibility.AccessibilityNodeInfo) {
-                    super.onInitializeAccessibilityNodeInfo(host, info)
-                    info.className = Switch::class.java.name
-                    info.isCheckable = true
-                    info.isChecked = switch.isChecked
-                    info.isEnabled = switch.isEnabled
-                }
             }
         }
 
