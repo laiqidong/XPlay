@@ -111,10 +111,21 @@ private class AppPanelDialog(
         heading?.let { panel.addView(text(it, 24f).apply { setTypeface(typeface, Typeface.BOLD) }) }
         val contents = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
         body?.let { contents.addView(text(it, 17f, true).apply { setPadding(0, dp(PANEL_GAP_DP), 0, dp(PANEL_GAP_DP)) }) }
-        custom?.let { contents.addView(it, LinearLayout.LayoutParams(-1, -2)) }
+        custom?.let { supplied ->
+            // Callers historically wrapped forms/reports in a ScrollView. Keep a single scroller.
+            var content = supplied
+            while ((content is ScrollView || content is androidx.core.widget.NestedScrollView) &&
+                (content as ViewGroup).childCount == 1) {
+                val wrapper = content as ViewGroup
+                content = wrapper.getChildAt(0)
+                wrapper.removeView(content)
+            }
+            contents.addView(content, LinearLayout.LayoutParams(-1, -2))
+        }
         if (entries != null) {
             choices = ListView(context).apply {
                 divider = null
+                isNestedScrollingEnabled = true
                 choiceMode = when { checked != null -> ListView.CHOICE_MODE_MULTIPLE; single -> ListView.CHOICE_MODE_SINGLE; else -> ListView.CHOICE_MODE_NONE }
                 adapter = object : ArrayAdapter<CharSequence>(context, 0, entries) {
                     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
@@ -147,13 +158,10 @@ private class AppPanelDialog(
                 }
             }
             panel.addView(choices, LinearLayout.LayoutParams(-1,
-                minOf(entries.size * dp(PANEL_CONTROL_HEIGHT_DP + PANEL_GAP_DP), bodyHeightLimit())).apply { topMargin = dp(PANEL_GAP_DP) })
+                minOf(entries.size * dp(PANEL_CONTROL_HEIGHT_DP + PANEL_GAP_DP),
+                    (context.resources.displayMetrics.heightPixels * 0.45f).toInt()).coerceAtLeast(dp(PANEL_CONTROL_HEIGHT_DP))).apply { topMargin = dp(PANEL_GAP_DP) })
         } else {
-            panel.addView(object : ScrollView(context) {
-                override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-                    super.onMeasure(widthMeasureSpec, View.MeasureSpec.makeMeasureSpec(bodyHeightLimit(), View.MeasureSpec.AT_MOST))
-                }
-            }.apply { addView(contents) }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(PANEL_GAP_DP) })
+            panel.addView(contents, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(PANEL_GAP_DP) })
         }
         // Vertical actions remain readable with large text and three-button dialogs.
         listOf(DialogInterface.BUTTON_NEUTRAL, DialogInterface.BUTTON_NEGATIVE, DialogInterface.BUTTON_POSITIVE).forEach { id ->
@@ -167,7 +175,8 @@ private class AppPanelDialog(
                 panel.addView(control, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(PANEL_GAP_DP) })
             }
         }
-        window?.setContentView(panel)
+        // Scroll the whole panel, including actions: keyboard/large text must never hide a button.
+        window?.setContentView(AppDialogScrollView(context).apply { addView(panel) })
         window?.apply {
             setBackgroundDrawable(panelBackground())
             addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
@@ -182,16 +191,27 @@ private class AppPanelDialog(
         window?.setLayout(minOf(dp(PANEL_WIDTH_DP), metrics.widthPixels - dp(PANEL_INSET_DP * 2)).coerceAtLeast(1),
             ViewGroup.LayoutParams.WRAP_CONTENT)
     }
-    private fun bodyHeightLimit(): Int {
-        val frame = android.graphics.Rect()
-        window?.decorView?.getWindowVisibleDisplayFrame(frame)
-        val screen = context.resources.displayMetrics.heightPixels
-        val available = if (frame.height() > 0) minOf(screen, frame.height()) else screen
-        val chrome = dp(PANEL_INSET_DP * 2 + PANEL_CONTROL_HEIGHT_DP +
-            actions.size * (PANEL_CONTROL_HEIGHT_DP + PANEL_GAP_DP))
-        return ((available * 0.85f).toInt() - chrome).coerceAtLeast(dp(PANEL_CONTROL_HEIGHT_DP))
-    }
     private fun panelBackground() = GradientDrawable().apply {
         setColor(this@AppPanelDialog.colors.surface); cornerRadius = dp(PANEL_RADIUS_DP).toFloat()
+    }
+}
+
+/** A real constrained viewport; its child retains its full height so overflowing content scrolls. */
+internal class AppDialogScrollView(context: Context) : androidx.core.widget.NestedScrollView(context) {
+    init {
+        isFillViewport = false
+        isVerticalScrollBarEnabled = true
+        clipToPadding = false
+    }
+
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        val frame = android.graphics.Rect()
+        getWindowVisibleDisplayFrame(frame)
+        val screen = resources.displayMetrics.heightPixels
+        val available = if (frame.height() > 0) minOf(screen, frame.height()) else screen
+        val parentLimit = if (View.MeasureSpec.getMode(heightMeasureSpec) == View.MeasureSpec.UNSPECIFIED)
+            Int.MAX_VALUE else View.MeasureSpec.getSize(heightMeasureSpec)
+        val limit = minOf(parentLimit, (available * 0.85f).toInt()).coerceAtLeast(1)
+        super.onMeasure(widthMeasureSpec, View.MeasureSpec.makeMeasureSpec(limit, View.MeasureSpec.AT_MOST))
     }
 }

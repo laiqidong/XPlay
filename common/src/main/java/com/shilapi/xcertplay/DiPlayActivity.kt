@@ -3125,7 +3125,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                 }, matchButton(CONTROL_GAP_DP, CONTROL_HEIGHT_DP))
                 choices.addView(button(getString(R.string.cancel), false) { picker.dismiss() },
                     matchButton(SETTINGS_BLOCK_GAP_DP, CONTROL_HEIGHT_DP))
-                picker.setContentView(ScrollView(dialogContext).apply { addView(choices) })
+                picker.setContentView(AppDialogScrollView(dialogContext).apply { addView(choices) })
                 picker.show()
                 picker.window?.apply {
                     setBackgroundDrawable(rounded(SURFACE, BORDER))
@@ -3168,10 +3168,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         }
         fields.addView(button(getString(R.string.hide_keyboard), false) { hideKeyboard() },
             matchButton(CONTROL_GAP_DP, CONTROL_HEIGHT_DP))
-        panel.addView(ScrollView(dialogContext).apply {
-            isFillViewport = false
-            addView(fields)
-        }, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = dp(SETTINGS_BLOCK_GAP_DP) })
+        panel.addView(fields, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(SETTINGS_BLOCK_GAP_DP) })
         val actions = row().apply { gravity = Gravity.CENTER_VERTICAL }
         actions.addView(button(getString(R.string.cancel), false) { hideKeyboard(); dialog.dismiss() },
             LinearLayout.LayoutParams(0, dp(CONTROL_HEIGHT_DP), 1f))
@@ -3189,7 +3186,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             }
         }, LinearLayout.LayoutParams(0, dp(CONTROL_HEIGHT_DP), 1f))
         panel.addView(actions, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(SETTINGS_BLOCK_GAP_DP) })
-        dialog.setContentView(panel)
+        dialog.setContentView(AppDialogScrollView(dialogContext).apply { addView(panel) })
         dialog.setOnDismissListener { hideKeyboard() }
         dialog.show()
         dialog.window?.apply {
