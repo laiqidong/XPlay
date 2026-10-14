@@ -29,4 +29,9 @@
     <string name="settings_car_hotspot_help">Включите точку доступа с главного экрана автомобиля. Введите то же имя и пароль в XPlay, подключите iPhone к этой точке и вернитесь для подключения CarPlay.</string>
     <string name="settings_car_wifi_help">Подключите магнитолу к Wi-Fi с главного экрана автомобиля. Подключите iPhone к той же сети и вернитесь в XPlay.</string>
     <string name="settings_car_bluetooth_help">Откройте Bluetooth с главного экрана автомобиля и выполните сопряжение с iPhone. Оставьте Bluetooth и Wi-Fi на телефоне включёнными, вернитесь в XPlay и выберите сопряжённый iPhone.</string>
+    <string name="settings_car_adb_progress">Проверка локального ADB: 127.0.0.1:5555. Разрешите XPlay, если появится запрос. Ожидание авторизации может занять до 60 секунд. Можно отменить.</string>
+    <string name="settings_car_adb_ready">XPlay подключился к локальному ADB магнитолы. Это подтверждает только доступ к ADB, но не поддержку функций автомобилей BYD.</string>
+    <string name="settings_car_adb_unreachable">Нет связи с локальным ADB: 127.0.0.1:5555. Сервис может быть выключен, заблокирован или использовать другой порт. Доступ с компьютера не подтверждает локальный доступ XPlay.</string>
+    <string name="settings_car_adb_not_approved">За время ожидания магнитола не авторизовала XPlay. Если доступен запрос отладки, разрешите XPlay и повторите.</string>
+    <string name="settings_car_adb_pairing">Этот порт требует TLS-сопряжения беспроводной отладки, которое XPlay не поддерживает. Системные настройки не открывались.</string>
 </resources>

@@ -29,4 +29,9 @@
     <string name="settings_car_hotspot_help">車載機のホーム画面からホットスポットを有効にしてください。同じ名前とパスワードを XPlay に入力し、iPhone を接続してから戻り、CarPlay に接続してください。</string>
     <string name="settings_car_wifi_help">車載機のホーム画面から Wi-Fi に接続してください。iPhone も同じネットワークに接続し、XPlay に戻ってください。</string>
     <string name="settings_car_bluetooth_help">車載機のホーム画面から Bluetooth を開き、iPhone とペアリングしてください。iPhone の Bluetooth と Wi-Fi を有効にしたまま XPlay に戻り、ペアリング済みの iPhone を選んでください。</string>
+    <string name="settings_car_adb_progress">本機の ADB（127.0.0.1:5555）を確認しています。車載機にデバッグの許可が表示されたら XPlay を許可してください。最大約 60 秒待機します。キャンセルできます。</string>
+    <string name="settings_car_adb_ready">XPlay が車載機の本機 ADB に接続しました。ADB へのアクセスのみを確認した結果で、BYD 専用機能への対応を示すものではありません。</string>
+    <string name="settings_car_adb_unreachable">本機の ADB（127.0.0.1:5555）に接続できません。サービスが無効、制限中、または別のポートを使用している可能性があります。パソコンから接続できても XPlay から本機に接続できるとは限りません。</string>
+    <string name="settings_car_adb_not_approved">待機中に XPlay の許可を取得できませんでした。デバッグの許可が表示される場合は許可して再試行してください。</string>
+    <string name="settings_car_adb_pairing">このポートは TLS のワイヤレスデバッグのペアリングが必要で、XPlay は対応していません。システム設定は開いていません。</string>
 </resources>

@@ -4071,7 +4071,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         showVehicleDataSettings(card, capabilities = null)
         if (!busy) {
             card.addView(button(getString(R.string.check_adb_access), false) {
-                checkAdbState(mayAsk = true)
+                checkLocalAdbAccess()
             }.apply { isEnabled = !adbSwitchChangePending }, matchButton(10, 56))
         }
     }
@@ -4273,6 +4273,37 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             // Default mode applies the switch once a check reads what the enabled switches need.
             vehicleDataReconnectPending = true
             checkAdbState(mayAsk = true)
+        }
+    }
+
+    private fun checkLocalAdbAccess() {
+        if (adbSwitchChangePending || vehicleAdbWorkInProgress()) {
+            toast(getString(R.string.adb_checking))
+            return
+        }
+        cancelAutomaticVehicleValidationForUserOperation(
+            resumeAfter = automaticVehicleValidationInProgress || automaticVehicleValidationPending,
+        )
+        val generation = ++adbCheckGeneration
+        adbCheckInProgress = true
+        adbCheckMayAsk = true
+        render()
+        showLocalAdbCheck { result ->
+            if (generation != adbCheckGeneration || isFinishing || isDestroyed) return@showLocalAdbCheck
+            adbCheckInProgress = false
+            adbCheckMayAsk = false
+            if (result != null) {
+                adbCheckFailed = result.isFailure
+                adbAccessState = when (result.getOrNull()) {
+                    LocalAdb.Access.READY -> BydAdbAccess.State.READY
+                    LocalAdb.Access.NOT_APPROVED -> BydAdbAccess.State.NOT_APPROVED
+                    LocalAdb.Access.UNREACHABLE -> BydAdbAccess.State.ADB_OFF
+                    LocalAdb.Access.UNSUPPORTED -> BydAdbAccess.State.PAIRING_ONLY
+                    null -> null
+                }
+            }
+            render()
+            runPendingAutomaticVehicleValidation()
         }
     }
 
@@ -4635,7 +4666,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     private fun adbLinkStatusText(state: BydAdbAccess.State): String = when (state) {
         BydAdbAccess.State.READY -> getString(R.string.adb_access_ready)
         BydAdbAccess.State.NOT_APPROVED -> getString(R.string.adb_enabled_not_approved)
-        BydAdbAccess.State.ADB_OFF -> getString(R.string.adb_off)
+        BydAdbAccess.State.ADB_OFF -> getString(R.string.settings_car_adb_unreachable)
         BydAdbAccess.State.PAIRING_ONLY -> getString(R.string.adb_pairing_only)
     }
 
