@@ -11,17 +11,14 @@
 
 定制包括 XPlay 品牌、XPENG 车辆图标、国内构建镜像、通用设置向导、首页及设置布局、统一黑白配色、自绘应用弹窗和连接动画。现有截图是历史界面记录，不代表当前所有页面已验证。
 
-## 第一次设置自己的远程备份
+## 自己的远程备份
 
-1. 在 GitHub 登录自己的账号，Fork `shihabal3amri/DiPlay`。
-2. 将 Fork 的真实克隆地址添加为 `origin`：
+- 个人 Fork：`https://github.com/laiqidong/XPlay`
+- `origin`：`git@github.com:laiqidong/XPlay.git`，使用已有 SSH 登录。
+- 定制分支：`codex/xplay-custom`；GitHub 的 `main` 保留 Fork 创建时的上游代码。
+- 定制分支直接入口：`https://github.com/laiqidong/XPlay/tree/codex/xplay-custom`
 
-```sh
-git remote add origin <自己的Fork克隆地址>
-git push -u origin codex/xplay-custom
-git push origin xplay-custom-20261014
-```
-
+后续提交定制后，在当前分支运行 `git push` 即可备份。恢复标签可用 `git push origin <标签名>` 单独推送。
 不要向 `upstream` 推送，不要将定制分支重置为上游分支。
 
 ## 同步上游正式版本
