@@ -275,10 +275,6 @@ class CarPlayHostActivity : ComponentActivity() {
             if (!menuOpen) requestStartupPrerequisites()
         }
 
-    private val imagePicker =
-        registerForActivityResult(ActivityResultContracts.GetContent(), ::cropSelectedImage)
-    private val imageDocumentPicker =
-        registerForActivityResult(ActivityResultContracts.OpenDocument(), ::cropSelectedImage)
     private fun cropSelectedImage(uri: Uri?) {
         if (uri == null) {
             externalActivityInProgress = false
@@ -3693,20 +3689,13 @@ class CarPlayHostActivity : ComponentActivity() {
         }
         actions.addView(
             DiPlayButton(this).apply {
-                text = getString(R.string.choose_image)
+                text = getString(R.string.settings_car_phone_image)
                 style(DiPlayButtonKind.SECONDARY, overlayPalette, overlay = true)
                 setOnClickListener {
                     externalActivityInProgress = true
-                    launchCarButtonImagePicker(
-                        openDocument = { imageDocumentPicker.launch(arrayOf("image/*")) },
-                        getContent = { imagePicker.launch("image/*") },
-                        documentPickerIsSystem = documentPickerIsSystem(),
-                    ).onFailure {
-                        externalActivityInProgress = false
-                        appendLog("No image picker: ${it.javaClass.simpleName}")
-                        android.widget.Toast.makeText(this@CarPlayHostActivity,
-                            getString(R.string.this_head_unit_has_no_image_picker),
-                            android.widget.Toast.LENGTH_LONG).show()
+                    showCarImageUpload(onClosed = { externalActivityInProgress = false }) { uri ->
+                        externalActivityInProgress = true
+                        cropSelectedImage(uri)
                     }
                 }
             },

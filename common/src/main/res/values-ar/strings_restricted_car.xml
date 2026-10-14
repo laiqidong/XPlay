@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_car_manual_title">إعدادات السيارة</string>
+    <string name="settings_car_manual_help">افتح الإعداد المطلوب من الشاشة الرئيسية للسيارة ثم عد إلى XPlay. لا تدعم هذه الوحدة فتح إعدادات النظام من XPlay. قد لا تعمل الميزة المرتبطة إذا كان الإذن غير ممنوح.</string>
+    <string name="settings_car_permission_status">حالة الأذونات</string>
+    <string name="settings_car_granted">ممنوح</string>
+    <string name="settings_car_missing">غير ممنوح</string>
+    <string name="settings_car_not_required">غير مطلوب في إصدار Android هذا</string>
+    <string name="settings_car_unknown">تعذرت القراءة</string>
+    <string name="settings_car_bluetooth">Bluetooth / الأجهزة القريبة</string>
+    <string name="settings_car_microphone">الميكروفون</string>
+    <string name="settings_car_storage">التخزين العام</string>
+    <string name="settings_car_notifications">الإشعارات</string>
+    <string name="settings_car_overlay">الظهور فوق التطبيقات الأخرى</string>
+    <string name="settings_car_accessibility">خدمة تسهيل الاستخدام لتأكيد USB</string>
+    <string name="settings_car_usage">الوصول إلى بيانات الاستخدام</string>
+    <string name="settings_car_phone_image">رفع صورة من الهاتف</string>
+    <string name="settings_car_phone_image_hint">صل الهاتف ووحدة السيارة بالشبكة نفسها. امسح الرمز واختر صورة وارفعها ثم قصها واحفظها على وحدة السيارة. أبق هذه النافذة مفتوحة. تنتقل الصور عبر الشبكة المحلية فقط.</string>
+    <string name="settings_car_upload">اختر صورة وارفعها</string>
+    <string name="settings_car_upload_busy">جارٍ الرفع…</string>
+    <string name="settings_car_upload_ok">تم استلام الصورة. قصها واحفظها على وحدة السيارة.</string>
+    <string name="settings_car_upload_failed">فشل الرفع. اختر صورة JPEG أو PNG أصغر وحاول مجددًا.</string>
+    <string name="settings_car_install_manually">التثبيت اليدوي</string>
+    <string name="settings_car_install_help">تم تنزيل التحديث والتحقق منه. افتح مدير ملفات أو أداة تثبيت مدعومة من الشاشة الرئيسية للسيارة وثبت ملف APK يدويًا.\n%1$s</string>
+    <string name="settings_car_install_private">ملف APK الذي تم التحقق منه في مساحة التطبيق الخاصة. نزله على الهاتف أو الكمبيوتر وثبته بالطريقة التي تدعمها السيارة.</string>
+    <string name="settings_car_hotspot_title">إرشادات نقطة الاتصال</string>
+    <string name="settings_car_wifi_title">إرشادات Wi-Fi</string>
+    <string name="settings_car_bluetooth_title">إرشادات اقتران Bluetooth</string>
+    <string name="settings_car_hotspot_help">افتح نقطة الاتصال من الشاشة الرئيسية للسيارة وفعلها. أدخل الاسم وكلمة المرور نفسيهما في XPlay وصل iPhone بهذه النقطة ثم عد لتوصيل CarPlay.</string>
+    <string name="settings_car_wifi_help">افتح Wi-Fi من الشاشة الرئيسية للسيارة وصل وحدة السيارة وiPhone بالشبكة نفسها ثم عد إلى XPlay.</string>
+    <string name="settings_car_bluetooth_help">افتح Bluetooth من الشاشة الرئيسية للسيارة وأقرن iPhone. أبق Bluetooth وWi-Fi مفعلين على الهاتف ثم عد إلى XPlay واختر iPhone المقترن.</string>
+</resources>

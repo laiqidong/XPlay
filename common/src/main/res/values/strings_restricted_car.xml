@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_car_manual_title">Car settings</string>
+    <string name="settings_car_manual_help">Open the relevant control from the car home screen, then return to XPlay. This head unit cannot open system settings from XPlay. Missing permissions can prevent the related feature from working.</string>
+    <string name="settings_car_permission_status">Permission status</string>
+    <string name="settings_car_granted">Granted</string>
+    <string name="settings_car_missing">Not granted</string>
+    <string name="settings_car_not_required">Not required on this Android version</string>
+    <string name="settings_car_unknown">Unable to read</string>
+    <string name="settings_car_bluetooth">Bluetooth / nearby devices</string>
+    <string name="settings_car_microphone">Microphone</string>
+    <string name="settings_car_storage">Public storage</string>
+    <string name="settings_car_notifications">Notifications</string>
+    <string name="settings_car_overlay">Display over other apps</string>
+    <string name="settings_car_accessibility">USB auto-confirm accessibility service</string>
+    <string name="settings_car_usage">Usage access</string>
+    <string name="settings_car_phone_image">Upload image from phone</string>
+    <string name="settings_car_phone_image_hint">Connect your phone and head unit to the same network. Scan this code, choose an image on your phone, then crop and save it on the head unit. Keep this panel open. Images stay on your local network.</string>
+    <string name="settings_car_upload">Choose image and upload</string>
+    <string name="settings_car_upload_busy">Uploading…</string>
+    <string name="settings_car_upload_ok">Image received. Crop and save it on the head unit.</string>
+    <string name="settings_car_upload_failed">Upload failed. Use a smaller JPEG or PNG and try again.</string>
+    <string name="settings_car_install_manually">Manual installation</string>
+    <string name="settings_car_install_help">The update has been downloaded and verified. Open a supported file manager or installation tool from the car home screen and install this APK manually.\n%1$s</string>
+    <string name="settings_car_install_private">The verified APK is in private app storage and cannot be opened by a file manager. Download the APK on your phone or computer and use the installation method supported by your car.</string>
+    <string name="settings_car_hotspot_title">Hotspot instructions</string>
+    <string name="settings_car_wifi_title">Wi-Fi instructions</string>
+    <string name="settings_car_bluetooth_title">Bluetooth pairing instructions</string>
+    <string name="settings_car_hotspot_help">From the car home screen, open its hotspot controls and enable the hotspot. Enter that same name and password in XPlay, then connect the iPhone to this hotspot. Return here to connect CarPlay.</string>
+    <string name="settings_car_wifi_help">From the car home screen, connect the head unit to Wi-Fi. Connect the iPhone to the same network, then return to XPlay.</string>
+    <string name="settings_car_bluetooth_help">From the car home screen, open Bluetooth and pair your iPhone. On the iPhone, keep Bluetooth and Wi-Fi enabled. Return to XPlay and select the paired iPhone.</string>
+</resources>

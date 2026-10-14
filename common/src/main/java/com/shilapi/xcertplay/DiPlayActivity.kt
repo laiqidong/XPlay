@@ -37,7 +37,6 @@ import android.widget.*
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.FileProvider
 import androidx.core.widget.doAfterTextChanged
 import androidx.core.view.doOnLayout
 import androidx.core.view.WindowCompat
@@ -313,8 +312,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             permissionHelp(getString(R.string.location), getString(R.string.allow_precise_location_for_diplay_in_the_head_unit_s_app_p))
         }
     }
-    private val iconPicker = registerForActivityResult(ActivityResultContracts.GetContent(), ::cropIcon)
-    private val iconDocumentPicker = registerForActivityResult(ActivityResultContracts.OpenDocument(), ::cropIcon)
     private fun cropIcon(uri: Uri?) {
         if (uri != null) iconCrop.launch(Intent(this, ImageCropActivity::class.java).setData(uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))
     }
@@ -322,9 +319,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         if (result.resultCode != RESULT_OK) return@registerForActivityResult
         refreshCarButton()
         carButtonSaved()
-    }
-    private val export = registerForActivityResult(ActivityResultContracts.CreateDocument("text/plain")) { uri ->
-        if (uri != null) exportDiagnostics(uri)
     }
     // Android 9: storage access puts the report in the visible Downloads/DiPlay folder.
     // A denial still saves the report, only in DiPlay's own storage.
@@ -472,12 +466,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         interfaceOverride = next
         return false
     }
-    private fun openOverlayPermission() {
-        val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
-        if (runCatching { startActivity(intent) }.isFailure) {
-            android.widget.Toast.makeText(this, R.string.center_map_no_permission_screen, android.widget.Toast.LENGTH_LONG).show()
-        }
-    }
+    private fun openOverlayPermission() { RestrictedCarUi.permissions(this) }
 
     override fun onStart() {
         super.onStart()
@@ -918,13 +907,13 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         }
         if (startupProblem != null) {
             card.addView(label(hotspotResultText(startupProblem), 15, WARNING))
-            if (!compact) card.addView(homeButton(getString(R.string.open_car_hotspot_settings), false) { openCarWifiSettings() }, matchButton(CONTROL_GAP_DP, 56))
+            if (!compact) card.addView(homeButton(getString(R.string.settings_car_hotspot_title), false) { openCarWifiSettings() }, matchButton(CONTROL_GAP_DP, 56))
         } else if (carHotspotOff()) {
             // No name is saved before Connection setup, and the sentence that quotes it would show “”.
             val name = AirPlayPersistence.loadManualHotspotSsid(this)
             val off = if (name.isBlank()) getString(R.string.hotspot_details_off) else getString(R.string.msg_car_hotspot_off, name)
             card.addView(label(off, 15, WARNING).apply { setPadding(0, dp(14), 0, 0) })
-            if (!compact) card.addView(homeButton(getString(R.string.open_car_hotspot_settings), false) { openCarWifiSettings() }, matchButton(CONTROL_GAP_DP, 56))
+            if (!compact) card.addView(homeButton(getString(R.string.settings_car_hotspot_title), false) { openCarWifiSettings() }, matchButton(CONTROL_GAP_DP, 56))
         }
         card.addView(homeButton(getString(R.string.choose_iphone), false) { choosePhone() }, matchButton(if (compact) CONTROL_GAP_DP else 16, if (compact) 46 else 56))
         disconnectButton = homeButton(getString(R.string.disconnect), false) {
@@ -1702,7 +1691,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                 saveReportToDownloads()
             }.apply { isEnabled = !exportInProgress }
             card.addView(exportButton, matchButton(10, 60))
-            card.addView(button(getString(R.string.choose_save_location), false) { chooseReportDestination() }, matchButton(10, 60))
             card.addView(button(getString(R.string.settings_report_on_phone), false) { openBackup(SettingsCategory.DIAGNOSTICS) }, matchButton(10, 60))
             val destination = getString(R.string.reports_save_to_downloads_diplay)
             card.addView(label(destination + getString(R.string.nothing_is_sent_automatically_protocol_payloads_and_creden), 14, MUTED).apply { setPadding(0, dp(12), 0, 0) })
@@ -2359,8 +2347,8 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         filteredSection(content, SettingsSection.PERMISSIONS_AND_HELP,
             getString(R.string.permissions_and_connection_help), R.drawable.ic_dp_permissions) { card ->
             card.addView(label(getString(R.string.nearby_devices_connects_your_iphone_microphone_enables_sir), 16, MUTED))
-            card.addView(button(getString(R.string.app_permissions), false) { openSystem(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName"))) }, matchButton(16, 60))
-            card.addView(button(getString(R.string.bluetooth_settings), false) { openSystem(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) }, matchButton(10, 60))
+            card.addView(button(getString(R.string.settings_car_permission_status), false) { openSystem(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName"))) }, matchButton(16, 60))
+            card.addView(button(getString(R.string.settings_car_bluetooth_title), false) { openSystem(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) }, matchButton(10, 60))
             card.addView(button(getString(R.string.wireless_connection_help), false) { wirelessHelp() }, matchButton(10, 60))
         }
         languageSettings(content)
@@ -2509,7 +2497,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             UpdateStage.VERIFYING -> container.addView(label(getString(R.string.update_verifying), 14, MUTED))
             UpdateStage.READY -> {
                 container.addView(
-                    button(getString(R.string.update_install, updateRelease?.tagName.orEmpty()), true) { installUpdate() },
+                    button(getString(R.string.settings_car_install_manually), true) { installUpdate() },
                     matchButton(10, 60))
                 updateSavedPath?.let { container.addView(label(getString(R.string.update_saved_to, it), 13, MUTED).apply { setPadding(0, dp(10), 0, 0) }) }
             }
@@ -2632,52 +2620,17 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     }
 
     private fun installUpdate() {
-        // No unknown-sources pre-check: some head units answer its settings page with "Not supported yet".
-        // The chosen installer asks for that permission itself.
+        // Keep installation in the car's supported launcher flow, never invoke a system installer here.
         installApk(updateFile ?: return)
     }
 
     private fun installApk(file: File) {
-        // The public copy lets file managers such as MT Manager open the APK. The private provider URI is the fallback,
-        // including when the driver deleted the public copy.
-        // The public copy is outside the app's control, so it must still match the verified file. Hashing two
-        // APKs takes seconds on a slow head unit, so it runs off the main thread.
-        val savedUri = updateSavedUri
-        val generation = updateGeneration
-        updateInstallWorker(Runnable {
-            val publicUri = savedUri?.takeIf { sameContent(it, file) }
-            runOnUiThread {
-                if (generation == updateGeneration && !isFinishing && !isDestroyed) startInstaller(file, publicUri)
-            }
-        })
+        if (!file.isFile) return
+        val instructions = updateSavedPath?.let { getString(R.string.settings_car_install_help, it) }
+            ?: getString(R.string.settings_car_install_private)
+        appDialogBuilder().setTitle(R.string.settings_car_install_manually).setMessage(instructions)
+            .setPositiveButton(R.string.close, null).show()
     }
-
-    private fun startInstaller(file: File, publicUri: Uri?) {
-        val uri = publicUri ?: FileProvider.getUriForFile(this, "$packageName.update-apks", file)
-        val view = Intent(Intent.ACTION_VIEW).apply {
-            setDataAndType(uri, "application/vnd.android.package-archive")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
-        // Ask only when several installers exist. A lone system installer opens directly, as before.
-        val installers = packageManager.queryIntentActivities(view, PackageManager.MATCH_DEFAULT_ONLY).size
-        val launch = if (installers > 1) Intent.createChooser(view, null) else view
-        val outcome = "${if (installers > 1) "chooser" else "direct"} uri=${if (publicUri != null) "public" else "provider"} installers=$installers"
-        try {
-            startActivity(launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-            Log.i("DiPlay-Update", "install started: $outcome")
-            UpdateAvailability.recordInstall(applicationContext, System.currentTimeMillis(), outcome)
-        } catch (failure: RuntimeException) {
-            Log.w("DiPlay-Update", "install failed to start: $outcome", failure)
-            UpdateAvailability.recordInstall(applicationContext, System.currentTimeMillis(), "$outcome failed=${failure.javaClass.simpleName}")
-            updateMessage = getString(R.string.update_failed)
-            render()
-        }
-    }
-
-    private fun sameContent(uri: Uri, verified: File): Boolean = runCatching {
-        val copy = contentResolver.openInputStream(uri)?.use { UpdateChecksums.sha256Hex(it) }
-        copy != null && copy == UpdateChecksums.sha256Hex(verified)
-    }.getOrDefault(false)
 
     private fun refreshUpdateUi(generation: Int) {
         runOnUiThread {
@@ -2893,27 +2846,9 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         }, "diplay-boot-repair").start()
     }
 
-    private fun openCarWifiSettings() {
-        val hotspot = Intent("com.android.settings.WIFI_TETHER_SETTINGS")
-        val target = packageManager.resolveActivity(hotspot, 0)?.activityInfo?.packageName
-        if (target == null) {
-            openSystem(Intent(Settings.ACTION_WIRELESS_SETTINGS))
-            return
-        }
-        if (target == "com.byd.carsettings") {
-            runCatching { startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)) }
-        }
-        if (runCatching { startActivity(hotspot) }.isSuccess) return
-        openSystem(Intent(Settings.ACTION_WIRELESS_SETTINGS))
-    }
+    private fun openCarWifiSettings() { RestrictedCarUi.manualSettings(this, R.string.settings_car_hotspot_title, R.string.settings_car_hotspot_help) }
 
-    private fun openCarClientWifiSettings() {
-        val wifi = Intent(Settings.ACTION_WIFI_SETTINGS)
-        if (packageManager.resolveActivity(wifi, 0)?.activityInfo?.packageName == "com.byd.carsettings") {
-            runCatching { startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)) }
-        }
-        openSystem(wifi)
-    }
+    private fun openCarClientWifiSettings() { RestrictedCarUi.manualSettings(this, R.string.settings_car_wifi_title, R.string.settings_car_wifi_help) }
 
     private fun openSetupGuide(fromSettings: Boolean) {
         setupFromSettings = fromSettings
@@ -2983,7 +2918,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         card.addView(button("${getString(R.string.choose_iphone_prefix)}${DiPlayPreferences.phoneName(this)}", !chosen) {
             choosePhone()
         }, matchButton(16, 60))
-        card.addView(button(getString(R.string.review_app_permissions), false) {
+        card.addView(button(getString(R.string.settings_car_permission_status), false) {
             openSystem(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")))
         }, matchButton(12, 60))
         content.addView(card, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(SETTINGS_BLOCK_GAP_DP) })
@@ -3087,7 +3022,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         section(content, getString(R.string.s_2_pair_your_iphone)) { card ->
             card.addView(label(getString(R.string.keep_bluetooth_and_wi_fi_on_your_iphone_pair_with_the_car), 16, MUTED))
             card.addView(button("${getString(R.string.choose_iphone_prefix)}${DiPlayPreferences.phoneName(this)}", false) { choosePhone() }, matchButton(12, 60))
-            card.addView(button(getString(R.string.review_app_permissions), false) {
+            card.addView(button(getString(R.string.settings_car_permission_status), false) {
                 openSystem(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")))
             }, matchButton(12, 60))
         }
@@ -3138,7 +3073,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         if (mode == WirelessHotspotMode.MANUAL) {
             parent.addView(label(getString(R.string.hotspot_setup), 22, TEXT, true))
             parent.addView(label(getString(R.string.s_1_open_car_hotspot_settings_turn_the_hotspot_on_and_sele), 16, MUTED).apply { setPadding(0, dp(8), 0, dp(12)) })
-            parent.addView(button(getString(R.string.open_car_hotspot_settings), false) { openCarWifiSettings() }, matchButton(0, 60))
+            parent.addView(button(getString(R.string.settings_car_hotspot_title), false) { openCarWifiSettings() }, matchButton(0, 60))
             // Before anything is saved there is no hotspot to edit and no name to show after the dot.
             val detailsMissing = carHotspotDetailsMissing()
             parent.addView(button(if (detailsMissing) getString(R.string.save_hotspot_details_and_use_this_mode) else "${getString(R.string.edit_saved_hotspot_prefix)}${storedSsid()}", false) {
@@ -3156,7 +3091,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             parent.addView(join.build())
         } else if (mode == WirelessHotspotMode.EXISTING_WIFI) {
             parent.addView(label(getString(R.string.existing_wifi_instructions), 16, MUTED))
-            parent.addView(button(getString(R.string.open_car_wi_fi_settings), false) { openCarClientWifiSettings() }, matchButton(12, 60))
+            parent.addView(button(getString(R.string.settings_car_wifi_title), false) { openCarClientWifiSettings() }, matchButton(12, 60))
             parent.addView(button(getString(R.string.existing_wifi_details), false) {
                 askHotspotCredentials(existingWifi = true) { ssid, password, _ ->
                     AirPlayPersistence.saveExistingWifiCredentials(this, ssid, password)
@@ -3166,7 +3101,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         } else {
             parent.addView(label(getString(R.string.turn_the_car_s_wi_fi_switch_on_allow_location_nearby_devic), 16, MUTED))
             wifiDirectChannelControl(parent)
-            parent.addView(button(getString(R.string.open_car_wi_fi_settings), false) { openCarClientWifiSettings() }, matchButton(12, 60))
+            parent.addView(button(getString(R.string.settings_car_wifi_title), false) { openCarClientWifiSettings() }, matchButton(12, 60))
         }
     }
 
@@ -5102,12 +5037,8 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         text.addView(label(getString(if (custom != null) R.string.car_button_icon_custom else R.string.default_icon), 14, MUTED).apply { setPadding(0, dp(6), 0, 0) })
         preview.addView(text, LinearLayout.LayoutParams(0, -2, 1f))
         parent.addView(preview)
-        parent.addView(button(getString(R.string.choose_image), false) {
-            launchCarButtonImagePicker(
-                openDocument = { iconDocumentPicker.launch(arrayOf("image/*")) },
-                getContent = { iconPicker.launch("image/*") },
-                documentPickerIsSystem = documentPickerIsSystem(),
-            ).onFailure { toast(getString(R.string.this_head_unit_has_no_image_picker)) }
+        parent.addView(button(getString(R.string.settings_car_phone_image), false) {
+            showCarImageUpload(onSelected = ::cropIcon)
         }, matchButton(16, 60))
         if (custom != null) parent.addView(button(getString(R.string.default_icon), false) {
             AirPlayPersistence.clearCustomAirPlayIcon(this)
@@ -5222,16 +5153,15 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         val adapter = getSystemService(BluetoothManager::class.java)?.adapter ?: BluetoothAdapter.getDefaultAdapter()
         if (adapter == null || !adapter.isEnabled) {
             appDialogBuilder().setTitle(getString(R.string.turn_on_bluetooth))
-                .setMessage(getString(R.string.enable_the_car_s_bluetooth_and_pair_your_iphone_first))
-                .setPositiveButton(getString(R.string.open_bluetooth)) { _, _ -> openSystem(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) }
+                .setMessage(getString(R.string.settings_car_bluetooth_help))
+                .setPositiveButton(getString(R.string.got_it), null)
                 .setNegativeButton(getString(R.string.later), null).show(); return
         }
         val devices = runCatching { adapter.bondedDevices.sortedBy { it.name ?: "" } }.getOrDefault(emptyList())
         if (devices.isEmpty()) {
             appDialogBuilder().setTitle(getString(R.string.pair_your_iphone))
-                .setMessage(getString(R.string.on_your_iphone_open_settings_bluetooth_and_pair_with_the_c))
-                .setPositiveButton(getString(R.string.open_bluetooth)) { _, _ -> openSystem(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) }
-                .setNegativeButton(getString(R.string.got_it), null).show(); return
+                .setMessage(getString(R.string.settings_car_bluetooth_help))
+                .setPositiveButton(getString(R.string.got_it), null).show(); return
         }
         appDialogBuilder().setTitle(getString(R.string.choose_your_iphone))
             .setItems(devices.map { device ->
@@ -5243,7 +5173,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                 val start = pendingWireless; pendingWireless = false
                 render()
                 if (start) connect(true)
-            }.setNeutralButton(getString(R.string.pair_another)) { _, _ -> openSystem(Intent(Settings.ACTION_BLUETOOTH_SETTINGS)) }
+            }.setNeutralButton(getString(R.string.pair_another)) { _, _ -> RestrictedCarUi.manualSettings(this, R.string.settings_car_bluetooth_title, R.string.settings_car_bluetooth_help) }
             .setNegativeButton(getString(R.string.cancel)) { _, _ -> pendingWireless = false }.show()
     }
 
@@ -5348,12 +5278,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         } else exportDiagnostics()
     }
 
-    private fun chooseReportDestination() {
-        // Some head units omit or disable DocumentsUI. Launch itself can throw, before
-        // the result callback and the background writer's exception handler ever run.
-        if (exportInProgress) return
-        runCatching { export.launch(reportFileName()) }.onFailure { exportDiagnostics() }
-    }
+    private fun chooseReportDestination() { openBackup(SettingsCategory.DIAGNOSTICS) }
 
     private fun exportDiagnostics(uri: Uri? = null) {
         if (exportInProgress) return
@@ -5385,19 +5310,13 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                         })
                         .setPositiveButton(getString(R.string.view_diagnostic_report)) { _, _ -> showDiagnosticReport(report) }
                         .setNegativeButton(getString(R.string.done), null)
-                        .setNeutralButton(getString(R.string.share)) { _, _ ->
-                            runCatching {
-                                startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
-                                    type = "text/plain"; putExtra(Intent.EXTRA_STREAM, savedReport.uri)
-                                    clipData = android.content.ClipData.newRawUri(getString(R.string.report_clip_label), savedReport.uri)
-                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                }, getString(R.string.share_diagnostic_report)))
-                            }.onFailure { showDiagnosticReport(report) }
+                        .setNeutralButton(getString(R.string.settings_report_on_phone)) { _, _ ->
+                            openBackup(SettingsCategory.DIAGNOSTICS)
                         }.show()
                 } else {
                     appDialogBuilder().setTitle(getString(R.string.could_not_save_the_report))
                         .setMessage(getString(R.string.check_that_storage_is_available_or_choose_another_save_loc))
-                        .setPositiveButton(getString(R.string.choose_location)) { _, _ -> chooseReportDestination() }
+                        .setPositiveButton(getString(R.string.settings_report_on_phone)) { _, _ -> chooseReportDestination() }
                         .setNegativeButton(getString(R.string.close), null).show()
                 }
             }
@@ -5501,11 +5420,17 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             .setPositiveButton(getString(R.string.close), null).show()
     }
     private fun permissionHelp(title: String, body: String) {
-        appDialogBuilder().setTitle(title).setMessage(body).setPositiveButton(getString(R.string.app_settings)) { _, _ ->
+        appDialogBuilder().setTitle(title).setMessage(body).setPositiveButton(getString(R.string.settings_car_permission_status)) { _, _ ->
             openSystem(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")))
         }.setNegativeButton(getString(R.string.later), null).show()
     }
-    private fun openSystem(intent: Intent) { runCatching { startActivity(intent) }.onFailure { toast(getString(R.string.open_this_setting_from_your_car_s_settings_app)) } }
+    private fun openSystem(intent: Intent) {
+        if (intent.action == Settings.ACTION_APPLICATION_DETAILS_SETTINGS ||
+            intent.action == Settings.ACTION_USAGE_ACCESS_SETTINGS) RestrictedCarUi.permissions(this)
+        else if (intent.action == Settings.ACTION_BLUETOOTH_SETTINGS)
+            RestrictedCarUi.manualSettings(this, R.string.settings_car_bluetooth_title, R.string.settings_car_bluetooth_help)
+        else RestrictedCarUi.manualSettings(this)
+    }
     private fun toast(message: String) { Toast.makeText(this, message, Toast.LENGTH_LONG).show() }
 
     private fun playTestTone(streamType: Int) {

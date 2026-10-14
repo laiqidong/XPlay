@@ -139,6 +139,9 @@ class ImageCropActivity : Activity() {
     }
 
     override fun onDestroy() {
+        intent.data?.takeIf { isFinishing && it.authority == "$packageName.update-apks" && it.path?.startsWith("/car_icons/") == true }?.let {
+            runCatching { contentResolver.delete(it, null, null) }
+        }
         executor.shutdownNow()
         cropView.bitmap?.recycle()
         super.onDestroy()

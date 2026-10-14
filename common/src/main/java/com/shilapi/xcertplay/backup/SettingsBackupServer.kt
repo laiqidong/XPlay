@@ -41,6 +41,8 @@ class SettingsBackupServer(
     private val report: (() -> ByteArray)? = null,
     /** The page that asks for the typed code, or null when the address cannot be typed. */
     private val codePage: ByteArray? = null,
+    /** Optional image-only upload. Receives a bounded raw image, never a file path. */
+    private val uploadImage: ((ByteArray) -> Boolean)? = null,
 ) {
     private var server: ServerSocket? = null
     private var thread: Thread? = null
@@ -58,6 +60,8 @@ class SettingsBackupServer(
     /** Called on a connection thread when the last allowed wrong code was typed. */
     var onCodeEntryClosed: (() -> Unit)? = null
     var onImported: ((SettingsImportOutcome) -> Unit)? = null
+    /** Called after the successful HTTP image response has been flushed. */
+    var onImageUploaded: (() -> Unit)? = null
     /** Called on the server thread when nobody used the page for [idleTimeoutMillis]. */
     var onIdle: (() -> Unit)? = null
     var idleTimeoutMillis = IDLE_TIMEOUT_MILLIS
@@ -172,6 +176,8 @@ class SettingsBackupServer(
                     )
                     flush()
                 }
+                if (status == 200 && request.method == "POST" &&
+                    request.path.substringBefore('?') == "/b/$token/image") onImageUploaded?.invoke()
             }
         }
     }
@@ -202,6 +208,8 @@ class SettingsBackupServer(
         val authorized = path == prefix || path.startsWith("$prefix/")
         if (!authorized) return notFound()
         val route = path.removePrefix("$prefix/").trimEnd('/')
+        // An image-upload session must not expose the settings/report routes.
+        if (uploadImage != null && route !in listOf("", "image")) return notFound()
         return when {
             route.isEmpty() && request.method == "GET" ->
                 Triple(200, mapOf("Content-Type" to "text/html; charset=utf-8", "Cache-Control" to "no-store"), page)
@@ -223,6 +231,12 @@ class SettingsBackupServer(
                 ),
                 report(),
             )
+            route == "image" && request.method == "POST" && uploadImage != null -> {
+                val accepted = request.body.size in 1..MAX_IMAGE_BYTES && uploadImage.invoke(request.body)
+                Triple(if (accepted) 200 else 422,
+                    mapOf("Content-Type" to "application/json", "Cache-Control" to "no-store"),
+                    "{\"accepted\":$accepted}".toByteArray(Charsets.UTF_8))
+            }
             route == "import" && request.method == "POST" -> {
                 val outcome = import(request.body)
                 onImported?.invoke(outcome)
@@ -265,6 +279,7 @@ class SettingsBackupServer(
         const val IDLE_TIMEOUT_MILLIS = 10 * 60_000
         private const val ACCEPT_POLL_MILLIS = 250
         private const val MAX_REQUEST = 2 shl 20
+        private const val MAX_IMAGE_BYTES = (2 shl 20) - 8192
         const val EXPORT_FILE = "diplay-settings.json"
         const val REPORT_FILE = "diplay-report.txt"
         const val CODE_DIGITS = 6

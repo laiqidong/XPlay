@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_car_manual_title">車載機の設定</string>
+    <string name="settings_car_manual_help">車載機のホーム画面から該当する設定を開き、操作後に XPlay に戻ってください。この車載機では XPlay からシステム設定を開けません。権限がないと関連機能が使えない場合があります。</string>
+    <string name="settings_car_permission_status">権限の状態</string>
+    <string name="settings_car_granted">許可済み</string>
+    <string name="settings_car_missing">未許可</string>
+    <string name="settings_car_not_required">この Android バージョンでは不要</string>
+    <string name="settings_car_unknown">読み取り不可</string>
+    <string name="settings_car_bluetooth">Bluetooth／付近のデバイス</string>
+    <string name="settings_car_microphone">マイク</string>
+    <string name="settings_car_storage">共有ストレージ</string>
+    <string name="settings_car_notifications">通知</string>
+    <string name="settings_car_overlay">他のアプリの上に表示</string>
+    <string name="settings_car_accessibility">USB 自動確認のユーザー補助サービス</string>
+    <string name="settings_car_usage">使用状況へのアクセス</string>
+    <string name="settings_car_phone_image">スマートフォンから画像を送信</string>
+    <string name="settings_car_phone_image_hint">スマートフォンと車載機を同じネットワークに接続してください。コードを読み取り、画像を選んで送信し、車載機で切り抜いて保存してください。この画面を開いたままにしてください。画像はローカルネットワーク内でのみ転送されます。</string>
+    <string name="settings_car_upload">画像を選んで送信</string>
+    <string name="settings_car_upload_busy">送信中…</string>
+    <string name="settings_car_upload_ok">画像を受信しました。車載機で切り抜いて保存してください。</string>
+    <string name="settings_car_upload_failed">送信できませんでした。小さめの JPEG または PNG で再試行してください。</string>
+    <string name="settings_car_install_manually">手動インストール</string>
+    <string name="settings_car_install_help">更新をダウンロードして検証しました。車載機のホーム画面から対応するファイル管理アプリまたはインストーラーを開き、この APK を手動でインストールしてください。\n%1$s</string>
+    <string name="settings_car_install_private">検証済み APK はアプリの専用領域にあります。スマートフォンまたはパソコンで APK をダウンロードし、車載機が対応する方法でインストールしてください。</string>
+    <string name="settings_car_hotspot_title">ホットスポットの操作方法</string>
+    <string name="settings_car_wifi_title">Wi-Fi の操作方法</string>
+    <string name="settings_car_bluetooth_title">Bluetooth のペアリング方法</string>
+    <string name="settings_car_hotspot_help">車載機のホーム画面からホットスポットを有効にしてください。同じ名前とパスワードを XPlay に入力し、iPhone を接続してから戻り、CarPlay に接続してください。</string>
+    <string name="settings_car_wifi_help">車載機のホーム画面から Wi-Fi に接続してください。iPhone も同じネットワークに接続し、XPlay に戻ってください。</string>
+    <string name="settings_car_bluetooth_help">車載機のホーム画面から Bluetooth を開き、iPhone とペアリングしてください。iPhone の Bluetooth と Wi-Fi を有効にしたまま XPlay に戻り、ペアリング済みの iPhone を選んでください。</string>
+</resources>

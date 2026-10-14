@@ -144,19 +144,11 @@ class UsbAutoConfirmService : AccessibilityService() {
             return false
         }
 
-        /** BYD's settings app does not answer the standard action but has its own screen (#409). */
-        private val ACCESSIBILITY_SCREENS = listOf(
-            ComponentName("com.byd.systemsettings", "com.byd.systemsettings.accessibility.AccessibilityMainActivity"),
-            ComponentName("com.android.settings", "com.android.settings.Settings\$AccessibilitySettingsActivity"),
-        )
-
-        fun openSettings(context: Context): Boolean =
-            (listOf(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) + ACCESSIBILITY_SCREENS.map { Intent().setComponent(it) })
-                .any { intent ->
-                    runCatching {
-                        context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                        true
-                    }.getOrDefault(false)
-                }
+        /** Restricted head units require opening this manually from their own launcher. */
+        fun openSettings(context: Context): Boolean {
+            if (context !is android.app.Activity) return false
+            RestrictedCarUi.permissions(context)
+            return true
+        }
     }
 }

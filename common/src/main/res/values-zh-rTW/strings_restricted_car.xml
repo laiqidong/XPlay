@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_car_manual_title">車機設定操作說明</string>
+    <string name="settings_car_manual_help">請從車機主頁進入對應功能，操作後再返回 XPlay。此車機不支援從 XPlay 跳轉系統設定。缺少權限時，對應功能可能無法使用。</string>
+    <string name="settings_car_permission_status">權限狀態</string>
+    <string name="settings_car_granted">已授權</string>
+    <string name="settings_car_missing">未授權</string>
+    <string name="settings_car_not_required">目前 Android 版本無需此權限</string>
+    <string name="settings_car_unknown">無法讀取</string>
+    <string name="settings_car_bluetooth">藍牙／附近裝置</string>
+    <string name="settings_car_microphone">麥克風</string>
+    <string name="settings_car_storage">公共儲存空間</string>
+    <string name="settings_car_notifications">通知</string>
+    <string name="settings_car_overlay">懸浮視窗</string>
+    <string name="settings_car_accessibility">USB 自動確認無障礙服務</string>
+    <string name="settings_car_usage">使用情況存取</string>
+    <string name="settings_car_phone_image">從手機上傳圖片</string>
+    <string name="settings_car_phone_image_hint">手機與車機連線至同一網路。掃描 QR 碼，在手機選擇圖片並上傳，再於車機裁切儲存。請保持視窗開啟。圖片僅在區域網路傳輸。</string>
+    <string name="settings_car_upload">選擇圖片並上傳</string>
+    <string name="settings_car_upload_busy">正在上傳…</string>
+    <string name="settings_car_upload_ok">圖片已接收，請在車機裁切並儲存。</string>
+    <string name="settings_car_upload_failed">上傳失敗，請選擇較小的 JPEG 或 PNG 圖片重試。</string>
+    <string name="settings_car_install_manually">手動安裝說明</string>
+    <string name="settings_car_install_help">更新已下載並驗證。請從車機主頁開啟支援的檔案管理器或安裝工具，手動安裝此 APK。\n%1$s</string>
+    <string name="settings_car_install_private">已驗證的 APK 位於應用程式私人目錄，檔案管理器無法開啟。請在手機或電腦下載 APK，使用車機支援的方式安裝。</string>
+    <string name="settings_car_hotspot_title">熱點操作說明</string>
+    <string name="settings_car_wifi_title">Wi-Fi 操作說明</string>
+    <string name="settings_car_bluetooth_title">藍牙配對說明</string>
+    <string name="settings_car_hotspot_help">請從車機主頁開啟熱點。在 XPlay 填寫相同的熱點名稱及密碼，再讓 iPhone 連線至此熱點。完成後返回這裡連線 CarPlay。</string>
+    <string name="settings_car_wifi_help">請從車機主頁開啟 Wi-Fi，讓車機與 iPhone 連線至同一網路，再返回 XPlay。</string>
+    <string name="settings_car_bluetooth_help">請從車機主頁進入藍牙功能，與 iPhone 完成配對。iPhone 保持藍牙及 Wi-Fi 開啟，返回 XPlay 後選擇已配對的 iPhone。</string>
+</resources>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_car_manual_title">Ajustes del vehículo</string>
+    <string name="settings_car_manual_help">Abre el control correspondiente desde la pantalla de inicio del vehículo y vuelve a XPlay. Esta unidad no permite abrir los ajustes del sistema desde XPlay. La falta de permisos puede impedir que funcione la característica.</string>
+    <string name="settings_car_permission_status">Estado de permisos</string>
+    <string name="settings_car_granted">Concedido</string>
+    <string name="settings_car_missing">No concedido</string>
+    <string name="settings_car_not_required">No necesario en esta versión de Android</string>
+    <string name="settings_car_unknown">No se puede leer</string>
+    <string name="settings_car_bluetooth">Bluetooth / dispositivos cercanos</string>
+    <string name="settings_car_microphone">Micrófono</string>
+    <string name="settings_car_storage">Almacenamiento público</string>
+    <string name="settings_car_notifications">Notificaciones</string>
+    <string name="settings_car_overlay">Mostrar sobre otras aplicaciones</string>
+    <string name="settings_car_accessibility">Servicio de accesibilidad para confirmar USB</string>
+    <string name="settings_car_usage">Acceso de uso</string>
+    <string name="settings_car_phone_image">Subir imagen desde el teléfono</string>
+    <string name="settings_car_phone_image_hint">Conecta el teléfono y la unidad a la misma red. Escanea el código, elige una imagen y súbela; después recórtala y guárdala en la unidad. Mantén este panel abierto. Las imágenes solo se transfieren en la red local.</string>
+    <string name="settings_car_upload">Elegir imagen y subir</string>
+    <string name="settings_car_upload_busy">Subiendo…</string>
+    <string name="settings_car_upload_ok">Imagen recibida. Recórtala y guárdala en la unidad.</string>
+    <string name="settings_car_upload_failed">Error de subida. Usa una imagen JPEG o PNG más pequeña.</string>
+    <string name="settings_car_install_manually">Instalación manual</string>
+    <string name="settings_car_install_help">Actualización descargada y verificada. Abre un gestor de archivos o instalador compatible desde el inicio del vehículo e instala este APK manualmente.\n%1$s</string>
+    <string name="settings_car_install_private">El APK verificado está en el almacenamiento privado de la aplicación. Descárgalo en un teléfono u ordenador y usa el método de instalación compatible con tu vehículo.</string>
+    <string name="settings_car_hotspot_title">Instrucciones del punto de acceso</string>
+    <string name="settings_car_wifi_title">Instrucciones de Wi-Fi</string>
+    <string name="settings_car_bluetooth_title">Instrucciones de emparejamiento Bluetooth</string>
+    <string name="settings_car_hotspot_help">Activa el punto de acceso desde el inicio del vehículo. Introduce el mismo nombre y contraseña en XPlay, conecta el iPhone a ese punto y vuelve para conectar CarPlay.</string>
+    <string name="settings_car_wifi_help">Conecta la unidad a Wi-Fi desde el inicio del vehículo. Conecta el iPhone a la misma red y vuelve a XPlay.</string>
+    <string name="settings_car_bluetooth_help">Abre Bluetooth desde el inicio del vehículo y empareja el iPhone. Mantén Bluetooth y Wi-Fi activos en el teléfono, vuelve a XPlay y selecciona el iPhone emparejado.</string>
+</resources>

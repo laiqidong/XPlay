@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_car_manual_title">Настройки автомобиля</string>
+    <string name="settings_car_manual_help">Откройте нужный раздел с главного экрана автомобиля, затем вернитесь в XPlay. Эта магнитола не позволяет открывать системные настройки из XPlay. Без разрешений связанные функции могут не работать.</string>
+    <string name="settings_car_permission_status">Состояние разрешений</string>
+    <string name="settings_car_granted">Разрешено</string>
+    <string name="settings_car_missing">Не разрешено</string>
+    <string name="settings_car_not_required">Не требуется в этой версии Android</string>
+    <string name="settings_car_unknown">Не удалось прочитать</string>
+    <string name="settings_car_bluetooth">Bluetooth / устройства поблизости</string>
+    <string name="settings_car_microphone">Микрофон</string>
+    <string name="settings_car_storage">Общее хранилище</string>
+    <string name="settings_car_notifications">Уведомления</string>
+    <string name="settings_car_overlay">Поверх других приложений</string>
+    <string name="settings_car_accessibility">Спецвозможности автоподтверждения USB</string>
+    <string name="settings_car_usage">Доступ к статистике использования</string>
+    <string name="settings_car_phone_image">Загрузить изображение с телефона</string>
+    <string name="settings_car_phone_image_hint">Подключите телефон и магнитолу к одной сети. Отсканируйте код, выберите и загрузите изображение, затем обрежьте и сохраните его на магнитоле. Не закрывайте это окно. Передача идёт только по локальной сети.</string>
+    <string name="settings_car_upload">Выбрать и загрузить изображение</string>
+    <string name="settings_car_upload_busy">Загрузка…</string>
+    <string name="settings_car_upload_ok">Изображение получено. Обрежьте и сохраните его на магнитоле.</string>
+    <string name="settings_car_upload_failed">Не удалось загрузить. Выберите JPEG или PNG меньшего размера.</string>
+    <string name="settings_car_install_manually">Ручная установка</string>
+    <string name="settings_car_install_help">Обновление загружено и проверено. Откройте поддерживаемый файловый менеджер или установщик с главного экрана автомобиля и установите APK вручную.\n%1$s</string>
+    <string name="settings_car_install_private">Проверенный APK находится в закрытом хранилище приложения. Загрузите APK на телефон или компьютер и установите способом, поддерживаемым автомобилем.</string>
+    <string name="settings_car_hotspot_title">Инструкция по точке доступа</string>
+    <string name="settings_car_wifi_title">Инструкция по Wi-Fi</string>
+    <string name="settings_car_bluetooth_title">Инструкция по сопряжению Bluetooth</string>
+    <string name="settings_car_hotspot_help">Включите точку доступа с главного экрана автомобиля. Введите то же имя и пароль в XPlay, подключите iPhone к этой точке и вернитесь для подключения CarPlay.</string>
+    <string name="settings_car_wifi_help">Подключите магнитолу к Wi-Fi с главного экрана автомобиля. Подключите iPhone к той же сети и вернитесь в XPlay.</string>
+    <string name="settings_car_bluetooth_help">Откройте Bluetooth с главного экрана автомобиля и выполните сопряжение с iPhone. Оставьте Bluetooth и Wi-Fi на телефоне включёнными, вернитесь в XPlay и выберите сопряжённый iPhone.</string>
+</resources>
