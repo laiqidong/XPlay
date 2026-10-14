@@ -105,7 +105,7 @@ class SettingsWidgetsTest {
         assertEquals(DiPlayPalette.LIGHT.secondaryText, texts[1].currentTextColor)
         assertEquals(DiPlayPalette.LIGHT.trackOff, row.switch.trackTintList!!.getColorForState(intArrayOf(android.R.attr.state_enabled), 0))
         assertEquals(
-            DiPlayPalette.LIGHT.accent,
+            Color.WHITE,
             row.switch.thumbTintList!!.getColorForState(intArrayOf(android.R.attr.state_enabled, android.R.attr.state_checked), 0),
         )
         assertEquals(DiPlayPalette.LIGHT.ripple, theme.ripple)

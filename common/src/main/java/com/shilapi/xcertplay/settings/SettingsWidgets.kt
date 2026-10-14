@@ -64,7 +64,7 @@ object SettingsWidgets {
      * Replaces the platform switch (about a 36x14dp track) with a 60x34dp track and a 28dp thumb,
      * so the state reads at arm's length on a head unit.
      */
-    fun applyLargeSwitchStyle(switch: Switch, thumbOn: Int, thumbOff: Int, trackOn: Int, trackOff: Int) {
+    fun applyLargeSwitchStyle(switch: Switch, thumbOn: Int, thumbOff: Int, trackOn: Int, trackOff: Int, settingsStyle: Boolean = false) {
         val density = switch.resources.displayMetrics.density
         fun px(value: Int) = (value * density).roundToInt()
         // Switch stretches the thumb to the full track height, so the inset keeps a margin around it.
@@ -82,11 +82,11 @@ object SettingsWidgets {
             setSize(px(60), px(34))
             setColor(Color.WHITE)
             // Same 30% track as the platform switch, so the colours match the smaller switches.
-            alpha = (0.3f * 255).roundToInt()
+            alpha = if (settingsStyle) 255 else (0.3f * 255).roundToInt()
         }
         switch.switchMinWidth = px(60)
         switch.showText = false
-        switch.thumbTintList = switchStates(thumbOn, thumbOff)
+        switch.thumbTintList = if (settingsStyle) switchStates(Color.WHITE, Color.WHITE) else switchStates(thumbOn, thumbOff)
         switch.trackTintList = switchStates(trackOn, trackOff)
     }
 
@@ -118,7 +118,7 @@ object SettingsWidgets {
             isChecked = checked
             this.contentDescription = contentDescription
             isEnabled = enabled
-            applyLargeSwitchStyle(this, theme.accent, theme.textSecondary, theme.accentTrack, theme.trackOff)
+            applyLargeSwitchStyle(this, theme.accent, theme.textSecondary, theme.accentTrack, theme.trackOff, settingsStyle = !theme.isOverlay)
             if (!theme.isOverlay) minHeight = theme.dp(context, 56)
             setOnCheckedChangeListener { _, isChecked -> onChanged(isChecked) }
         }

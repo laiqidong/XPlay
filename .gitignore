@@ -39,3 +39,6 @@ release-signing.properties
 *.key
 *.apk
 *.aab
+
+# Local Git history backups (copy elsewhere for an independent backup).
+/.local-backups/

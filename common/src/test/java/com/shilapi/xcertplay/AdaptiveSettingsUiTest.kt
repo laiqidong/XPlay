@@ -121,12 +121,12 @@ class AdaptiveSettingsUiTest {
         val scroll = ReflectionHelpers.getField<ScrollView>(screen, "rootScroll")
 
         assertSame(DiPlayPalette.LIGHT, palette)
-        assertEquals(DiPlayPalette.LIGHT.background, (scroll.background as ColorDrawable).color)
+        assertEquals(DiPlayPalette.settings(false).background, (scroll.background as ColorDrawable).color)
         assertEquals(
-            DiPlayPalette.LIGHT.background,
+            DiPlayPalette.settings(false).background,
             (screen.window.decorView.background as ColorDrawable).color,
         )
-        assertEquals(DiPlayPalette.LIGHT.systemBar, screen.window.navigationBarColor)
+        assertEquals(DiPlayPalette.settings(false).systemBar, screen.window.navigationBarColor)
     }
 
     @Test fun headerShortcutTogglesAppearanceAndReturnsFocusToItself() {
@@ -161,7 +161,7 @@ class AdaptiveSettingsUiTest {
 
         assertSame(DiPlayPalette.DARK, ReflectionHelpers.getField<DiPlayPalette>(screen, "palette"))
         val scroll = ReflectionHelpers.getField<ScrollView>(screen, "rootScroll")
-        assertEquals(DiPlayPalette.DARK.background, (scroll.background as ColorDrawable).color)
+        assertEquals(DiPlayPalette.settings(true).background, (scroll.background as ColorDrawable).color)
     }
 
     @Test fun hostAppearancePublishedOffMainRepaintsOnMain() {

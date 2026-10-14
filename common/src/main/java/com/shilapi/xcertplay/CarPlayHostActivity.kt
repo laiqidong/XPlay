@@ -140,6 +140,7 @@ class CarPlayHostActivity : ComponentActivity() {
     )
 
     private var connectionPanel: View? = null
+    private var connectionProgress: ConnectionLoadingIndicator? = null
     private var connectionInstructionsView: TextView? = null
     private var connectionHelpView: TextView? = null
     private var wifiRecoveryButton: View? = null
@@ -176,7 +177,7 @@ class CarPlayHostActivity : ComponentActivity() {
         remoteMfiServer = remoteMfiServer.trim().takeIf { it.isNotEmpty() },
         remoteMfiToken = remoteMfiToken.takeIf { it.isNotEmpty() },
         identification = Iap2IdentificationConfig(
-            name = "DiPlay",
+            name = "XPlay",
             modelIdentifier = normalizedModel(),
             manufacturer = normalizedManufacturer(),
             serialNumber = "DIPLAY-" + DiPlayBootstrap.deviceId(airPlayIdentity).replace(":", ""),
@@ -188,7 +189,7 @@ class CarPlayHostActivity : ComponentActivity() {
             chargingConnectors = com.shilapi.xcertplay.hud.BydOutputSettings.chargingConnectors(this),
             vehicleSpeedEnabled = locationReportingEnabled && com.shilapi.xcertplay.hud.BydOutputSettings.wheelSpeedToIphoneActive(this),
         ),
-        label = "DiPlay",
+        label = "XPlay",
         hostName = "diplay-" + DiPlayBootstrap.deviceId(airPlayIdentity).replace(":", "").lowercase(),
         hostMac = DiPlayBootstrap.deviceId(airPlayIdentity).split(":").map { it.toInt(16).toByte() }.toByteArray(),
         wirelessBluetoothDeviceAddress = DiPlayPreferences.phoneAddress(this),
@@ -1687,7 +1688,7 @@ class CarPlayHostActivity : ComponentActivity() {
             override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
                 super.onMeasure(widthMeasureSpec, heightMeasureSpec)
                 getChildAt(0)?.measure(
-                    View.MeasureSpec.makeMeasureSpec((measuredWidth - paddingLeft - paddingRight).coerceAtLeast(0), View.MeasureSpec.EXACTLY),
+                    View.MeasureSpec.makeMeasureSpec(minOf(dp(WAITING_PANEL_MAX_WIDTH_DP), (measuredWidth - paddingLeft - paddingRight - dp(WAITING_PANEL_MARGIN_DP) * 2).coerceAtLeast(0)), View.MeasureSpec.EXACTLY),
                     View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 )
             }
@@ -1702,9 +1703,9 @@ class CarPlayHostActivity : ComponentActivity() {
             setImageResource(R.drawable.ic_carplay)
             contentDescription = getString(R.string.carplay)
         }
-        panel.addView(icon, LinearLayout.LayoutParams(dp(88), dp(88)))
+        panel.addView(icon, LinearLayout.LayoutParams(dp(56), dp(56)))
         val title = TextView(this).apply {
-            text = getString(R.string.diplay)
+            text = getString(R.string.carplay)
             gravity = Gravity.CENTER
             typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
         }
@@ -1712,8 +1713,14 @@ class CarPlayHostActivity : ComponentActivity() {
         val stage = TextView(this).apply {
             text = getString(R.string.getting_carplay_ready)
             gravity = Gravity.CENTER
+            accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
         }
         panel.addView(stage)
+        val progress = ConnectionLoadingIndicator(this).also { connectionProgress = it }
+        panel.addView(progress, LinearLayout.LayoutParams(dp(WAITING_PROGRESS_WIDTH_DP), dp(16)).apply {
+            topMargin = dp(WAITING_CONTENT_GAP_DP)
+            bottomMargin = dp(WAITING_CONTENT_GAP_DP)
+        })
         val instructions = TextView(this).apply {
             text = if (wirelessEnabled) getString(R.string.keep_your_iphone_nearby_with_bluetooth_and_wi_fi_on_allow)
                 else getString(R.string.use_a_usb_data_cable_and_unlock_your_iphone_allow_trust_an)
@@ -1758,20 +1765,33 @@ class CarPlayHostActivity : ComponentActivity() {
         }
         panel.addView(gestureHint)
         paintWaitingScreen = {
-            val colors = WaitingScreenColors.of(darkMode)
+            val colors = WaitingScreenColors.of(appNight)
             viewport.setBackgroundColor(colors.background)
+            val buttonPalette = DiPlayPalette.settings(appNight)
+            if (activeScreenStreamTypes.isEmpty()) {
+                window.statusBarColor = buttonPalette.systemBar
+                window.navigationBarColor = buttonPalette.systemBar
+                WindowInsetsControllerCompat(window, window.decorView).apply {
+                    isAppearanceLightStatusBars = !appNight
+                    isAppearanceLightNavigationBars = !appNight
+                }
+            }
+            panel.background = GradientDrawable().apply {
+                setColor(buttonPalette.surface)
+                cornerRadius = dp(WAITING_CARD_RADIUS_DP).toFloat()
+            }
+            progress.color = buttonPalette.accent
             title.setTextColor(colors.text)
             stage.setTextColor(colors.text)
             instructions.setTextColor(colors.secondary)
             help.setTextColor(colors.secondary)
             gestureHint.setTextColor(colors.secondary)
-            val buttonPalette = DiPlayPalette.of(darkMode)
-            back.style(DiPlayButtonKind.PRIMARY, buttonPalette, overlay = false)
-            retry.style(DiPlayButtonKind.SECONDARY, buttonPalette, overlay = false)
-            recovery.style(DiPlayButtonKind.SECONDARY, buttonPalette, overlay = false)
+            back.style(DiPlayButtonKind.SECONDARY, buttonPalette, overlay = false, compactCorners = true)
+            retry.style(DiPlayButtonKind.PRIMARY, buttonPalette, overlay = false, compactCorners = true)
+            recovery.style(DiPlayButtonKind.SECONDARY, buttonPalette, overlay = false, compactCorners = true)
         }
         paintWaitingScreen()
-        viewport.addView(panel, FrameLayout.LayoutParams(-1, -2, Gravity.CENTER))
+        viewport.addView(panel, FrameLayout.LayoutParams(-2, -2, Gravity.CENTER))
         root.addView(viewport, FrameLayout.LayoutParams(-1, -1))
         // Above the video and gesture layer, below the menus.
         sidePanelBlur = ImageView(this).apply {
@@ -1788,7 +1808,7 @@ class CarPlayHostActivity : ComponentActivity() {
             val fraction = ((height.toFloat() / resources.displayMetrics.density - 240f) / 240f).coerceIn(0f, 1f)
             fun size(short: Float, regular: Float) = short + (regular - short) * fraction
             fun spacing(short: Float, regular: Float) = dp(size(short, regular).toInt())
-            val availableWidth = viewport.width - viewport.paddingLeft - viewport.paddingRight - dp(48)
+            val availableWidth = minOf(dp(WAITING_PANEL_MAX_WIDTH_DP), viewport.width - viewport.paddingLeft - viewport.paddingRight - dp(WAITING_PANEL_MARGIN_DP) * 2) - dp(48)
             val buttonWidth = minOf(dp(300), availableWidth.coerceAtLeast(dp(48)))
             for (button in listOf(back, recovery, retry)) {
                 if (button.layoutParams.width != buttonWidth) {
@@ -1798,18 +1818,18 @@ class CarPlayHostActivity : ComponentActivity() {
             if (preparationHeight == height) return
             preparationHeight = height
             panel.setPadding(dp(24), spacing(16f, 32f), dp(24), spacing(16f, 32f))
-            val iconSize = spacing(54f, 88f)
+            val iconSize = spacing(40f, 56f)
             icon.layoutParams = LinearLayout.LayoutParams(iconSize, iconSize)
-            title.textSize = size(26f, 34f)
-            title.setPadding(0, spacing(8f, 18f), 0, spacing(6f, 14f))
-            stage.textSize = size(19f, 22f)
+            title.textSize = size(22f, 28f)
+            title.setPadding(0, spacing(8f, 12f), 0, spacing(6f, 10f))
+            stage.textSize = size(18f, 20f)
             instructions.textSize = size(15f, 17f)
-            instructions.setPadding(0, spacing(8f, 14f), 0, spacing(12f, 24f))
+            instructions.setPadding(0, 0, 0, spacing(12f, 24f))
             help.textSize = size(15f, 17f)
             help.setPadding(0, spacing(8f, 14f), 0, spacing(12f, 24f))
             for (button in listOf(back, recovery, retry)) {
                 button.textSize = size(17f, 18f)
-                button.layoutParams = button.layoutParams.apply { this.height = spacing(50f, 64f) }
+                button.layoutParams = button.layoutParams.apply { this.height = spacing(50f, 56f) }
             }
             gestureHint.textSize = size(12.5f, 13f)
             gestureHint.setPadding(0, spacing(10f, 20f), 0, 0)
@@ -2465,6 +2485,7 @@ class CarPlayHostActivity : ComponentActivity() {
         val nextNight = resolveAppNightNow(darkMode)
         if (nextNight == appNight) return
         appNight = nextNight
+        paintWaitingScreen()
 
         settingsMenu?.let { previous ->
             val parent = previous.parent as? ViewGroup ?: return@let
@@ -4565,7 +4586,7 @@ class CarPlayHostActivity : ComponentActivity() {
         val carBluetoothAudio = AirPlayPersistence.loadCarBluetoothAudio(this)
         if (carBluetoothAudio) logCarBluetoothAudio()
         return AirPlayConfig(
-            deviceName = "DiPlay",
+            deviceName = "XPlay",
             deviceId = DiPlayBootstrap.deviceId(airPlayIdentity),
             btMac = DiPlayBluetooth.localAddress(this) ?: DiPlayBootstrap.deviceId(airPlayIdentity),
             sourceVersion = "950.7.1",
@@ -4645,10 +4666,10 @@ class CarPlayHostActivity : ComponentActivity() {
                 AirPlayPersistence.clearCustomAirPlayIcon(this)
             }
         }
-        val bitmap = customBitmap ?: BitmapFactory.decodeResource(resources, R.raw.placeholder_icon)
+        val bitmap = customBitmap ?: BitmapFactory.decodeResource(resources, R.raw.ic_car_home)
         preview.setImageBitmap(bitmap)
         iconStatusView?.text =
-            if (customBitmap != null) getString(R.string.custom_1_1_icon) else getString(R.string.default_placeholder_icon)
+            if (customBitmap != null) getString(R.string.custom_1_1_icon) else getString(R.string.default_icon)
     }
 
     private fun currentActivitySize(): DisplaySize? {
@@ -5149,6 +5170,7 @@ class CarPlayHostActivity : ComponentActivity() {
         newConfig: Configuration = resources.configuration,
         source: ThemeModeDiagnostics.Source,
     ) {
+        paintWaitingScreen()
         if (lastConfiguration == newConfig) {
             logThemeState(source, newConfig)
             return
@@ -5650,7 +5672,7 @@ class CarPlayHostActivity : ComponentActivity() {
         if (!menuOpen) return
         if (menuSettingsSignature?.let { it != menuSettingsSignature() } == true) {
             // Follow the menu's light or dark palette, like DiPlay's other dialogs.
-            AlertDialog.Builder(this, if (appNight) R.style.Theme_Xcertplay_Dialog_Dark else R.style.Theme_Xcertplay_Dialog_Light)
+            appDialogBuilder()
                 .setTitle(getString(R.string.settings_discard_pending_title))
                 .setMessage(getString(R.string.settings_discard_pending_message))
                 .setPositiveButton(getString(R.string.save_and_reconnect)) { _, _ -> saveSettingsAndReconnect() }
@@ -6017,6 +6039,7 @@ class CarPlayHostActivity : ComponentActivity() {
         setConnectionStage(getString(stringId), englishResources.getString(stringId))
 
     private fun showConnectionHelp(failure: CarPlayStatus.Failed?) {
+        connectionProgress?.visibility = if (failure == null) View.VISIBLE else View.GONE
         connectionInstructionsView?.visibility = if (failure == null) View.VISIBLE else View.GONE
         connectionHelpView?.apply {
             visibility = if (failure == null) View.GONE else View.VISIBLE
@@ -6033,7 +6056,16 @@ class CarPlayHostActivity : ComponentActivity() {
 
     private fun updateDebugOverlays() {
         statusScrollView?.visibility = View.GONE
-        connectionPanel?.visibility = if (activeScreenStreamTypes.isEmpty()) View.VISIBLE else View.GONE
+        val waiting = activeScreenStreamTypes.isEmpty()
+        connectionPanel?.visibility = if (waiting) View.VISIBLE else View.GONE
+        if (waiting) paintWaitingScreen() else {
+            window.statusBarColor = Color.BLACK
+            window.navigationBarColor = Color.BLACK
+            WindowInsetsControllerCompat(window, window.decorView).apply {
+                isAppearanceLightStatusBars = false
+                isAppearanceLightNavigationBars = false
+            }
+        }
     }
 
     // The keywords are English; matching the English text keeps the result the same in every UI language.
@@ -6176,6 +6208,11 @@ class CarPlayHostActivity : ComponentActivity() {
     }
 
     private companion object {
+        private const val WAITING_PANEL_MAX_WIDTH_DP = 640
+        private const val WAITING_PANEL_MARGIN_DP = 24
+        private const val WAITING_CONTENT_GAP_DP = 12
+        private const val WAITING_PROGRESS_WIDTH_DP = 48
+        private const val WAITING_CARD_RADIUS_DP = 20
         const val CLUSTER_SMALL_WINDOW_ON = 1
         const val CLUSTER_SMALL_WINDOW_AUTO = 2
         const val SIDE_PANEL_REFRESH_MILLIS = 5_000L

@@ -35,11 +35,11 @@ class DiPlayPaletteTest {
 
     @Test fun waitingScreenDelegationKeepsItsExactLightAndDarkColors() {
         assertEquals(
-            WaitingScreenColors(Color.rgb(12, 17, 27), Color.rgb(241, 245, 252), Color.rgb(168, 182, 202)),
+            WaitingScreenColors(Color.rgb(41, 38, 38), Color.rgb(222, 222, 222), Color.rgb(158, 158, 158)),
             WaitingScreenColors.of(night = true),
         )
         assertEquals(
-            WaitingScreenColors(Color.rgb(233, 238, 246), Color.rgb(28, 28, 30), Color.rgb(90, 100, 116)),
+            WaitingScreenColors(Color.WHITE, Color.rgb(39, 39, 39), Color.rgb(128, 128, 128)),
             WaitingScreenColors.of(night = false),
         )
     }

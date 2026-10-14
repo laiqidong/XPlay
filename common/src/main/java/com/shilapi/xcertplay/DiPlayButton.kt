@@ -20,6 +20,7 @@ internal class DiPlayButton(context: Context) : Button(context) {
     private var kind = DiPlayButtonKind.SECONDARY
     private var palette: DiPlayPalette? = null
     private var overlay = false
+    private var compactCorners = false
 
     init {
         isAllCaps = false
@@ -28,10 +29,11 @@ internal class DiPlayButton(context: Context) : Button(context) {
     }
 
     /** [overlay] picks the in-car menu colours instead of the app chrome colours. */
-    fun style(kind: DiPlayButtonKind, palette: DiPlayPalette, overlay: Boolean) {
+    fun style(kind: DiPlayButtonKind, palette: DiPlayPalette, overlay: Boolean, compactCorners: Boolean = false) {
         this.kind = kind
         this.palette = palette
         this.overlay = overlay
+        this.compactCorners = compactCorners || !overlay
         repaint()
     }
 
@@ -71,14 +73,15 @@ internal class DiPlayButton(context: Context) : Button(context) {
                 stroke = ColorUtils.blendARGB(surface, palette.overlayDanger, 0.48f)
             }
         }
-        val radius = minOf(24f * density, (if (height > 0) height else minHeight) * 20f / 56)
+        val controlHeight = if (height > 0) height else minHeight
+        val radius = if (compactCorners) controlHeight * 0.22f else minOf(24f * density, controlHeight * 20f / 56)
         setTextColor(text)
         background = RippleDrawable(
             ColorStateList.valueOf(palette.ripple),
             GradientDrawable().apply {
                 setColor(fill)
                 cornerRadius = radius
-                setStroke((1 * density).toInt().coerceAtLeast(1), stroke)
+                if (!compactCorners) setStroke((1 * density).toInt().coerceAtLeast(1), stroke)
             },
             null,
         )

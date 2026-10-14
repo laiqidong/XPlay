@@ -10,6 +10,14 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SetupGuideTest {
+    @Test fun xplayGuideStartsWithConnectionAndOffersGenericFeatures() {
+        assertEquals(0, SetupGuide.STEP_CONNECTION)
+        assertEquals(4, SetupGuide.STEP_COUNT)
+        assertEquals(SetupGuide.STEP_COUNT - 1, SetupGuide.STEP_DONE)
+        assertEquals(listOf(Feature.AUTO_CONNECT, Feature.LOCATION), SetupGuide.features().map { it.feature })
+        assertTrue(SetupGuide.features().none { it.needsAdb })
+    }
+
     @Test fun gccHanDiLink3IsDetectedFromItsProduct() {
         val detection = DiLinkGeneration.detect("DiLink3.0",
             "BYD-AUTO/DiLink3.0/DiLink3.0:10/QKQ1.210910.001/eng.build.20260204.025317:user/release-keys", null, 29)
