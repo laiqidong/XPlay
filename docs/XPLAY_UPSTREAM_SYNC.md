@@ -5,9 +5,11 @@
 - 定制分支：`codex/xplay-custom`
 - 上游：`https://github.com/shihabal3amri/DiPlay.git`，远程名 `upstream`
 - 初始上游提交：`9aa9c549`（0.2.19 public preview）
+- 最近同步：2026-10-14，合入 `upstream/main` 的 `c30d3f0d`（36 个上游提交，含合并提交）。
+- 此次合并前恢复点：`xplay-before-upstream-20261014-merge`。
 - `upstream` 的 push 地址已禁用，避免把定制推到原仓库。
 - 本地恢复点：`xplay-custom-20261014`
-- 本次只保存定制，不合并上游新版本；实际功能由用户验证。
+- 已同步上述上游开发代码；只编译安装包，实际功能由用户验证。
 
 定制包括 XPlay 品牌、XPENG 车辆图标、国内构建镜像、通用设置向导、首页及设置布局、统一黑白配色、自绘应用弹窗和连接动画。现有截图是历史界面记录，不代表当前所有页面已验证。
 
