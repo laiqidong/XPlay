@@ -81,13 +81,6 @@ import com.shilapi.xcertplay.setup.DiLinkGeneration
 import com.shilapi.xcertplay.setup.SetupGuide
 import com.shilapi.xcertplay.transport.EvChargingConnectors
 import com.shilapi.xcertplay.update.BackgroundUpdateScheduler
-import com.shilapi.xcertplay.update.UpdateApkExport
-import com.shilapi.xcertplay.update.UpdateAvailability
-import com.shilapi.xcertplay.update.UpdateCatalog
-import com.shilapi.xcertplay.update.UpdateChecksums
-import com.shilapi.xcertplay.update.UpdateClient
-import com.shilapi.xcertplay.update.UpdateRelease
-import com.shilapi.xcertplay.update.UpdateReleaseLookup
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -224,22 +217,13 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     private var vehicleProbeOutcome: BydVehicleProbeOutcome? = null
     private var adbCheckGeneration = 0
     private var adbStatus: TextView? = null
-    private var availableUpdate: UpdateRelease? = null
-    private var updateSavedPath: String? = null
-    private var updateSavedUri: Uri? = null
-    /** Runs the check of the public update copy; tests run it inline. */
+    /** Legacy test seam; no production update installation path uses this. */
     internal var updateInstallWorker: (Runnable) -> Unit = { Thread(it, "diplay-update-install").start() }
-    @Volatile private var updateStage = UpdateStage.IDLE
     @Volatile private var backupServer: SettingsBackupServer? = null
     @Volatile private var backupEndpoint: SettingsBackupEndpoint? = null
     /** The Settings category that opened the phone page, and the one to go back to. */
     private var backupOpenedFrom = SettingsCategory.ABOUT
     @Volatile private var backupSummary: String? = null
-    @Volatile private var updateGeneration = 0
-    @Volatile private var updateProgress: Int? = null
-    private var updateRelease: UpdateRelease? = null
-    private var updateFile: File? = null
-    private var updateMessage: String? = null
     private var carButtonCard: LinearLayout? = null
     private var bydAdbControls: LinearLayout? = null
     private var adbSwitchChangePending = false
@@ -355,8 +339,9 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         if (savedInstanceState == null && isLauncherIntent(intent) && CarPlayBackgroundSession.hasSession()) {
             openProjection(); finish(); return
         }
-        scheduleBackgroundUpdateChecks()
-        availableUpdate = UpdateAvailability.available(this, version())
+        // Retire work queued by older builds; XPlay updates are maintained in our own repository.
+        runCatching { BackgroundUpdateScheduler.disable(applicationContext) }
+            .onFailure { Log.w("XPlay-Update", "Could not retire old update work", it) }
         enforceInterfaceSize()
         refreshAppearance()
         rememberLaunchAppearance()
@@ -926,30 +911,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             matchButton(height = if (compact) 54 else CONTROL_HEIGHT_DP))
         right.addView(homeButton(getString(R.string.settings), false) { page = "settings"; render() },
             matchButton(HOME_TEXT_GAP_DP, if (compact) 54 else CONTROL_HEIGHT_DP))
-        availableUpdate?.let { release ->
-            val message = getString(R.string.update_available_home)
-            val tint = { alpha: Int -> (WARNING and 0x00FFFFFF) or (alpha shl 24) }
-            val chip = GradientDrawable().apply {
-                setColor(tint(0x26))
-                cornerRadius = dp(16).toFloat()
-                setStroke(dp(1), tint(0x80))
-            }
-            right.addView(label(message, 14, WARNING, true).apply {
-                gravity = Gravity.CENTER
-                minHeight = dp(60)
-                setPadding(dp(12), dp(8), dp(12), dp(8))
-                isClickable = true
-                isFocusable = true
-                contentDescription = message
-                background = RippleDrawable(
-                    ColorStateList.valueOf(RIPPLE),
-                    chip,
-                    GradientDrawable().apply { setColor(Color.WHITE); cornerRadius = dp(16).toFloat() },
-                )
-                foreground = focusRing(radiusDp = 16)
-                setOnClickListener { openAvailableUpdate(release) }
-            }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) })
-        }
         if (compact && resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             body.addView(row().apply {
                 gravity = Gravity.TOP
@@ -2358,10 +2319,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         settingsPageTitle(content, getString(R.string.about_diplay), getString(R.string.carplay_at_home_in_your_car))
         section(content, getString(R.string.about_public_preview_prefix, version())) { card ->
             card.addView(label(getString(R.string.an_independent_carplay_receiver_for_android_head_units_wir), 17, TEXT))
-            card.addView(updateRow())
-            toggle(card, getString(R.string.settings_background_update_checks),
-                getString(R.string.settings_background_update_checks_description),
-                UpdateAvailability.backgroundChecksEnabled(this)) { UpdateAvailability.saveBackgroundChecksEnabled(this, it) }
         }
         section(content, getString(R.string.backup_title)) { card ->
             card.addView(button(getString(R.string.backup_open), false) { openBackup() }, matchButton(0, 60))
@@ -2371,8 +2328,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             card.addView(label(getString(R.string.receiver_based_on_xcertplay_licensed_under_gpl_3_0_diplay), 16, MUTED))
         }
     }
-
-    private enum class UpdateStage { IDLE, CHECKING, AVAILABLE, DOWNLOADING, VERIFYING, READY, FAILED }
 
     private fun openBackup(from: SettingsCategory = SettingsCategory.ABOUT) {
         backupOpenedFrom = from
@@ -2481,165 +2436,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     }
 
     private fun backupPageHtml(): ByteArray = assets.open("settings-backup.html").use { it.readBytes() }
-
-    private fun updateRow(): View {
-        val container = column().apply { setPadding(0, dp(12), 0, 0) }
-        updateMessage?.let { container.addView(label(it, 14, MUTED)) }
-        when (updateStage) {
-            UpdateStage.IDLE, UpdateStage.FAILED ->
-                container.addView(button(getString(R.string.update_check), false) { checkForUpdates() },
-                    matchButton(if (updateMessage == null) 0 else 10, 60))
-            UpdateStage.CHECKING -> container.addView(label(getString(R.string.update_checking), 14, MUTED))
-            UpdateStage.AVAILABLE -> container.addView(
-                button(getString(R.string.update_download), true) { downloadUpdate() },
-                matchButton(10, 60))
-            UpdateStage.DOWNLOADING -> container.addView(label(getString(R.string.update_downloading, updateProgress ?: 0), 14, MUTED))
-            UpdateStage.VERIFYING -> container.addView(label(getString(R.string.update_verifying), 14, MUTED))
-            UpdateStage.READY -> {
-                container.addView(
-                    button(getString(R.string.settings_car_install_manually), true) { installUpdate() },
-                    matchButton(10, 60))
-                updateSavedPath?.let { container.addView(label(getString(R.string.update_saved_to, it), 13, MUTED).apply { setPadding(0, dp(10), 0, 0) }) }
-            }
-        }
-        return container
-    }
-
-    private fun checkForUpdates() {
-        updateStage = UpdateStage.CHECKING
-        updateMessage = null
-        val generation = ++updateGeneration
-        render()
-        Thread({
-            val outcome = runCatching { latestRelease() }
-            runOnUiThread {
-                if (generation != updateGeneration || isFinishing || isDestroyed) return@runOnUiThread
-                outcome.fold(
-                    { release ->
-                        UpdateAvailability.recordAttempt(this, System.currentTimeMillis())
-                        availableUpdate = release
-                        if (release == null) {
-                            UpdateAvailability.clear(this)
-                            updateMessage = getString(R.string.update_up_to_date)
-                            updateStage = UpdateStage.IDLE
-                        } else {
-                            UpdateAvailability.save(this, release)
-                            updateRelease = release
-                            updateStage = UpdateStage.AVAILABLE
-                        }
-                        render()
-                    },
-                    { failure ->
-                        Log.w("DiPlay-Update", "update check failed", failure)
-                        updateMessage = failure.message ?: getString(R.string.update_failed)
-                        updateStage = UpdateStage.FAILED
-                        render()
-                    },
-                )
-            }
-        }, "diplay-update-check").start()
-    }
-
-    private fun latestRelease(): UpdateRelease? {
-        return UpdateReleaseLookup.latest(version(), userAgent())
-    }
-
-    private fun openAvailableUpdate(release: UpdateRelease) {
-        updateRelease = release
-        updateMessage = null
-        updateStage = UpdateStage.AVAILABLE
-        page = "settings"
-        settingsCategory = SettingsCategory.ABOUT
-        render()
-    }
-
-    private fun scheduleBackgroundUpdateChecks() {
-        runCatching { BackgroundUpdateScheduler.schedule(applicationContext) }
-            .onFailure { Log.i("DiPlay-Update", "background update scheduling unavailable", it) }
-    }
-
-    private fun downloadUpdate() {
-        if (updateRelease == null) return
-        lateinit var release: UpdateRelease
-        updateStage = UpdateStage.DOWNLOADING
-        updateSavedPath = null
-        updateSavedUri = null
-        updateProgress = null
-        updateMessage = null
-        val generation = ++updateGeneration
-        render()
-        Thread({
-            // Each attempt owns its files, including across activity recreation.
-            val directory = File(cacheDir, "update/${java.util.UUID.randomUUID()}")
-            val outcome = runCatching {
-                // The cached release can be a day old. Download the newest one.
-                release = latestRelease() ?: throw IOException(getString(R.string.update_up_to_date))
-                val checksumsFile = File(directory, UpdateCatalog.CHECKSUMS_FILE)
-                UpdateClient.download(release.checksumsUrl, checksumsFile) { _, _ -> }
-                val apkFile = File(directory, release.apkName)
-                UpdateClient.download(release.apkUrl, apkFile) { written, total ->
-                    val percent = total?.takeIf { it > 0 }?.let { (written * 100 / it).toInt() } ?: return@download
-                    if (percent != updateProgress) {
-                        updateProgress = percent
-                        refreshUpdateUi(generation)
-                    }
-                }
-                updateStage = UpdateStage.VERIFYING
-                refreshUpdateUi(generation)
-                val expected = UpdateChecksums.parse(checksumsFile.readText())
-                val actual = UpdateChecksums.sha256Hex(apkFile)
-                if (!UpdateChecksums.matches(expected, release.apkName, actual)) {
-                    throw IOException("Checksum mismatch for ${release.apkName}")
-                }
-                apkFile
-            }.onFailure { directory.deleteRecursively() }
-            val saved = outcome.getOrNull()?.let { UpdateApkExport.copy(applicationContext, it) }
-            runOnUiThread {
-                if (generation != updateGeneration || isFinishing || isDestroyed) {
-                    directory.deleteRecursively()
-                    return@runOnUiThread
-                }
-                outcome.fold(
-                    { file ->
-                        updateRelease = release
-                        updateFile = file
-                        updateSavedPath = saved?.path
-                        updateSavedUri = saved?.uri
-                        updateStage = UpdateStage.READY
-                        render()
-                    },
-                    { failure ->
-                        Log.w("DiPlay-Update", "update download failed", failure)
-                        updateMessage = failure.message ?: getString(R.string.update_failed)
-                        updateStage = UpdateStage.FAILED
-                        render()
-                    },
-                )
-            }
-        }, "diplay-update-download").start()
-    }
-
-    private fun installUpdate() {
-        // Keep installation in the car's supported launcher flow, never invoke a system installer here.
-        installApk(updateFile ?: return)
-    }
-
-    private fun installApk(file: File) {
-        if (!file.isFile) return
-        val instructions = updateSavedPath?.let { getString(R.string.settings_car_install_help, it) }
-            ?: getString(R.string.settings_car_install_private)
-        appDialogBuilder().setTitle(R.string.settings_car_install_manually).setMessage(instructions)
-            .setPositiveButton(R.string.close, null).show()
-    }
-
-    private fun refreshUpdateUi(generation: Int) {
-        runOnUiThread {
-            if (generation != updateGeneration || isFinishing || isDestroyed || !(page == "settings" && settingsCategory == SettingsCategory.ABOUT)) return@runOnUiThread
-            render()
-        }
-    }
-
-    private fun userAgent() = "DiPlay/${version()}"
 
     // An opted-in connection prepares the hotspot in the controller instead of stopping at this reminder.
     private fun carHotspotOff(): Boolean =
@@ -5422,7 +5218,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         appendLine(WheelKeyService.report(appContext))
         WheelKeyLog.report(WheelKeyService.connected()).forEach { appendLine(it) }
         appendLine()
-        appendLine(UpdateAvailability.report(appContext, System.currentTimeMillis()))
+        appendLine("Upstream update checking: disabled in XPlay")
         appendLine()
         appendLine("--- Recent own-app process exits (Android 11+) ---")
         appendLine(ProcessExitDiagnostics.report(appContext))
