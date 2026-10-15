@@ -1,0 +1,13 @@
+<resources>
+    <string name="settings_experiments">実験</string>
+    <string name="settings_vehicle_probe_title">車両情報（実験的機能）</string>
+    <string name="settings_vehicle_probe_description">車両の状態が変わると更新します。このページを離れると監視を停止します。— は取得不可です。</string>
+    <string name="settings_vehicle_probe_start">監視を開始</string>
+    <string name="settings_vehicle_monitor_stop">監視を停止</string>
+    <string name="settings_probe_gear">ギア</string>
+    <string name="settings_probe_speed">速度（生の値）</string>
+    <string name="settings_probe_accelerator">アクセル（生の値）</string>
+    <string name="settings_probe_brake">ブレーキ（0/1）</string>
+    <string name="settings_probe_battery">バッテリー（生の値）</string>
+    <string name="settings_vehicle_monitor_unavailable">車両状態の購読が利用できないか、権限がありません。</string>
+</resources>

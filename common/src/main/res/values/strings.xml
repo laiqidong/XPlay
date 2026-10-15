@@ -628,7 +628,7 @@
     <string name="auto_grant_confirm_title">Please Confirm ADB on Screen</string>
     <string name="auto_grant_confirm_msg">ADB authorization has not been confirmed. If the car shows an \"Allow USB debugging?\" prompt, approve it.\n\nPlease check \"Always allow\" and tap OK, then tap this button again to complete setup!</string>
     <string name="retry_auto_grant">Retry Auto-Grant</string>
-    <string name="manual_grant_reason_adboff">Local ADB (port 5555) is not active on this head unit.\nYou can enable Accessibility manually in system settings, or enable ADB over network.</string>
+    <string name="manual_grant_reason_adboff">Local ADB (port 5050/5555) is not active on this head unit.\nYou can enable Accessibility manually in system settings, or enable ADB over network.</string>
     <string name="btn_open_accessibility_setting">Open System Accessibility Settings</string>
     <string name="btn_open_overlay_setting">Open System Overlay Settings</string>
     <string name="manual_grant_cmd_hint">Or run this ADB command from your computer:</string>
@@ -929,4 +929,8 @@
     <string name="settings_mfi_target_description">Choose USB/CH341 only while a CH341 authentication adapter is connected to the head unit. Without one, choose Local offline. Applies at the next connection.</string>
     <string name="settings_call_speakerphone">Calls on the loudspeaker</string>
     <string name="settings_call_speakerphone_description">For an Android phone or tablet used as the head unit: plays CarPlay calls on its loudspeaker instead of the earpiece and uses its hands-free microphone. Leave off on a car head unit. Applies from the next call.</string>
+    <string name="settings_car_hotspot_adb_features">Car hotspot · needs ADB</string>
+    <string name="settings_test_car_hotspot">Test turning on hotspot</string>
+    <string name="settings_test_car_hotspot_already_on">Hotspot is already on. To test startup, turn it off in car settings, then press this button. This test never turns the hotspot off.</string>
+    <string name="settings_test_car_hotspot_running">Testing hotspot startup… Allow the debugging prompt if shown.</string>
 </resources>

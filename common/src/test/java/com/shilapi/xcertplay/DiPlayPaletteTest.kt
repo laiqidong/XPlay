@@ -17,18 +17,18 @@ import kotlin.math.pow
 class DiPlayPaletteTest {
     @Test fun darkPalettePreservesTheExistingProductionColors() {
         val palette = DiPlayPalette.DARK
-        assertEquals(Color.rgb(12, 17, 27), palette.background)
-        assertEquals(Color.rgb(21, 30, 44), palette.surface)
-        assertEquals(Color.rgb(31, 43, 61), palette.button)
-        assertEquals(Color.rgb(42, 56, 75), palette.outline)
-        assertEquals(Color.rgb(24, 54, 92), palette.railSelected)
-        assertEquals(Color.rgb(42, 82, 130), palette.railSelectedOutline)
-        assertEquals(Color.rgb(241, 245, 252), palette.primaryText)
-        assertEquals(Color.rgb(168, 182, 202), palette.secondaryText)
-        assertEquals(Color.rgb(166, 200, 255), palette.accent)
+        assertEquals(Color.rgb(41, 38, 38), palette.background)
+        assertEquals(Color.rgb(46, 45, 45), palette.surface)
+        assertEquals(Color.rgb(62, 61, 61), palette.button)
+        assertEquals(Color.rgb(55, 54, 54), palette.outline)
+        assertEquals(Color.rgb(0, 122, 255), palette.railSelected)
+        assertEquals(Color.TRANSPARENT, palette.railSelectedOutline)
+        assertEquals(Color.rgb(222, 222, 222), palette.primaryText)
+        assertEquals(Color.rgb(158, 158, 158), palette.secondaryText)
+        assertEquals(Color.rgb(0, 145, 255), palette.accent)
         assertEquals(Color.rgb(255, 196, 128), palette.warning)
         assertEquals(Color.rgb(127, 205, 154), palette.success)
-        assertEquals(Color.rgb(190, 45, 45), palette.danger)
+        assertEquals(Color.rgb(220, 69, 69), palette.danger)
         assertEquals(0x336F9FD9, palette.ripple)
         assertFalse(palette.systemBarIconsAreDark)
     }
@@ -39,7 +39,7 @@ class DiPlayPaletteTest {
             WaitingScreenColors.of(night = true),
         )
         assertEquals(
-            WaitingScreenColors(Color.WHITE, Color.rgb(39, 39, 39), Color.rgb(128, 128, 128)),
+            WaitingScreenColors(Color.WHITE, Color.rgb(39, 39, 39), Color.rgb(118, 118, 118)),
             WaitingScreenColors.of(night = false),
         )
     }

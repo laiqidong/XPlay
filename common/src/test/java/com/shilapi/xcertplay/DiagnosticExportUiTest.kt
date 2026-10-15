@@ -24,29 +24,21 @@ import java.io.File
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28], qualifiers = "en", shadows = [FileProviderPathTestShadow::class])
 class DiagnosticExportUiTest {
-    @Test fun missingPickerSavesAReportAndProvidesSelectableTextInsideDiPlay() {
+    @Test fun savingWithoutADocumentPickerProvidesSelectableReportInsideXPlay() {
         val controller = Robolectric.buildActivity(DiPlayActivity::class.java).setup()
         val activity = controller.get()
         val context = activity.applicationContext
         val authority = "${context.packageName}.diagnostic-reports"
         val info = context.packageManager.resolveContentProvider(authority, PackageManager.GET_META_DATA)!!
         ShadowContentResolver.registerProviderInternal(authority, DiagnosticReportProvider().apply { attachInfo(context, info) })
-        val missingPicker = object : ActivityResultLauncher<String>() {
-            override fun launch(input: String, options: ActivityOptionsCompat?) {
-                throw ActivityNotFoundException("No DocumentsUI")
-            }
-            override fun unregister() = Unit
-            override fun getContract() = androidx.activity.result.contract.ActivityResultContracts.CreateDocument("text/plain")
-        }
-        ReflectionHelpers.setField(activity, "export", missingPicker)
         try {
-            ReflectionHelpers.callInstanceMethod<Unit>(activity, "chooseReportDestination")
+            ReflectionHelpers.callInstanceMethod<Unit>(activity, "exportDiagnostics", ReflectionHelpers.ClassParameter.from(android.net.Uri::class.java, null))
             val deadline = System.nanoTime() + 5_000_000_000L
-            while (ShadowAlertDialog.getLatestAlertDialog() == null && System.nanoTime() < deadline) {
+            while (TestDialogs.latest() == null && System.nanoTime() < deadline) {
                 Thread.sleep(20)
                 shadowOf(Looper.getMainLooper()).idle()
             }
-            val saved = requireNotNull(ShadowAlertDialog.getLatestAlertDialog())
+            val saved = requireNotNull(TestDialogs.latest())
             val reports = File(context.getExternalFilesDir(null)!!, "diagnostic-reports")
             val file = reports.listFiles()!!.single()
             assertTrue(file.name.endsWith(".txt"))
@@ -55,7 +47,7 @@ class DiagnosticExportUiTest {
             assertTrue(file.readText().contains("Android 9 / API 28"))
             saved.getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick()
             shadowOf(Looper.getMainLooper()).idle()
-            val viewer = ShadowAlertDialog.getLatestAlertDialog()
+            val viewer = TestDialogs.latest()
             assertTrue(descendants(viewer.window!!.decorView).filterIsInstance<TextView>()
                 .any { it.isTextSelectable && it.text.contains("Android 9 / API 28") })
             viewer.dismiss()

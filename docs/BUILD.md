@@ -73,8 +73,8 @@ Check that this file exists:
 mobile/build/outputs/apk/debug/mobile-debug.apk
 ```
 
-The debug application ID is `com.shihab.diplay.hudtest`.
-The release application ID is `com.shihab.diplay`.
+The debug application ID is `com.laiqidong.xplay.hudtest`.
+The release application ID is `com.laiqidong.xplay`, so XPlay can coexist with DiPlay.
 
 The source APK contains no accessory identity unless you supply runtime authentication assets.
 Standalone CarPlay needs these assets to connect to an iPhone.
@@ -156,7 +156,7 @@ Keep the keystore and passwords outside Git.
 Run the release checks and build:
 
 ```sh
-./gradlew :shared:testDebugUnitTest :common:testDebugUnitTest :mobile:lintRelease :mobile:assembleRelease
+./gradlew :shared:testDebugUnitTest :common:testDebugUnitTest :mobile:lintRelease :mobile:assembleStandaloneRelease
 ```
 
 The output is `mobile/build/outputs/apk/release/mobile-release.apk`.

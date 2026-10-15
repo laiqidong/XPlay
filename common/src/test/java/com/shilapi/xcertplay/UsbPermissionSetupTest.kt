@@ -160,7 +160,7 @@ class UsbPermissionSetupTest {
         val client = FakeClient().apply { block = true }
         activity.usbPermissionOperationFactory = { operation(client) }
         DiPlayActivity::class.java.getDeclaredMethod("autoApplyPermissions").apply { isAccessible = true }.invoke(activity)
-        val progress = ShadowAlertDialog.getLatestAlertDialog()
+        val progress = TestDialogs.latest()
         try {
             assertTrue(client.entered.await(3, TimeUnit.SECONDS))
             cancel(progress, activity)
@@ -169,7 +169,7 @@ class UsbPermissionSetupTest {
             assertFalse(progress.isShowing)
             assertTrue(client.finished.await(3, TimeUnit.SECONDS))
             shadowOf(Looper.getMainLooper()).idle()
-            assertSame(progress, ShadowAlertDialog.getLatestAlertDialog())
+            assertSame(progress, TestDialogs.latest())
             assertEquals(1, client.commands.size)
         } finally {
             client.cancel()

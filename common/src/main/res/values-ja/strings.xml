@@ -626,7 +626,7 @@
     <string name="auto_grant_confirm_title">画面でADBの確認を許可してください</string>
     <string name="auto_grant_confirm_msg">ADBアクセスの許可がまだ確認できません。車に「USBデバッグを許可しますか？」と表示されたら承認してください。\n\n「常に許可」にチェックし、再試行してください。</string>
     <string name="retry_auto_grant">権限の自動設定を再試行</string>
-    <string name="manual_grant_reason_adboff">この車載端末ではローカルADB（ポート5555）が無効です。\nユーザー補助機能をシステム設定から手動で許可するか、ネットワークADBを有効にしてください。</string>
+    <string name="manual_grant_reason_adboff">この車載端末ではローカルADB（ポート5050/5555）が無効です。\nユーザー補助機能をシステム設定から手動で許可するか、ネットワークADBを有効にしてください。</string>
     <string name="btn_open_accessibility_setting">システムのユーザー補助設定を開く</string>
     <string name="btn_open_overlay_setting">システムの重ね合わせ表示設定を開く</string>
     <string name="manual_grant_cmd_hint">またはパソコンから次のADBコマンドを実行してください。</string>
@@ -928,4 +928,8 @@
     <string name="settings_mfi_target_description">USB/CH341 は、CH341 認証アダプターを車載機に接続しているときだけ選択してください。接続していない場合は「ローカル／オフライン」を選択します。次回の接続から適用されます。</string>
     <string name="settings_call_speakerphone">通話をスピーカーで再生</string>
     <string name="settings_call_speakerphone_description">車載機として使う Android スマートフォンやタブレット向け：CarPlay の通話を受話口ではなくスピーカーで再生し、ハンズフリー用マイクを使います。車の車載機ではオフのままにしてください。次の通話から適用されます。</string>
+    <string name="settings_car_hotspot_adb_features">車載ホットスポット · ADBが必要</string>
+    <string name="settings_test_car_hotspot">ホットスポット起動をテスト</string>
+    <string name="settings_test_car_hotspot_already_on">ホットスポットはオンです。起動をテストするには車の設定でオフにしてから、このボタンを押してください。テストはホットスポットをオフにしません。</string>
+    <string name="settings_test_car_hotspot_running">起動をテスト中…デバッグの確認が出たら許可してください。</string>
 </resources>

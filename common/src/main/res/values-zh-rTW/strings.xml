@@ -729,7 +729,7 @@
     <string name="settings_fps_counter">FPS 計數器</string>
     <string name="settings_fps_counter_description">在 CarPlay 右上角顯示計數器：每秒顯示的幀數（50 以上為綠色，30 以上為黃色，低於 30 為紅色）、每秒從 iPhone 接收的幀數以及解碼時間。畫面靜止時幀數很少，因為 iPhone 不會傳送幀。</string>
     <string name="manual_grant_cmd_hint">或在電腦上執行以下 ADB 指令：</string>
-    <string name="manual_grant_reason_adboff">此車機尚未啟用本機 ADB（連接埠 5555）。\n您可以在系統設定中手動啟用無障礙服務，或啟用網路 ADB。</string>
+    <string name="manual_grant_reason_adboff">此車機尚未啟用本機 ADB（連接埠 5050/5555）。\n您可以在系統設定中手動啟用無障礙服務，或啟用網路 ADB。</string>
     <string name="retry_auto_grant">重試自動授權</string>
     <string name="side_panel">CarPlay 旁的側邊面板（實驗性）</string>
     <string name="side_panel_description">CarPlay 可移至螢幕的三分之二，其餘位置顯示 XPlay 面板：橫向螢幕時位於乘客側，直向螢幕時位於底部（顯示時鐘，以及可讀取時的電量）。可在連線期間的選單中顯示或隱藏。下次連線時生效。</string>
@@ -886,4 +886,8 @@
     <string name="settings_mfi_target_description">只有車機上插著 CH341 認證轉接器時才選擇 USB/CH341。沒有轉接器時請選擇「本機離線」。下次連線時生效。</string>
     <string name="settings_call_speakerphone">通話使用揚聲器</string>
     <string name="settings_call_speakerphone_description">適用於當作車機的 Android 手機或平板：CarPlay 通話從揚聲器播放而不是聽筒，並使用免持麥克風。車機上請保持關閉。從下一次通話開始生效。</string>
+    <string name="settings_car_hotspot_adb_features">車機熱點 · 需要 ADB</string>
+    <string name="settings_test_car_hotspot">測試開啟熱點</string>
+    <string name="settings_test_car_hotspot_already_on">熱點已經開啟。要測試從關閉狀態恢復，請先在車機設定中關閉熱點，再點擊此按鈕。測試不會主動關閉熱點。</string>
+    <string name="settings_test_car_hotspot_running">正在測試開啟熱點…如出現偵錯授權，請允許。</string>
 </resources>

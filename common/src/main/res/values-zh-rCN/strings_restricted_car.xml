@@ -29,9 +29,9 @@
     <string name="settings_car_hotspot_help">请从车机主页打开热点并开启。在 XPlay 填写相同的热点名称和密码，再让 iPhone 连接此热点。完成后返回这里连接 CarPlay。</string>
     <string name="settings_car_wifi_help">请从车机主页打开 Wi-Fi，让车机和 iPhone 连接同一个网络，再返回 XPlay。</string>
     <string name="settings_car_bluetooth_help">请从车机主页进入蓝牙功能，与 iPhone 完成配对。iPhone 保持蓝牙和 Wi-Fi 开启，返回 XPlay 后选择已配对的 iPhone。</string>
-    <string name="settings_car_adb_progress">正在检查车机本地 ADB：127.0.0.1:5555。如车机弹出调试授权，请允许 XPlay。等待授权最多约 60 秒，可随时取消。</string>
+    <string name="settings_car_adb_progress">正在检查车机本地 ADB：127.0.0.1:5050/5555。如车机弹出调试授权，请允许 XPlay。等待授权最多约 60 秒，可随时取消。</string>
     <string name="settings_car_adb_ready">XPlay 已连接车机本地 ADB。此结果仅说明 ADB 可访问，不代表支持比亚迪专用车辆功能。</string>
-    <string name="settings_car_adb_unreachable">无法连接车机本地 ADB：127.0.0.1:5555。可能是服务未开启、被限制或使用其他端口。电脑能连接 ADB，不代表 XPlay 能访问这个本地地址。</string>
+    <string name="settings_car_adb_unreachable">无法连接车机本地 ADB：127.0.0.1:5050/5555。可能是服务未开启、被限制或使用其他端口。电脑能连接 ADB，不代表 XPlay 能访问这个本地地址。</string>
     <string name="settings_car_adb_not_approved">等待期间未获得车机对 XPlay 的授权。如车机能显示调试授权弹窗，请允许 XPlay 后重试。</string>
     <string name="settings_car_adb_pairing">此端口要求 TLS 无线调试配对，XPlay 暂不支持。未尝试跳转系统设置。</string>
 </resources>

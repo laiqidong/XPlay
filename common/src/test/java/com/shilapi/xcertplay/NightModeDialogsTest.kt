@@ -32,7 +32,7 @@ class NightModeDialogsTest {
             0..60, 2, R.string.ambient_delay_summary, { 13 }, false, { _: Int -> })
         for (index in listOf(0,2)) {
             parent.getChildAt(index).performClick()
-            val d = ShadowAlertDialog.getLatestAlertDialog()
+            val d = TestDialogs.latest()
             val decor = d.window!!.decorView
             fun measure(): Int {
                 fun force(v: View) {

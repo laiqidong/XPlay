@@ -70,21 +70,21 @@ class ConnectionFailureGuidanceTest {
     @Test fun recoveryMessageReplacesSetupTipAndClearsOnNextStage() {
         val activity = Robolectric.buildActivity(CarPlayHostActivity::class.java).get()
         try {
-            val normal = TextView(activity).apply { visibility = View.VISIBLE }
+            val normal = TextView(activity).apply { setText(R.string.connection_loading) }
             val help = TextView(activity).apply { visibility = View.GONE }
-            for ((field, value) in listOf("connectionInstructionsView" to normal, "connectionHelpView" to help)) {
+            for ((field, value) in listOf("connectionTitleView" to normal, "connectionHelpView" to help)) {
                 activity.javaClass.getDeclaredField(field).apply { isAccessible = true }.set(activity, value)
             }
             val method = activity.javaClass.getDeclaredMethod("showConnectionHelp", CarPlayStatus.Failed::class.java)
                 .apply { isAccessible = true }
             method.invoke(activity, CarPlayStatus.Failed("USB permission was denied"))
-            assertEquals(View.GONE, normal.visibility)
+            assertEquals(activity.getString(R.string.connection_loading), normal.text.toString())
             assertEquals(View.VISIBLE, help.visibility)
             assertEquals(activity.getString(R.string.connection_help_permissions), help.text.toString())
             assertTrue(help.text.isNotEmpty())
 
             method.invoke(activity, null)
-            assertEquals(View.VISIBLE, normal.visibility)
+            assertEquals(activity.getString(R.string.connection_loading), normal.text.toString())
             assertEquals(View.GONE, help.visibility)
         } finally {
             for (field in listOf("teardownExecutor", "airPlayCommandExecutor")) {

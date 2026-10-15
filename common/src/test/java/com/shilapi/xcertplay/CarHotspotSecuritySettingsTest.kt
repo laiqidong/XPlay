@@ -68,7 +68,7 @@ class CarHotspotSecuritySettingsTest {
         val dialog = editCredentials()
         inputs(dialog)[1].setText("")
         val security = securityButton(dialog)
-        assertFalse(security.isEnabled)
+        assertTrue("Security choice stays available so a driver can choose a protected mode before typing", security.isEnabled)
         assertTrue(security.text.toString().contains(activity.getString(com.shilapi.xcertplay.host.R.string.open)))
         inputs(dialog)[1].setText("87654321")
         assertTrue(security.isEnabled)
@@ -80,31 +80,29 @@ class CarHotspotSecuritySettingsTest {
         assertEquals(ManualHotspotSecurity.OPEN, AirPlayPersistence.loadManualHotspotSecurity(app))
     }
 
-    private fun editCredentials(): AlertDialog {
+    private fun editCredentials(): android.app.Dialog {
         val parent = LinearLayout(activity)
         DiPlayActivity::class.java.getDeclaredMethod("wirelessLinkControls", LinearLayout::class.java)
             .apply { isAccessible = true }.invoke(activity, parent)
         activity.setContentView(parent)
         descendants(parent).filterIsInstance<Button>().first { it.text.startsWith("Edit saved hotspot") }.performClick()
         shadowOf(Looper.getMainLooper()).idle()
-        return ShadowAlertDialog.getLatestAlertDialog()
+        return TestDialogs.latestRaw()
     }
 
-    private fun securityButton(dialog: AlertDialog): Button = descendants(dialog.window!!.decorView)
+    private fun securityButton(dialog: android.app.Dialog): Button = descendants(dialog.window!!.decorView)
         .filterIsInstance<Button>().first { it.text.startsWith("Security ·") }
 
-    private fun chooseSecurity(dialog: AlertDialog, name: String) {
+    private fun chooseSecurity(dialog: android.app.Dialog, name: String) {
         securityButton(dialog).performClick()
-        val choices = ShadowAlertDialog.getLatestAlertDialog()
-        val index = (0 until choices.listView.adapter.count).first { choices.listView.adapter.getItem(it).toString() == name }
-        choices.listView.performItemClick(null, index, index.toLong())
-        choices.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+        val choices = TestDialogs.latestRaw()
+        descendants(choices.window!!.decorView).filterIsInstance<Button>().single { it.text == name }.performClick()
         shadowOf(Looper.getMainLooper()).idle()
         assertEquals("Security · $name", securityButton(dialog).text.toString())
     }
 
-    private fun inputs(dialog: AlertDialog) = descendants(dialog.window!!.decorView).filterIsInstance<EditText>().toList()
-    private fun save(dialog: AlertDialog) = dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+    private fun inputs(dialog: android.app.Dialog) = descendants(dialog.window!!.decorView).filterIsInstance<EditText>().toList()
+    private fun save(dialog: android.app.Dialog) = dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
     private fun descendants(view: View): Sequence<View> = sequence {
         yield(view)
         if (view is ViewGroup) for (i in 0 until view.childCount) yieldAll(descendants(view.getChildAt(i)))

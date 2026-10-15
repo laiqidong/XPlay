@@ -50,6 +50,7 @@ class BydVehicleDataSettingsTest {
     private var reconnects = 0
 
     @Before fun setUp() {
+        shadowOf(context.packageManager).installPackage(PackageInfo().apply { packageName = "com.byd.carsettings" })
         backend = FakeVehicleSettingsBackend()
         BydVehicleSettingsBackendProvider.current = backend
         shadowOf(context.packageManager).removePackage("com.byd.amapservice")
@@ -61,9 +62,17 @@ class BydVehicleDataSettingsTest {
     @After fun tearDown() {
         CarPlayBackgroundSession.clear()
         controller?.pause()?.stop()?.destroy()
+        shadowOf(context.packageManager).removePackage("com.byd.carsettings")
         BydVehicleSettingsBackendProvider.reset()
         BydVehicleFieldStore.clearMemoryForTests()
         shadowOf(context.packageManager).removePackage("com.byd.amapservice")
+    }
+
+    @Test fun nonBydHeadUnitHidesVendorSpecificVehicleSettings() {
+        shadowOf(context.packageManager).removePackage("com.byd.carsettings")
+        openSettings()
+        assertFalse(texts().any { it.text == activity.getString(R.string.advanced_vehicle_data) })
+        assertFalse(switches().any { it.settingsControlTitle == activity.getString(R.string.video_while_parked) })
     }
 
     @Test fun defaultModeShowsTheDiLink5SettingsBehindTheAdvancedButton() {
@@ -71,19 +80,19 @@ class BydVehicleDataSettingsTest {
 
         assertFalse(BydOutputSettings.navigationAvailable(activity))
         assertTrue(texts().any { it.text == activity.getString(R.string.advanced_vehicle_data) })
-        assertFalse(switches().any { it.contentDescription == activity.getString(R.string.car_battery_for_the_iphone) })
-        assertFalse(switches().any { it.contentDescription == activity.getString(R.string.wheel_speed_for_tunnels) })
-        assertFalse(switches().any { it.contentDescription == activity.getString(R.string.cluster_song) })
-        assertFalse(switches().any { it.contentDescription == activity.getString(R.string.navigation_on_hud_and_instrument_cluster) })
+        assertFalse(switches().any { it.settingsControlTitle == activity.getString(R.string.car_battery_for_the_iphone) })
+        assertFalse(switches().any { it.settingsControlTitle == activity.getString(R.string.wheel_speed_for_tunnels) })
+        assertFalse(switches().any { it.settingsControlTitle == activity.getString(R.string.cluster_song) })
+        assertFalse(switches().any { it.settingsControlTitle == activity.getString(R.string.navigation_on_hud_and_instrument_cluster) })
 
         texts().single { it.text == activity.getString(R.string.advanced_vehicle_data) }.performClick()
 
         assertTrue(texts().any { it.text == activity.getString(R.string.advanced_vehicle_data_description) })
         assertTrue(texts().any { it.text.toString().contains(activity.getString(R.string.vehicle_data_mode_default)) })
         assertTrue(texts().any { it.text == activity.getString(R.string.check_adb_access) })
-        assertTrue(switches().any { it.contentDescription == activity.getString(R.string.car_battery_for_the_iphone) })
-        assertTrue(switches().any { it.contentDescription == activity.getString(R.string.wheel_speed_for_tunnels) })
-        assertTrue(switches().any { it.contentDescription == activity.getString(R.string.video_while_parked) })
+        assertTrue(switches().any { it.settingsControlTitle == activity.getString(R.string.car_battery_for_the_iphone) })
+        assertTrue(switches().any { it.settingsControlTitle == activity.getString(R.string.wheel_speed_for_tunnels) })
+        assertTrue(switches().any { it.settingsControlTitle == activity.getString(R.string.video_while_parked) })
     }
 
     @Test fun successfulLiveProbeRevealsOnlySupportedSettings() {
@@ -95,9 +104,9 @@ class BydVehicleDataSettingsTest {
             BydVehicleProbeOutcome(BydAdbAccess.State.READY, supportedCapabilities()))
         ReflectionHelpers.callInstanceMethod<Unit>(activity, "render")
 
-        assertTrue(switches().any { it.contentDescription == activity.getString(R.string.car_battery_for_the_iphone) })
-        assertTrue(switches().any { it.contentDescription == activity.getString(R.string.wheel_speed_for_tunnels) })
-        assertTrue(switches().any { it.contentDescription == activity.getString(R.string.video_while_parked) })
+        assertTrue(switches().any { it.settingsControlTitle == activity.getString(R.string.car_battery_for_the_iphone) })
+        assertTrue(switches().any { it.settingsControlTitle == activity.getString(R.string.wheel_speed_for_tunnels) })
+        assertTrue(switches().any { it.settingsControlTitle == activity.getString(R.string.video_while_parked) })
     }
 
     @Test fun savedProbeAndEnabledSwitchSurviveAFreshActivityWithoutReprobing() {
@@ -140,9 +149,9 @@ class BydVehicleDataSettingsTest {
             .getChildAt(0) as LinearLayout
         page.addView(hotspot)
 
-        assertEquals(1, switches().count { it.contentDescription == activity.getString(R.string.car_battery_for_the_iphone) })
-        assertEquals(0, switches().count { it.contentDescription == activity.getString(R.string.wheel_speed_for_tunnels) })
-        assertEquals(0, switches().count { it.contentDescription == activity.getString(R.string.video_while_parked) })
+        assertEquals(1, switches().count { it.settingsControlTitle == activity.getString(R.string.car_battery_for_the_iphone) })
+        assertEquals(0, switches().count { it.settingsControlTitle == activity.getString(R.string.wheel_speed_for_tunnels) })
+        assertEquals(0, switches().count { it.settingsControlTitle == activity.getString(R.string.video_while_parked) })
         assertTrue(BydOutputSettings.legacyVehicleProbe(context))
         assertEquals(saved, BydVehicleFieldStore.load(context))
     }
@@ -194,16 +203,16 @@ class BydVehicleDataSettingsTest {
         openCategory(R.string.settings_navigation)
 
         assertTrue(texts().any { it.text == activity.getString(R.string.byd_navigation) })
-        assertEquals(1, switches().count { it.contentDescription == activity.getString(R.string.cluster_song) })
+        assertEquals(1, switches().count { it.settingsControlTitle == activity.getString(R.string.cluster_song) })
         openCategory(R.string.settings_advanced)
         texts().single { it.text == activity.getString(R.string.advanced_vehicle_data) }.performClick()
-        assertEquals(0, switches().count { it.contentDescription == activity.getString(R.string.cluster_song) })
+        assertEquals(0, switches().count { it.settingsControlTitle == activity.getString(R.string.cluster_song) })
     }
 
     @Test fun withoutBydNavigationTheClusterSongSwitchIsUnderAdvancedVehicleData() {
         openSettings()
         assertFalse(texts().any { it.text == activity.getString(R.string.byd_navigation) })
-        assertFalse(switches().any { it.contentDescription == activity.getString(R.string.cluster_song) })
+        assertFalse(switches().any { it.settingsControlTitle == activity.getString(R.string.cluster_song) })
 
         texts().single { it.text == activity.getString(R.string.advanced_vehicle_data) }.performClick()
         vehicleSwitch(R.string.cluster_song).performClick()
@@ -417,7 +426,8 @@ class BydVehicleDataSettingsTest {
         texts().single { it.text == activity.getString(R.string.replace_saved_vehicle_data_anyway) }.performClick()
 
         assertEquals(savedSince, BydVehicleFieldStore.load(context))
-        assertTrue(texts().any { it.text == activity.getString(R.string.adb_off) })
+        assertEquals(BydAdbAccess.State.ADB_OFF, ReflectionHelpers.getField<BydAdbAccess.State>(activity, "adbAccessState"))
+        assertTrue(texts().any { it.text == activity.getString(R.string.settings_car_adb_unreachable) })
         assertTrue(texts().any {
             it.text == activity.getString(R.string.vehicle_probe_failed,
                 activity.getString(R.string.vehicle_probe_snapshot_changed))
@@ -661,7 +671,7 @@ class BydVehicleDataSettingsTest {
         )
         texts().single { it.text == activity.getString(R.string.advanced_vehicle_data) }.performClick()
 
-        assertTrue(switches().any { it.contentDescription == activity.getString(R.string.video_while_parked) })
+        assertTrue(switches().any { it.settingsControlTitle == activity.getString(R.string.video_while_parked) })
     }
 
     @Test fun theSavedSnapshotIsShownWhateverTheClockSays() {
@@ -679,7 +689,7 @@ class BydVehicleDataSettingsTest {
         )
         texts().single { it.text == activity.getString(R.string.advanced_vehicle_data) }.performClick()
 
-        assertTrue(switches().any { it.contentDescription == activity.getString(R.string.video_while_parked) })
+        assertTrue(switches().any { it.settingsControlTitle == activity.getString(R.string.video_while_parked) })
     }
 
     @Test fun samePageRenderKeepsScrollAndPageChangeStartsAtTop() {
@@ -726,10 +736,10 @@ class BydVehicleDataSettingsTest {
 
     private fun openCategory(title: Int) {
         val description = activity.getString(R.string.settings_open_category, activity.getString(title))
-        var target = descendants(activity.window.decorView).firstOrNull { it.contentDescription == description }
+        var target = descendants(activity.window.decorView).firstOrNull { it.settingsControlTitle == description }
         if (target == null) {
             activity.onBackPressedDispatcher.onBackPressed()
-            target = descendants(activity.window.decorView).first { it.contentDescription == description }
+            target = descendants(activity.window.decorView).first { it.settingsControlTitle == description }
         }
         target.performClick()
     }
@@ -739,7 +749,7 @@ class BydVehicleDataSettingsTest {
     private fun texts(): Sequence<TextView> = descendants(activity.window.decorView).filterIsInstance<TextView>()
 
     private fun vehicleSwitch(title: Int): Switch = switches()
-        .single { it.contentDescription == activity.getString(title) }
+        .single { it.settingsControlTitle == activity.getString(title) }
 
     private fun invokeProbe() {
         ReflectionHelpers.callInstanceMethod<Unit>(activity, "probeVehicleData",
@@ -754,6 +764,8 @@ class BydVehicleDataSettingsTest {
                 Intent(context, DiPlayActivity::class.java).putExtra("page", "settings"),
             ))
         shadowOf(Looper.getMainLooper()).idle()
+        // Explicit settings entry opens Overview; navigate back to the vehicle-data controls.
+        openCategory(R.string.settings_advanced)
     }
 
     private fun selectLegacyMode(enabled: Boolean) {

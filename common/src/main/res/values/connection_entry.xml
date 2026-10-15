@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="connection_tap_to_start">Tap Connect phone to start.</string>
+    <string name="connection_opening_car_hotspot">Turning on the car hotspot…</string>
+    <string name="connection_waiting_iphone_hotspot">Waiting for iPhone to connect to the hotspot…</string>
+</resources>

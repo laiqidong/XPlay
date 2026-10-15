@@ -67,7 +67,7 @@ class ClusterSettingsConsentTest {
     }
 
     @After fun tearDown() {
-        ShadowAlertDialog.getLatestAlertDialog()?.dismiss()
+        TestDialogs.latest()?.dismiss()
         CarPlayBackgroundSession.clear()
         ClusterActivityOutput.stop(routeOwner)
         PendingReconnect.clear()
@@ -151,10 +151,10 @@ class ClusterSettingsConsentTest {
 
     private fun render() = ReflectionHelpers.callInstanceMethod<Unit>(screen, "render")
 
-    private fun dialog() = requireNotNull(ShadowAlertDialog.getLatestAlertDialog())
+    private fun dialog() = requireNotNull(TestDialogs.latest())
 
     private fun setting(title: Int) = views(screen.window.decorView).filterIsInstance<Switch>()
-        .single { it.contentDescription == screen.getString(title) }
+        .single { it.settingsControlTitle == screen.getString(title) }
 
     private fun views(view: View): Sequence<View> = sequence {
         yield(view)

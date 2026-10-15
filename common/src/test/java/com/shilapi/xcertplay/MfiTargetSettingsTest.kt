@@ -56,7 +56,7 @@ class MfiTargetSettingsTest {
         })
 
         targetButton().performClick()
-        val dialog = ShadowAlertDialog.getLatestAlertDialog()
+        val dialog = TestDialogs.latest()
         assertEquals(activity.getString(R.string.local_offline), dialog.listView.adapter.getItem(0))
         dialog.listView.performItemClick(null, 0, 0)
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()

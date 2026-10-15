@@ -32,12 +32,12 @@ class AppDialogsTest {
 
     @Test fun anExistingDialogContextKeepsItsAppearanceAfterThePreferenceChanges() {
         AirPlayPersistence.saveAppAppearance(context, AppAppearance.LIGHT)
-        val existingContext = context.appDialogBuilder().context
+        val existingContext = context.appDialogBuilder().create().context
 
         AirPlayPersistence.saveAppAppearance(context, AppAppearance.DARK)
 
         assertDialogColors(existingContext, DiPlayPalette.LIGHT)
-        assertDialogColors(context.appDialogBuilder().context, DiPlayPalette.DARK)
+        assertDialogColors(context.appDialogBuilder().create().context, DiPlayPalette.DARK)
     }
 
     @Test fun dialogUsesTheOwnersCurrentAppearanceInsteadOfResolvingItAgain() {
@@ -63,6 +63,29 @@ class AppDialogsTest {
             } finally {
                 attributes.recycle()
             }
+        }
+    }
+
+    @Test fun cancelAndSaveShareOneRowAndKeepTheirCallbacks() {
+        val activity = org.robolectric.Robolectric.buildActivity(android.app.Activity::class.java).setup().get()
+        var saved = false
+        val dialog = activity.appDialogBuilder()
+            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(R.string.save) { _, _ -> saved = true }
+            .show()
+        try {
+            val cancel = dialog.getButton(android.content.DialogInterface.BUTTON_NEGATIVE)!!
+            val save = dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE)!!
+            org.junit.Assert.assertSame(cancel.parent, save.parent)
+            val row = save.parent as android.widget.LinearLayout
+            assertEquals(android.widget.LinearLayout.HORIZONTAL, row.orientation)
+            assertEquals(cancel.layoutParams.height, save.layoutParams.height)
+            save.performClick()
+            org.junit.Assert.assertTrue(saved)
+            org.junit.Assert.assertFalse(dialog.isShowing)
+        } finally {
+            dialog.dismiss()
+            activity.finish()
         }
     }
 

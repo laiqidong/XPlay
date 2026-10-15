@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="hotspot_join_title">Unión automática al punto de acceso (experimental)</string>
-    <string name="hotspot_join_description">Reparación opcional para firmware compatible con Android 13+ y un punto de acceso de coche de solo 5 GHz. La comprobación prepara una copia privada de restauración sin cambiar el punto de acceso. Requiere ADB local autorizado en localhost:5555; no admite emparejamiento de depuración inalámbrica TLS.</string>
+    <string name="hotspot_join_description">Reparación opcional para firmware compatible con Android 13+ y un punto de acceso de coche de solo 5 GHz. La comprobación prepara una copia privada de restauración sin cambiar el punto de acceso. Requiere ADB local autorizado en localhost:5050/5555; no admite emparejamiento de depuración inalámbrica TLS.</string>
     <string name="hotspot_join_check">Comprobar reparación del punto de acceso</string>
     <string name="hotspot_join_apply">Añadir información de unión automática</string>
     <string name="hotspot_join_restore">Restaurar punto de acceso guardado</string>
@@ -19,6 +19,6 @@
     <string name="hotspot_join_cancelled">Cancelado antes de escribir. Comprueba de nuevo el estado de restauración retenido.</string>
     <string name="hotspot_join_failed_restored">La reparación falló o se canceló tras escribir. Configuración original restaurada y lectura verificada.</string>
     <string name="hotspot_join_busy">Otra operación del punto de acceso sigue en curso. Espera y comprueba de nuevo.</string>
-    <string name="hotspot_join_adb_required">Requiere ADB local normal autorizado en localhost:5555. Actívalo y autorízalo con el procedimiento compatible del coche. El emparejamiento inalámbrico TLS por sí solo no funciona.</string>
+    <string name="hotspot_join_adb_required">Requiere ADB local normal autorizado en localhost:5050/5555. Actívalo y autorízalo con el procedimiento compatible del coche. El emparejamiento inalámbrico TLS por sí solo no funciona.</string>
     <string name="hotspot_join_recovery">Resultado o verificación de copia inciertos. Apaga el punto de acceso y comprueba de nuevo antes de continuar. Se conserva cualquier copia privada existente; solo se permite restaurar si la configuración aún coincide.</string>
 </resources>

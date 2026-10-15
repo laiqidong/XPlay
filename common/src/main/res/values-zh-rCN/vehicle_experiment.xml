@@ -1,0 +1,13 @@
+<resources>
+    <string name="settings_experiments">实验</string>
+    <string name="settings_vehicle_probe_title">车辆信息（实验性）</string>
+    <string name="settings_vehicle_probe_description">车辆状态变化时自动更新，离开页面后停止监听。— 表示暂不可读。</string>
+    <string name="settings_vehicle_probe_start">开始监听</string>
+    <string name="settings_vehicle_monitor_stop">停止监听</string>
+    <string name="settings_probe_gear">档位</string>
+    <string name="settings_probe_speed">车速（原始值）</string>
+    <string name="settings_probe_accelerator">油门（原始值）</string>
+    <string name="settings_probe_brake">刹车（0/1）</string>
+    <string name="settings_probe_battery">电量（原始值）</string>
+    <string name="settings_vehicle_monitor_unavailable">无法订阅车辆状态，接口不可用或权限不足。</string>
+</resources>

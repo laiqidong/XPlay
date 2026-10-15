@@ -340,7 +340,7 @@ class CarPlayHostSettingsTest {
         attachController()
         invoke("openSettingsMenu")
         fullSettingsButton().performClick()
-        assertNull(ShadowAlertDialog.getLatestAlertDialog())
+        assertNull(TestDialogs.latest())
         assertFalse(field("menuOpen") as Boolean)
         assertEquals(DiPlayActivity::class.java.name,
             shadowOf(activity).nextStartedActivity.component!!.className)
@@ -355,7 +355,7 @@ class CarPlayHostSettingsTest {
         assertNotEquals(original, staged)
 
         fullSettingsButton().performClick()
-        assertNotNull(ShadowAlertDialog.getLatestAlertDialog())
+        assertNotNull(TestDialogs.latest())
         assertTrue(field("menuOpen") as Boolean)
         assertNotNull(field("settingsBaseline"))
         assertEquals(staged, field("displayScalePercent"))
@@ -370,7 +370,7 @@ class CarPlayHostSettingsTest {
         val staged = field("displayScalePercent")
 
         fullSettingsButton().performClick()
-        val dialog = ShadowAlertDialog.getLatestAlertDialog()
+        val dialog = TestDialogs.latest()
             ?: error("leaving the menu with a pending edit should ask before discarding")
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
         shadowOf(Looper.getMainLooper()).idle()
@@ -804,7 +804,7 @@ class CarPlayHostSettingsTest {
         .first { it.text == activity.getString(R.string.app_name) + " " + activity.getString(R.string.settings) }
     /** Answers the "Discard your changes?" dialog that an exit with staged edits now shows. */
     private fun discardPendingEdits() {
-        val dialog = ShadowAlertDialog.getLatestAlertDialog()
+        val dialog = TestDialogs.latest()
             ?: error("leaving the menu with a pending edit should ask before discarding")
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).performClick()
         shadowOf(Looper.getMainLooper()).idle()

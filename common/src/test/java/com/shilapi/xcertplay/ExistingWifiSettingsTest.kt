@@ -54,11 +54,11 @@ class ExistingWifiSettingsTest {
         AirPlayPersistence.saveWirelessHotspotMode(app, WirelessHotspotMode.WIFI_P2P)
         controls().filterIsInstance<Button>().first { it.text.contains("Same LAN") }.performClick()
         shadowOf(Looper.getMainLooper()).idle()
-        ShadowAlertDialog.getLatestAlertDialog().getButton(AlertDialog.BUTTON_NEGATIVE).performClick()
+        TestDialogs.latestRaw().getButton(AlertDialog.BUTTON_NEGATIVE).performClick()
         assertEquals(WirelessHotspotMode.WIFI_P2P, AirPlayPersistence.loadWirelessHotspotMode(app))
         controls().filterIsInstance<Button>().first { it.text.contains("Same LAN") }.performClick()
         shadowOf(Looper.getMainLooper()).idle()
-        val dialog = ShadowAlertDialog.getLatestAlertDialog()
+        val dialog = TestDialogs.latestRaw()
         val fields = descendants(dialog.window!!.decorView).filterIsInstance<EditText>().toList()
         fields[0].setText(" Pocket ") // SSID whitespace is meaningful.
         fields[1].setText("short")

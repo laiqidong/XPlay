@@ -52,7 +52,7 @@
     <string name="settings_force_full_settings_hint">横画面ではカテゴリのサイドバーを備えたフルサイズの設定画面を使い、縦画面では自動レイアウトにします。ホーム画面とCarPlayは変更されません。</string>
     <string name="picture_surface_output_unavailable">この画面の互換映像出力では画質調整を使用できません。保存済みの調整値は維持されます。</string>
     <string name="hotspot_join_title">ホットスポットへの自動接続（実験的機能）</string>
-    <string name="hotspot_join_description">Android 13以降と5 GHz専用の車載ホットスポットを使う一部のファームウェア向け修復機能です。「確認」ではホットスポットを変更せず、復旧用の非公開バックアップを作成します。localhost:5555の許可済みローカルADBが必要です。TLSワイヤレスデバッグのペアリングには対応していません。</string>
+    <string name="hotspot_join_description">Android 13以降と5 GHz専用の車載ホットスポットを使う一部のファームウェア向け修復機能です。「確認」ではホットスポットを変更せず、復旧用の非公開バックアップを作成します。localhost:5050/5555の許可済みローカルADBが必要です。TLSワイヤレスデバッグのペアリングには対応していません。</string>
     <string name="hotspot_join_check">ホットスポットの修復を確認</string>
     <string name="hotspot_join_apply">自動接続情報を追加</string>
     <string name="hotspot_join_restore">保存済みホットスポットを復元</string>
@@ -70,7 +70,7 @@
     <string name="hotspot_join_cancelled">書き込み前にキャンセルしました。再確認して保存済みの復旧状態を調べてください。</string>
     <string name="hotspot_join_failed_restored">修復に失敗したか、書き込み後にキャンセルされました。元の構成に戻して読み戻しを確認しました。</string>
     <string name="hotspot_join_busy">別のホットスポット操作が実行中です。終了後に再確認してください。</string>
-    <string name="hotspot_join_adb_required">localhost:5555で許可済みの通常ローカルADBが必要です。車載端末の対応する手順で有効化し、認証してください。AndroidのTLSワイヤレスデバッグのペアリングだけでは動作しません。</string>
+    <string name="hotspot_join_adb_required">localhost:5050/5555で許可済みの通常ローカルADBが必要です。車載端末の対応する手順で有効化し、認証してください。AndroidのTLSワイヤレスデバッグのペアリングだけでは動作しません。</string>
     <string name="hotspot_join_recovery">結果やバックアップの検証が不確実です。続行する前にホットスポットをオフにして再確認してください。既存の非公開バックアップは保持され、構成が一致する場合に限り復元できます。</string>
     <string name="picture_adjustments">画質調整</string>
     <string name="picture_live_hint">CarPlayのメイン映像にすぐ反映します。変更は直ちに保存されます。「元の映像」は一時的な比較表示です。</string>

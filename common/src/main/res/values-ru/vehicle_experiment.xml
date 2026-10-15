@@ -1,0 +1,13 @@
+<resources>
+    <string name="settings_experiments">Эксперименты</string>
+    <string name="settings_vehicle_probe_title">Данные автомобиля (экспериментально)</string>
+    <string name="settings_vehicle_probe_description">Значения обновляются по событиям автомобиля. При выходе наблюдение прекращается. — означает недоступность.</string>
+    <string name="settings_vehicle_probe_start">Начать наблюдение</string>
+    <string name="settings_vehicle_monitor_stop">Остановить наблюдение</string>
+    <string name="settings_probe_gear">Передача</string>
+    <string name="settings_probe_speed">Скорость (исходное значение)</string>
+    <string name="settings_probe_accelerator">Газ (исходное значение)</string>
+    <string name="settings_probe_brake">Тормоз (0/1)</string>
+    <string name="settings_probe_battery">Батарея (исходное значение)</string>
+    <string name="settings_vehicle_monitor_unavailable">Подписка недоступна или нет разрешения.</string>
+</resources>

@@ -50,27 +50,25 @@ class LauncherIntentTest {
         assertFalse(DiPlayActivity.isLauncherIntent(Intent().putExtra("page", "connection")))
     }
 
-    @Test fun freshLauncherReturnsToTheExistingHostWithoutStoppingTheSession() {
+    @Test fun freshLauncherOpensOverviewWithoutStoppingTheSession() {
         controller = Robolectric.buildActivity(DiPlayActivity::class.java, launcher()).create()
         val activity = controller!!.get()
-        assertTrue(activity.isFinishing)
-        assertEquals(CarPlayHostActivity::class.java.name,
-            shadowOf(activity).nextStartedActivity?.component?.className)
+        assertFalse(activity.isFinishing)
+        assertNull(shadowOf(activity).nextStartedActivity)
         assertTrue(CarPlayBackgroundSession.hasSession())
         assertEquals(0, stops)
     }
 
-    @Test fun launcherDeliveredToExistingSettingsOpensProjectionAndClearsReturnNavigation() {
+    @Test fun launcherDeliveredToExistingSettingsOpensOverviewAndClearsReturnNavigation() {
         controller = Robolectric.buildActivity(DiPlayActivity::class.java,
             Intent().putExtra("page", "settings")).create()
         val activity = controller!!.get()
         ReflectionHelpers.setField(activity, "connectionSettingsReturnCategory", SettingsCategory.ADVANCED)
         ReflectionHelpers.callInstanceMethod<Unit>(activity, "onNewIntent",
             ReflectionHelpers.ClassParameter(Intent::class.java, launcher()))
-        assertEquals("home", ReflectionHelpers.getField<String>(activity, "page"))
+        assertEquals("settings", ReflectionHelpers.getField<String>(activity, "page"))
         assertNull(ReflectionHelpers.getField<SettingsCategory?>(activity, "connectionSettingsReturnCategory"))
-        assertEquals(CarPlayHostActivity::class.java.name,
-            shadowOf(activity).nextStartedActivity?.component?.className)
+        assertNull(shadowOf(activity).nextStartedActivity)
         assertEquals(0, stops)
         ReflectionHelpers.callInstanceMethod<Unit>(activity, "onNewIntent",
             ReflectionHelpers.ClassParameter(Intent::class.java, launcher().putExtra("page", "settings")))
@@ -87,4 +85,60 @@ class LauncherIntentTest {
         assertNull(shadowOf(activity).nextStartedActivity)
         assertEquals(0, stops)
     }
+    private fun overview(): DiPlayActivity {
+        controller = Robolectric.buildActivity(DiPlayActivity::class.java,
+            Intent().putExtra("page", "settings")).create().start()
+        return controller!!.get()
+    }
+
+    @Test fun singleBackWaitsThenReturnsToCarPlayWithoutStoppingIt() {
+        val activity = overview()
+        activity.onBackPressedDispatcher.onBackPressed()
+        shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(349))
+        assertNull(shadowOf(activity).nextStartedActivity)
+        shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(1))
+        assertEquals(CarPlayHostActivity::class.java.name, shadowOf(activity).nextStartedActivity?.component?.className)
+        assertTrue(CarPlayBackgroundSession.hasSession())
+        assertEquals(0, stops)
+    }
+
+    @Test fun doubleBackGoesHomeAndCancelsThePendingCarPlayReturn() {
+        val activity = overview()
+        activity.onBackPressedDispatcher.onBackPressed()
+        shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(200))
+        activity.onBackPressedDispatcher.onBackPressed()
+        val destination = shadowOf(activity).nextStartedActivity
+        assertEquals(Intent.ACTION_MAIN, destination?.action)
+        assertTrue(destination?.hasCategory(Intent.CATEGORY_HOME) == true)
+        shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(500))
+        assertNull(shadowOf(activity).nextStartedActivity)
+        assertTrue(CarPlayBackgroundSession.hasSession())
+        assertEquals(0, stops)
+    }
+
+    @Test fun backWithoutASessionGoesHomeImmediately() {
+        CarPlayBackgroundSession.clear()
+        val activity = overview()
+        activity.onBackPressedDispatcher.onBackPressed()
+        assertTrue(shadowOf(activity).nextStartedActivity?.hasCategory(Intent.CATEGORY_HOME) == true)
+    }
+
+    @Test fun backFromACategoryOnlyReturnsToOverview() {
+        val activity = overview()
+        ReflectionHelpers.setField(activity, "settingsCategory", SettingsCategory.AUDIO)
+        activity.onBackPressedDispatcher.onBackPressed()
+        shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(500))
+        assertEquals(SettingsCategory.OVERVIEW, ReflectionHelpers.getField<SettingsCategory>(activity, "settingsCategory"))
+        assertNull(shadowOf(activity).nextStartedActivity)
+    }
+
+    @Test fun leavingTheActivityCancelsPendingBack() {
+        val activity = overview()
+        activity.onBackPressedDispatcher.onBackPressed()
+        controller!!.resume().pause()
+        shadowOf(android.os.Looper.getMainLooper()).idleFor(java.time.Duration.ofMillis(500))
+        assertNull(shadowOf(activity).nextStartedActivity)
+        assertEquals(0, stops)
+    }
+
 }

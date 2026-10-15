@@ -29,9 +29,9 @@
     <string name="settings_car_hotspot_help">請從車機主頁開啟熱點。在 XPlay 填寫相同的熱點名稱及密碼，再讓 iPhone 連線至此熱點。完成後返回這裡連線 CarPlay。</string>
     <string name="settings_car_wifi_help">請從車機主頁開啟 Wi-Fi，讓車機與 iPhone 連線至同一網路，再返回 XPlay。</string>
     <string name="settings_car_bluetooth_help">請從車機主頁進入藍牙功能，與 iPhone 完成配對。iPhone 保持藍牙及 Wi-Fi 開啟，返回 XPlay 後選擇已配對的 iPhone。</string>
-    <string name="settings_car_adb_progress">正在檢查車機本機 ADB：127.0.0.1:5555。如車機顯示偵錯授權，請允許 XPlay。等待授權最多約 60 秒，可隨時取消。</string>
+    <string name="settings_car_adb_progress">正在檢查車機本機 ADB：127.0.0.1:5050/5555。如車機顯示偵錯授權，請允許 XPlay。等待授權最多約 60 秒，可隨時取消。</string>
     <string name="settings_car_adb_ready">XPlay 已連線至車機本機 ADB。此結果僅代表 ADB 可存取，不表示支援比亞迪專用車輛功能。</string>
-    <string name="settings_car_adb_unreachable">無法連線至車機本機 ADB：127.0.0.1:5555。可能是服務未開啟、受到限制或使用其他連接埠。電腦能連線 ADB，不表示 XPlay 能存取此本機位址。</string>
+    <string name="settings_car_adb_unreachable">無法連線至車機本機 ADB：127.0.0.1:5050/5555。可能是服務未開啟、受到限制或使用其他連接埠。電腦能連線 ADB，不表示 XPlay 能存取此本機位址。</string>
     <string name="settings_car_adb_not_approved">等待期間未取得車機對 XPlay 的授權。如車機能顯示偵錯授權視窗，請允許 XPlay 後重試。</string>
     <string name="settings_car_adb_pairing">此連接埠要求 TLS 無線偵錯配對，XPlay 暫不支援。未嘗試開啟系統設定。</string>
 </resources>

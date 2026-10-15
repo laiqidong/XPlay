@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="connection_tap_to_start">اضغط على توصيل الهاتف للبدء.</string>
+    <string name="connection_opening_car_hotspot">جارٍ تشغيل نقطة اتصال السيارة…</string>
+    <string name="connection_waiting_iphone_hotspot">في انتظار اتصال iPhone بنقطة الاتصال…</string>
+</resources>

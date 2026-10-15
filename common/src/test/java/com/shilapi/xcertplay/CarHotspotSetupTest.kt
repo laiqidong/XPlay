@@ -42,6 +42,18 @@ class CarHotspotSetupTest {
         assertFalse(CarHotspotSettings.visible(CarHotspotSetup.isBydHeadUnit(context), LocalAdb.Access.UNREACHABLE))
     }
 
+    @Test fun xpengP7CanReachHotspotSetupWithoutBydServices() {
+        ShadowBuild.setManufacturer("XiaoPeng")
+        ShadowBuild.setBrand("XPENG")
+        ShadowBuild.setModel("E28")
+        assertFalse(CarHotspotSetup.isBydHeadUnit(context))
+        assertTrue(CarHotspotSetup.supportsHotspotAutomation(context))
+        assertEquals(5050, com.shilapi.xcertplay.adb.LocalAdbDevicePolicy.port())
+        ShadowBuild.setModel("other")
+        assertFalse(CarHotspotSetup.supportsHotspotAutomation(context))
+        assertEquals(5555, com.shilapi.xcertplay.adb.LocalAdbDevicePolicy.port())
+    }
+
     @Test fun userInstalledLookalikeDoesNotIdentifyABydHeadUnit() {
         installPackage("com.byd.carsettings", system = false)
         assertFalse(CarHotspotSetup.isBydHeadUnit(context))

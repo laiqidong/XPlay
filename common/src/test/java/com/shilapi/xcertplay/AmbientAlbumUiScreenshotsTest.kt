@@ -8,7 +8,7 @@ import android.graphics.Rect
 import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ScrollView
+import androidx.core.widget.NestedScrollView
 import android.widget.Switch
 import android.widget.TextView
 import com.shilapi.xcertplay.host.R
@@ -64,12 +64,13 @@ class AmbientAlbumUiScreenshotsTest {
 
                 val scroll = albumSettingsScroll(decor, opened.first.getString(R.string.settings_ambient_album))
                 val album = descendants(scroll).filterIsInstance<Switch>().single {
-                    it.contentDescription == opened.first.getString(R.string.settings_ambient_album)
+                    it.settingsControlTitle == opened.first.getString(R.string.settings_ambient_album)
                 }
                 assertTrue("Album artwork toggle must have a visible label", descendants(scroll)
                     .filterIsInstance<TextView>().any { it.text == opened.first.getString(R.string.settings_ambient_album) })
                 val albumRow = album.parent as View
-                assertTrue("Album artwork row must be keyboard/accessibility focusable", albumRow.isFocusable)
+                assertTrue("Album artwork switch must be keyboard/accessibility focusable", album.isFocusable)
+                org.junit.Assert.assertFalse("Row whitespace must not toggle the switch", albumRow.isClickable)
                 assertTrue("Album artwork row must have a nonempty hit target", albumRow.width > 0 && albumRow.height > 0)
                 val content = scroll.getChildAt(0)
                 val viewportHeight = scroll.height - scroll.paddingTop - scroll.paddingBottom
@@ -107,7 +108,7 @@ class AmbientAlbumUiScreenshotsTest {
                     val viewportHeight = scroll.height - scroll.paddingTop - scroll.paddingBottom
                     if (atBottom) scroll.scrollTo(0, maxOf(0, content.height - viewportHeight))
                     val position = if (atBottom) "bottom" else "top"
-                    writeScreenshot(decor, reportDirectory().resolve("$name-$position.png"))
+                    writeScreenshot(decor, reportDirectory().resolve("$name-$position.png"), atBottom)
                 } finally {
                     opened.second.dismiss()
                     opened.first.finish()
@@ -133,7 +134,7 @@ class AmbientAlbumUiScreenshotsTest {
         activity.ambientSupportCheck = { CompletableFuture.completedFuture(false) }
         ReflectionHelpers.callInstanceMethod<Unit>(activity, "showAmbientConfiguration")
         shadowOf(Looper.getMainLooper()).idle()
-        return activity to ShadowAlertDialog.getLatestAlertDialog()
+        return activity to TestDialogs.latest()
     }
 
     private fun layout(decor: View, density: Float, widthDp: Int) {
@@ -147,9 +148,9 @@ class AmbientAlbumUiScreenshotsTest {
         assertTrue("Dialog decor must be laid out before capture", decor.width > 0 && decor.height > 0)
     }
 
-    private fun albumSettingsScroll(decor: View, albumLabel: String): ScrollView =
-        descendants(decor).filterIsInstance<ScrollView>().single { scroll ->
-            descendants(scroll).filterIsInstance<Switch>().any { it.contentDescription == albumLabel }
+    private fun albumSettingsScroll(decor: View, albumLabel: String): NestedScrollView =
+        descendants(decor).filterIsInstance<NestedScrollView>().single { scroll ->
+            descendants(scroll).filterIsInstance<Switch>().any { it.settingsControlTitle == albumLabel }
         }
 
     private fun reportDirectory(): Path {
@@ -158,9 +159,11 @@ class AmbientAlbumUiScreenshotsTest {
         return module.resolve("build/reports/album-artwork-ui")
     }
 
-    private fun writeScreenshot(decor: View, output: Path) {
+    private fun writeScreenshot(decor: View, output: Path, atBottom: Boolean) {
         shadowOf(Looper.getMainLooper()).idle()
-        assertDialogActionsVisible(decor)
+        // The whole panel scrolls, including actions. Top captures must not require bottom actions onscreen.
+        if (atBottom) assertDialogActionsVisible(decor)
+        else assertEquals(0, descendants(decor).filterIsInstance<NestedScrollView>().single().scrollY)
         descendants(decor).forEach(View::invalidate)
         val bitmap = Bitmap.createBitmap(decor.width, decor.height, Bitmap.Config.ARGB_8888)
         try {

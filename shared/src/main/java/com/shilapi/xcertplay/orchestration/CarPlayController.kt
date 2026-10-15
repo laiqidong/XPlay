@@ -126,6 +126,7 @@ sealed class CarPlayStatus {
     data object WaitingForPairedIphone : CarPlayStatus()
     data object ConnectingBluetooth : CarPlayStatus()
     data object RunningWireless : CarPlayStatus()
+    data object WaitingForWirelessIphone : CarPlayStatus()
     data object WirelessActive : CarPlayStatus()
     data object WirelessActiveFallback : CarPlayStatus()
     data object DiscoveringIphone : CarPlayStatus()
@@ -1505,7 +1506,10 @@ class CarPlayController(
                 timeoutMillis = controlLoopTimeoutMillis(),
                 keepAliveAfterDeadline = { keepBluetoothControlAlive(generation) },
                 beforeStartSession = { startedHotspot?.validateReady() },
-                onStartSessionSent = { watchdog.startSessionSent(it.sentAtNanos) },
+                onStartSessionSent = {
+                    watchdog.startSessionSent(it.sentAtNanos)
+                    onStatus(CarPlayStatus.WaitingForWirelessIphone, generation)
+                },
                 onIncoming = ::onRouteFrame,
                 onProgress = { message ->
                     diagnostics.controlProgress(message)
@@ -2960,6 +2964,8 @@ class CarPlayController(
             "STEP bt/rfcomm: connecting to the iPhone iAP2 RFCOMM service"
         CarPlayStatus.RunningWireless ->
             "STEP iap2/wireless: Bluetooth control loop running"
+        CarPlayStatus.WaitingForWirelessIphone ->
+            "STEP wifi/iphone: StartSession sent; waiting for the iPhone AirPlay connection"
         CarPlayStatus.WirelessActive ->
             "STEP handoff/complete: tunnel iAP2 ready; Bluetooth bootstrap released"
         CarPlayStatus.WirelessActiveFallback ->

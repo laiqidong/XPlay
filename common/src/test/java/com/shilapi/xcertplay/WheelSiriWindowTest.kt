@@ -177,12 +177,12 @@ class WheelSiriWindowTest {
 
         val controls = wheelControls()
         val joystick = views(controls).filterIsInstance<Switch>().single {
-            it.contentDescription == settings.getString(R.string.wheel_joystick)
+            it.settingsControlTitle == settings.getString(R.string.wheel_joystick)
         }
         assertTrue(joystick.isChecked)
         assertSharedServiceSetupOnce(controls)
         assertFalse(views(controls).filterIsInstance<Switch>().any {
-            it.contentDescription == settings.getString(R.string.wheel_map_zoom)
+            it.settingsControlTitle == settings.getString(R.string.wheel_map_zoom)
         })
         assertTrue(views(controls).filterIsInstance<TextView>().any {
             it.text.toString() == settings.getString(R.string.wheel_key_assign,
@@ -209,11 +209,11 @@ class WheelSiriWindowTest {
             assertEquals(displayId, ClusterMapPresentation.findDisplay(settings)?.displayId)
             val controls = wheelControls()
             val zoom = views(controls).filterIsInstance<Switch>().single {
-                it.contentDescription == settings.getString(R.string.wheel_map_zoom)
+                it.settingsControlTitle == settings.getString(R.string.wheel_map_zoom)
             }
             assertFalse(zoom.isChecked)
             assertTrue(views(controls).filterIsInstance<Switch>().any {
-                it.contentDescription == settings.getString(R.string.wheel_joystick)
+                it.settingsControlTitle == settings.getString(R.string.wheel_joystick)
             })
 
             zoom.performClick()

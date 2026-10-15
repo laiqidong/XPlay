@@ -115,11 +115,13 @@ class LocationReportingSettingsTest {
     private fun openSettings() {
         controller = Robolectric.buildActivity(DiPlayActivity::class.java,
             Intent(context, DiPlayActivity::class.java).putExtra("page", "settings")).setup()
+        val target = activity.getString(R.string.settings_open_category, activity.getString(R.string.settings_navigation))
+        descendants(activity.window.decorView).first { it.settingsControlTitle == target }.performClick()
     }
 
     private fun locationSwitch(): Switch = descendants(activity.window.decorView)
         .filterIsInstance<Switch>()
-        .single { it.contentDescription == activity.getString(R.string.report_location_to_iphone) }
+        .single { it.settingsControlTitle == activity.getString(R.string.report_location_to_iphone) }
 
     private fun descendants(view: View): Sequence<View> = sequence {
         yield(view)

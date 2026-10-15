@@ -6,14 +6,20 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.view.View
 import android.view.animation.LinearInterpolator
-import kotlin.math.PI
-import kotlin.math.cos
+import android.graphics.RectF
+import android.view.animation.PathInterpolator
+import kotlin.math.min
 
-/** Quiet, indeterminate connection activity. Hidden screens never keep an animator running. */
+/** Native port of svg-spinners/ring-resize (MIT, Utkarsh Verma).
+ * 2s linear rotation plus 1.5s ease-in-out dash animation; see third_party/svg-spinners.
+ * Hidden screens never keep an animator running.
+ */
 internal class ConnectionLoadingIndicator(context: Context) : View(context) {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private var animator: ValueAnimator? = null
     private var phase = 0f
+    private val ease = PathInterpolator(0.42f, 0f, 0.58f, 1f)
+    private val bounds = RectF()
     var color: Int = 0
         set(value) { field = value; invalidate() }
 
@@ -45,13 +51,13 @@ internal class ConnectionLoadingIndicator(context: Context) : View(context) {
             (android.os.Build.VERSION.SDK_INT >= 26 && !ValueAnimator.areAnimatorsEnabled())) {
             animator?.cancel()
             animator = null
-            phase = 0f
+            phase = 0.1f
             invalidate()
             return
         }
         if (animator != null) return
         animator = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = 1500
+            duration = 6000
             repeatCount = ValueAnimator.INFINITE
             interpolator = LinearInterpolator()
             addUpdateListener { phase = it.animatedValue as Float; invalidate() }
@@ -61,14 +67,36 @@ internal class ConnectionLoadingIndicator(context: Context) : View(context) {
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        val density = resources.displayMetrics.density
-        val step = 12f * density
-        paint.color = color
-        for (index in 0..2) {
-            val pulse = ((cos((phase - index * 0.16f) * 2 * PI) + 1) / 2).toFloat()
-            paint.alpha = (80 + 175 * pulse).toInt()
-            canvas.drawCircle(width / 2f + (index - 1) * step, height / 2f,
-                (2.5f + 0.8f * pulse) * density, paint)
+        val unit = min(width, height) / 24f
+        val radius = 9.5f * unit
+        bounds.set(width / 2f - radius, height / 2f - radius,
+            width / 2f + radius, height / 2f + radius)
+        val cycle = (phase * 4f) % 1f
+        val length: Float
+        val offset: Float
+        when {
+            cycle < 0.475f -> {
+                val t = ease.getInterpolation(cycle / 0.475f)
+                length = 42f * t
+                offset = 16f * t
+            }
+            cycle < 0.95f -> {
+                val t = ease.getInterpolation((cycle - 0.475f) / 0.475f)
+                length = 42f
+                offset = 16f + 43f * t
+            }
+            else -> { length = 42f; offset = 59f }
         }
+        paint.color = color
+        paint.style = Paint.Style.STROKE
+        paint.strokeWidth = 3f * unit
+        paint.strokeCap = Paint.Cap.ROUND
+        // The 150-unit gap exceeds the circumference: clip the dash at the path end.
+        val circumference = (2 * Math.PI * 9.5).toFloat()
+        val start = offset
+        val end = min(offset + length, circumference)
+        val rotation = phase * 1080f
+        if (end > start) canvas.drawArc(bounds, rotation + start / circumference * 360f,
+            (end - start) / circumference * 360f, false, paint)
     }
 }

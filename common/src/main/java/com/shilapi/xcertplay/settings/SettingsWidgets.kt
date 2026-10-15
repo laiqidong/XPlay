@@ -117,6 +117,7 @@ object SettingsWidgets {
         val switch = Switch(context).apply {
             isChecked = checked
             this.contentDescription = contentDescription
+            setTag(R.id.settings_control_title, contentDescription)
             isEnabled = enabled
             applyLargeSwitchStyle(this, theme.accent, theme.textSecondary, theme.accentTrack, theme.trackOff, settingsStyle = !theme.isOverlay)
             if (!theme.isOverlay) minHeight = theme.dp(context, 56)

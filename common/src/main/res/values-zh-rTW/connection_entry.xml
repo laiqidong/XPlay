@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="connection_tap_to_start">點選「連接手機」開始連線。</string>
+    <string name="connection_opening_car_hotspot">正在開啟車機熱點…</string>
+    <string name="connection_waiting_iphone_hotspot">等待 iPhone 連接熱點…</string>
+</resources>

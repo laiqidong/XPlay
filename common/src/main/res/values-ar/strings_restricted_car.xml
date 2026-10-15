@@ -29,9 +29,9 @@
     <string name="settings_car_hotspot_help">افتح نقطة الاتصال من الشاشة الرئيسية للسيارة وفعلها. أدخل الاسم وكلمة المرور نفسيهما في XPlay وصل iPhone بهذه النقطة ثم عد لتوصيل CarPlay.</string>
     <string name="settings_car_wifi_help">افتح Wi-Fi من الشاشة الرئيسية للسيارة وصل وحدة السيارة وiPhone بالشبكة نفسها ثم عد إلى XPlay.</string>
     <string name="settings_car_bluetooth_help">افتح Bluetooth من الشاشة الرئيسية للسيارة وأقرن iPhone. أبق Bluetooth وWi-Fi مفعلين على الهاتف ثم عد إلى XPlay واختر iPhone المقترن.</string>
-    <string name="settings_car_adb_progress">جارٍ فحص ADB المحلي على 127.0.0.1:5555. اسمح لـ XPlay إذا ظهر طلب من السيارة. قد يستغرق انتظار التفويض 60 ثانية. يمكنك الإلغاء.</string>
+    <string name="settings_car_adb_progress">جارٍ فحص ADB المحلي على 127.0.0.1:5050/5555. اسمح لـ XPlay إذا ظهر طلب من السيارة. قد يستغرق انتظار التفويض 60 ثانية. يمكنك الإلغاء.</string>
     <string name="settings_car_adb_ready">اتصل XPlay بـ ADB المحلي لوحدة السيارة. يؤكد ذلك الوصول إلى ADB فقط ولا يؤكد دعم ميزات سيارات BYD.</string>
-    <string name="settings_car_adb_unreachable">تعذر الاتصال بـ ADB المحلي على 127.0.0.1:5555. قد تكون الخدمة مغلقة أو محظورة أو تستخدم منفذًا آخر. اتصال الكمبيوتر بـ ADB لا يثبت قدرة XPlay على الوصول إلى العنوان المحلي.</string>
+    <string name="settings_car_adb_unreachable">تعذر الاتصال بـ ADB المحلي على 127.0.0.1:5050/5555. قد تكون الخدمة مغلقة أو محظورة أو تستخدم منفذًا آخر. اتصال الكمبيوتر بـ ADB لا يثبت قدرة XPlay على الوصول إلى العنوان المحلي.</string>
     <string name="settings_car_adb_not_approved">لم تمنح وحدة السيارة XPlay التفويض خلال الانتظار. إذا ظهر طلب تفويض التصحيح فاسمح لـ XPlay وحاول مجددًا.</string>
     <string name="settings_car_adb_pairing">يتطلب هذا المنفذ اقتران تصحيح لاسلكي عبر TLS لا يدعمه XPlay. لم يتم فتح إعدادات النظام.</string>
 </resources>

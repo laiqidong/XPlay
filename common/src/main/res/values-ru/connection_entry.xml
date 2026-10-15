@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="connection_tap_to_start">Нажмите «Подключить телефон», чтобы начать.</string>
+    <string name="connection_opening_car_hotspot">Включение точки доступа автомобиля…</string>
+    <string name="connection_waiting_iphone_hotspot">Ожидание подключения iPhone к точке доступа…</string>
+</resources>

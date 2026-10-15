@@ -1,0 +1,13 @@
+<resources>
+    <string name="settings_experiments">Experimentos</string>
+    <string name="settings_vehicle_probe_title">Información del vehículo (experimental)</string>
+    <string name="settings_vehicle_probe_description">Los cambios se reciben del vehículo. Se detiene al salir. — significa no disponible.</string>
+    <string name="settings_vehicle_probe_start">Iniciar seguimiento</string>
+    <string name="settings_vehicle_monitor_stop">Detener seguimiento</string>
+    <string name="settings_probe_gear">Marcha</string>
+    <string name="settings_probe_speed">Velocidad (valor bruto)</string>
+    <string name="settings_probe_accelerator">Acelerador (valor bruto)</string>
+    <string name="settings_probe_brake">Freno (0/1)</string>
+    <string name="settings_probe_battery">Batería (valor bruto)</string>
+    <string name="settings_vehicle_monitor_unavailable">Suscripción no disponible o permiso denegado.</string>
+</resources>

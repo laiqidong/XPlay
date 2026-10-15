@@ -137,7 +137,7 @@ class NightModeSettingsTest {
 
             assertEquals(appearanceSummary(mode), button(R.string.carplay_night_mode).text.toString())
             button(R.string.carplay_night_mode).performClick()
-            val dialog = ShadowAlertDialog.getLatestAlertDialog()
+            val dialog = TestDialogs.latest()
             assertEquals(CarPlayNightMode.entries.size, dialog.listView.adapter.count)
             assertEquals(CarPlayNightMode.entries.indexOf(mode), dialog.listView.checkedItemPosition)
             assertEquals(activity.getString(modeLabel(mode)),
@@ -228,24 +228,26 @@ class NightModeSettingsTest {
         }
     }
 
-    private fun timeDialog(title: Int, hour: Int, minute: Int): TimePickerDialog {
+    private fun timeDialog(title: Int, hour: Int, minute: Int): AlertDialog {
         button(title).performClick()
-        val dialog = ShadowAlertDialog.getLatestAlertDialog() as TimePickerDialog
+        val dialog = TestDialogs.latest()
         shadowOf(Looper.getMainLooper()).idle()
-        dialog.updateTime(hour, minute)
+        val picker = views(dialog.window!!.decorView).filterIsInstance<android.widget.TimePicker>().single()
+        picker.hour = hour
+        picker.minute = minute
         return dialog
     }
 
     private fun selectMode(mode: CarPlayNightMode): AlertDialog {
         button(R.string.carplay_night_mode).performClick()
-        return ShadowAlertDialog.getLatestAlertDialog().also {
+        return TestDialogs.latest().also {
             it.listView.performItemClick(null, CarPlayNightMode.entries.indexOf(mode), 0)
         }
     }
 
     private fun editNumber(title: Int, value: Int) {
         button(title).performClick()
-        val dialog = ShadowAlertDialog.getLatestAlertDialog()
+        val dialog = TestDialogs.latest()
         shadowOf(Looper.getMainLooper()).idle()
         views(dialog.window!!.decorView).filterIsInstance<EditText>().single().setText(value.toString())
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()

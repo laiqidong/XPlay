@@ -55,10 +55,10 @@ class DiPlaySessionService : Service() {
         return START_NOT_STICKY
     }
     override fun onTaskRemoved(rootIntent: Intent?) {
-        // BYD's recents force-stops the package ~10 ms after removing the task: end guidance first.
-        com.shilapi.xcertplay.hud.BydNavigationOutputs.endNow()
-        CarPlayBackgroundSession.stop()
-        stopSelf()
+        // Some head units remove the UI task when returning to their launcher.
+        // Task removal is not an explicit disconnect: keep the foreground connection alive.
+        android.util.Log.i("xcertplay-usb", "UI task removed; retaining CarPlay connection")
+        super.onTaskRemoved(rootIntent)
     }
     companion object {
         const val ACTION_STOP = "com.shihab.diplay.DISCONNECT"

@@ -57,7 +57,7 @@ class AmbientMusicSettingsUiTest {
     }
 
     private fun albumSwitch(dialog: AlertDialog): Switch = descendants(dialog.window!!.decorView)
-        .filterIsInstance<Switch>().single { it.contentDescription == activity.getString(R.string.settings_ambient_album) }
+        .filterIsInstance<Switch>().single { it.settingsControlTitle == activity.getString(R.string.settings_ambient_album) }
 
     @Test fun failedReadOnlyCheckLeavesControlDisabledAndExplainsWhy() {
         var checks = 0
@@ -91,11 +91,11 @@ class AmbientMusicSettingsUiTest {
     private fun open(): AlertDialog {
         ReflectionHelpers.callInstanceMethod<Unit>(activity, "showAmbientConfiguration")
         shadowOf(Looper.getMainLooper()).idle()
-        return ShadowAlertDialog.getLatestAlertDialog()
+        return TestDialogs.latest()
     }
 
     private fun enableSwitch(dialog: AlertDialog): Switch = descendants(dialog.window!!.decorView)
-        .filterIsInstance<Switch>().single { it.contentDescription == activity.getString(R.string.settings_ambient_enable) }
+        .filterIsInstance<Switch>().single { it.settingsControlTitle == activity.getString(R.string.settings_ambient_enable) }
 
     private fun descendants(view: View): List<View> = buildList {
         add(view)

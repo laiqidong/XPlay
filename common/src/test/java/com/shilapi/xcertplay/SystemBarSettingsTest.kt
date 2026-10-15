@@ -33,7 +33,7 @@ class SystemBarSettingsTest {
         assertTrue(statusBarSwitch().isChecked)
         assertTrue(navigationBarSwitch().isChecked)
         assertFalse(descendants(activity.window.decorView).filterIsInstance<Switch>()
-            .any { it.contentDescription == activity.getString(R.string.full_screen) })
+            .any { it.settingsControlTitle == activity.getString(R.string.full_screen) })
     }
 
     @Test fun settingsReadAllFourExistingCombinationsWithoutChangingThem() {
@@ -91,14 +91,14 @@ class SystemBarSettingsTest {
         openSettings()
         activity.onBackPressedDispatcher.onBackPressed()
         descendants(activity.window.decorView)
-            .single { it.contentDescription == activity.getString(
+            .single { it.settingsControlTitle == activity.getString(
                 R.string.settings_open_category,
                 activity.getString(R.string.settings_advanced),
             ) }
             .performClick()
         val harmanSwitch = descendants(activity.window.decorView)
             .filterIsInstance<Switch>()
-            .single { it.contentDescription == activity.getString(R.string.settings_harman_fullscreen_experimental) }
+            .single { it.settingsControlTitle == activity.getString(R.string.settings_harman_fullscreen_experimental) }
 
         assertFalse(harmanSwitch.isChecked)
         harmanSwitch.performClick()
@@ -111,7 +111,7 @@ class SystemBarSettingsTest {
         controller = Robolectric.buildActivity(DiPlayActivity::class.java,
             Intent(context, DiPlayActivity::class.java).putExtra("page", "settings")).setup()
         descendants(activity.window.decorView)
-            .single { it.contentDescription == activity.getString(
+            .single { it.settingsControlTitle == activity.getString(
                 R.string.settings_open_category,
                 activity.getString(R.string.settings_display),
             ) }
@@ -130,7 +130,7 @@ class SystemBarSettingsTest {
     private fun navigationBarSwitch(): Switch = barSwitch(R.string.hide_the_navigation_bar)
 
     private fun barSwitch(label: Int): Switch = descendants(activity.window.decorView)
-        .filterIsInstance<Switch>().single { it.contentDescription == activity.getString(label) }
+        .filterIsInstance<Switch>().single { it.settingsControlTitle == activity.getString(label) }
 
     private fun descendants(view: View): Sequence<View> = sequence {
         yield(view)

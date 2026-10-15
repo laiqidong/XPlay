@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="hotspot_join_title">Automatic hotspot joining (experimental)</string>
-    <string name="hotspot_join_description">Optional repair for supported firmware with Android 13+ and a 5 GHz-only car hotspot. Check prepares a private rollback backup without changing the hotspot. Requires authorized local ADB on localhost:5555; TLS wireless-debugging pairing is not supported.</string>
+    <string name="hotspot_join_description">Optional repair for supported firmware with Android 13+ and a 5 GHz-only car hotspot. Check prepares a private rollback backup without changing the hotspot. Requires authorized local ADB on localhost:5050/5555; TLS wireless-debugging pairing is not supported.</string>
     <string name="hotspot_join_check">Check hotspot repair</string>
     <string name="hotspot_join_apply">Add automatic-join information</string>
     <string name="hotspot_join_restore">Restore saved hotspot</string>
@@ -19,6 +19,6 @@
     <string name="hotspot_join_cancelled">Cancelled before writing. Check again to inspect any retained rollback state.</string>
     <string name="hotspot_join_failed_restored">Repair failed or was cancelled after writing. Original configuration restored and readback verified.</string>
     <string name="hotspot_join_busy">Another hotspot operation is still running. Wait, then check again.</string>
-    <string name="hotspot_join_adb_required">Requires approved plain local ADB on localhost:5555. Enable and authorize it using your supported car setup. Android TLS wireless-debugging pairing alone will not work.</string>
+    <string name="hotspot_join_adb_required">Requires approved plain local ADB on localhost:5050/5555. Enable and authorize it using your supported car setup. Android TLS wireless-debugging pairing alone will not work.</string>
     <string name="hotspot_join_recovery">Outcome or backup verification is uncertain. Turn the hotspot off and check again before continuing. An existing private backup is retained; restore is allowed only when the configuration still matches.</string>
 </resources>

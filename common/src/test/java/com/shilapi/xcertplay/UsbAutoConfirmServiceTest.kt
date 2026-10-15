@@ -84,20 +84,16 @@ class UsbAutoConfirmServiceTest {
         assertFalse(UsbAutoConfirmService.isTargetPrompt("Allow USB access?", ""))
     }
 
-    @Test fun bydAccessibilityScreenIsUsedWhenTheStandardActionIsMissing() {
-        val context = org.mockito.Mockito.mock(Context::class.java)
-        val opened = mutableListOf<android.content.Intent>()
-        org.mockito.Mockito.doAnswer { call ->
-            val intent = call.getArgument<android.content.Intent>(0)
-            if (intent.action == Settings.ACTION_ACCESSIBILITY_SETTINGS) throw android.content.ActivityNotFoundException()
-            opened += intent
-            null
-        }.`when`(context).startActivity(org.mockito.ArgumentMatchers.any(android.content.Intent::class.java))
-        assertTrue(UsbAutoConfirmService.openSettings(context))
-        assertEquals(
-            listOf("com.byd.systemsettings/com.byd.systemsettings.accessibility.AccessibilityMainActivity"),
-            opened.map { it.component!!.flattenToString() },
-        )
+    @Test fun accessibilityHelpStaysInsideTheAppInsteadOfLaunchingVendorActivities() {
+        val controller = org.robolectric.Robolectric.buildActivity(android.app.Activity::class.java).setup()
+        val activity = controller.get()
+        try {
+            assertTrue(UsbAutoConfirmService.openSettings(activity))
+            org.junit.Assert.assertNull(org.robolectric.Shadows.shadowOf(activity).nextStartedActivity)
+            val dialog = requireNotNull(TestDialogs.latest())
+            assertTrue(dialog.isShowing)
+            dialog.dismiss()
+        } finally { controller.pause().stop().destroy() }
     }
 
     @Test fun systemUsbPromptClicksOnlyWhenTheNamedAppMatches() {

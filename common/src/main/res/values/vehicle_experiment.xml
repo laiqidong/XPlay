@@ -1,0 +1,13 @@
+<resources>
+    <string name="settings_experiments">Experiments</string>
+    <string name="settings_vehicle_probe_title">Vehicle information (experimental)</string>
+    <string name="settings_vehicle_probe_description">Vehicle changes are pushed by the vehicle service. Leaving this page stops monitoring. — means unavailable.</string>
+    <string name="settings_vehicle_probe_start">Start monitoring</string>
+    <string name="settings_vehicle_monitor_stop">Stop monitoring</string>
+    <string name="settings_probe_gear">Gear</string>
+    <string name="settings_probe_speed">Speed (raw value)</string>
+    <string name="settings_probe_accelerator">Accelerator (raw value)</string>
+    <string name="settings_probe_brake">Brake (0/1)</string>
+    <string name="settings_probe_battery">Battery (raw value)</string>
+    <string name="settings_vehicle_monitor_unavailable">Vehicle subscription unavailable or permission denied.</string>
+</resources>

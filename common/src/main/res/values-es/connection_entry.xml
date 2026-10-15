@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="connection_tap_to_start">Pulsa Conectar teléfono para empezar.</string>
+    <string name="connection_opening_car_hotspot">Activando el punto de acceso del coche…</string>
+    <string name="connection_waiting_iphone_hotspot">Esperando a que el iPhone se conecte al punto de acceso…</string>
+</resources>

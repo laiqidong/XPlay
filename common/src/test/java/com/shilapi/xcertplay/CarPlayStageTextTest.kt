@@ -56,6 +56,7 @@ class CarPlayStageTextTest {
         assertStage(R.string.allow_the_connection_permission_to_continue, CarPlayStatus.RequestingIphonePermission)
         assertStage(R.string.looking_for_your_paired_iphone, CarPlayStatus.WaitingForPairedIphone)
         assertStage(R.string.connecting_to_your_iphone, CarPlayStatus.ConnectingBluetooth)
+        assertStage(R.string.connection_waiting_iphone_hotspot, CarPlayStatus.WaitingForWirelessIphone)
         assertStage(R.string.opening_carplay, CarPlayStatus.RunningControl)
         assertStage(R.string.reconnecting_to_your_iphone, CarPlayStatus.ControlEnded)
         assertStage(R.string.waiting_for_mfi_coprocessor, CarPlayStatus.WaitingForMfi)

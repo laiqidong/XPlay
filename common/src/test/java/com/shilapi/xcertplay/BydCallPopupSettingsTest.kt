@@ -29,7 +29,7 @@ class BydCallPopupSettingsTest {
         val content = LinearLayout(activity)
         ReflectionHelpers.callInstanceMethod<Unit>(activity, "allSettingsSections",
             ReflectionHelpers.ClassParameter.from(LinearLayout::class.java, content))
-        val popup = switches(content).singleOrNull { it.contentDescription == "Hide BYD call popup (experimental)" }
+        val popup = switches(content).singleOrNull { it.settingsControlTitle == "Hide BYD call popup (experimental)" }
         assertNotNull("Android 12L must expose the opt-in popup control", popup)
         assertFalse(popup!!.isChecked)
         val before = prefs.all.toMap()
@@ -61,7 +61,7 @@ class BydCallPopupSettingsTest {
         val content = LinearLayout(activity)
         ReflectionHelpers.callInstanceMethod<Unit>(activity, "allSettingsSections",
             ReflectionHelpers.ClassParameter.from(LinearLayout::class.java, content))
-        val popup = switches(content).single { it.contentDescription == activity.getString(R.string.settings_hide_byd_call_popup) }
+        val popup = switches(content).single { it.settingsControlTitle == activity.getString(R.string.settings_hide_byd_call_popup) }
         val row = popup.parent as ViewGroup
         row.layoutDirection = configuration.layoutDirection
         val width = (widthDp * activity.resources.displayMetrics.density).toInt()

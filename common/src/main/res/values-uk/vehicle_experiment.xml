@@ -1,0 +1,13 @@
+<resources>
+    <string name="settings_experiments">Експерименти</string>
+    <string name="settings_vehicle_probe_title">Дані автомобіля (експериментально)</string>
+    <string name="settings_vehicle_probe_description">Значення оновлюються за подіями автомобіля. Після виходу спостереження припиняється. — означає недоступність.</string>
+    <string name="settings_vehicle_probe_start">Почати спостереження</string>
+    <string name="settings_vehicle_monitor_stop">Зупинити спостереження</string>
+    <string name="settings_probe_gear">Передача</string>
+    <string name="settings_probe_speed">Швидкість (необроблене значення)</string>
+    <string name="settings_probe_accelerator">Газ (необроблене значення)</string>
+    <string name="settings_probe_brake">Гальмо (0/1)</string>
+    <string name="settings_probe_battery">Батарея (необроблене значення)</string>
+    <string name="settings_vehicle_monitor_unavailable">Підписка недоступна або немає дозволу.</string>
+</resources>

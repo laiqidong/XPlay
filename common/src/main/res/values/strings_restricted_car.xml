@@ -29,9 +29,9 @@
     <string name="settings_car_hotspot_help">From the car home screen, open its hotspot controls and enable the hotspot. Enter that same name and password in XPlay, then connect the iPhone to this hotspot. Return here to connect CarPlay.</string>
     <string name="settings_car_wifi_help">From the car home screen, connect the head unit to Wi-Fi. Connect the iPhone to the same network, then return to XPlay.</string>
     <string name="settings_car_bluetooth_help">From the car home screen, open Bluetooth and pair your iPhone. On the iPhone, keep Bluetooth and Wi-Fi enabled. Return to XPlay and select the paired iPhone.</string>
-    <string name="settings_car_adb_progress">Checking local ADB at 127.0.0.1:5555. If the car asks, allow XPlay. Waiting for authorization can take up to 60 seconds. You can cancel.</string>
+    <string name="settings_car_adb_progress">Checking local ADB at 127.0.0.1:5050/5555. If the car asks, allow XPlay. Waiting for authorization can take up to 60 seconds. You can cancel.</string>
     <string name="settings_car_adb_ready">XPlay connected to this head unit’s local ADB. This confirms ADB access only; it does not establish support for BYD vehicle features.</string>
-    <string name="settings_car_adb_unreachable">Cannot reach local ADB at 127.0.0.1:5555. The service may be off, blocked or using another port. Computer ADB access does not prove that XPlay can access this local endpoint.</string>
+    <string name="settings_car_adb_unreachable">Cannot reach local ADB at 127.0.0.1:5050/5555. The service may be off, blocked or using another port. Computer ADB access does not prove that XPlay can access this local endpoint.</string>
     <string name="settings_car_adb_not_approved">The head unit did not authorize XPlay within the waiting period. If a debugging authorization prompt is available, allow XPlay and retry.</string>
     <string name="settings_car_adb_pairing">This endpoint requires TLS wireless-debugging pairing, which XPlay does not support. No system settings page was opened.</string>
 </resources>

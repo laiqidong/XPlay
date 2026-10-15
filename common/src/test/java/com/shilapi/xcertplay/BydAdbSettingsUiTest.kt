@@ -57,6 +57,19 @@ class BydAdbSettingsUiTest {
         assertFalse(BydOutputSettings.navigationAvailable(activity))
     }
 
+    @Test fun xpengHotspotUsesNeutralTitleAndKeepsBydVehicleFeaturesSeparate() {
+        org.robolectric.shadows.ShadowBuild.setManufacturer("XiaoPeng")
+        org.robolectric.shadows.ShadowBuild.setBrand("XPENG")
+        org.robolectric.shadows.ShadowBuild.setModel("E28")
+        shadowOf(activity.packageManager).removePackage("com.byd.carsettings")
+        assertTrue(CarHotspotSetup.supportsHotspotAutomation(activity))
+        assertFalse(CarHotspotSetup.isBydHeadUnit(activity))
+        render(LocalAdb.Access.READY)
+        assertTrue(labels(controls).contains(activity.getString(R.string.settings_car_hotspot_adb_features)))
+        assertFalse(labels(controls).contains(activity.getString(R.string.byd_adb_features)))
+        assertEquals(1, switches(controls).size)
+    }
+
     @Test fun hotspotAndVehicleSettingsHaveOneOwnerWithoutNavigationServices() {
         render(LocalAdb.Access.READY)
         val advanced = advancedVehicleData()
@@ -66,7 +79,7 @@ class BydAdbSettingsUiTest {
         assertFalse(CarHotspotSettings.enabled(activity))
         for (id in listOf(R.string.car_battery_for_the_iphone, R.string.wheel_speed_for_tunnels,
             R.string.video_while_parked, R.string.auto_car_hotspot_title)) {
-            assertEquals(1, switches(page).count { it.contentDescription == activity.getString(id) })
+            assertEquals(1, switches(page).count { it.settingsControlTitle == activity.getString(id) })
         }
         assertEquals(1, labels(page).count { it == activity.getString(R.string.check_adb_access) })
         assertTrue(labels(advanced).any { it.contains(activity.getString(R.string.vehicle_data_mode_default)) })
@@ -92,9 +105,9 @@ class BydAdbSettingsUiTest {
             assertEquals(setOf(
                 R.string.car_battery_for_the_iphone, R.string.wheel_speed_for_tunnels,
                 R.string.video_while_parked, R.string.bt_suspend_during_carplay,
-            ).map { activity.getString(it) }.toSet(), vehicleSwitches.map { it.contentDescription.toString() }.toSet())
+            ).map { activity.getString(it) }.toSet(), vehicleSwitches.map { it.settingsControlTitle.toString() }.toSet())
             assertFalse(vehicleSwitches.single {
-                it.contentDescription == activity.getString(R.string.bt_suspend_during_carplay)
+                it.settingsControlTitle == activity.getString(R.string.bt_suspend_during_carplay)
             }.isChecked)
             assertFalse(AirPlayPersistence.loadBtSuspendDuringCarplay(activity))
             assertTrue(CarHotspotSettings.enabled(activity))
@@ -112,12 +125,12 @@ class BydAdbSettingsUiTest {
 
         val advanced = advancedVehicleData()
         val pause = switches(advanced).single {
-            it.contentDescription == activity.getString(R.string.bt_suspend_during_carplay)
+            it.settingsControlTitle == activity.getString(R.string.bt_suspend_during_carplay)
         }
         assertTrue(pause.isChecked)
         assertTrue(pause.isEnabled)
         assertFalse(switches(advanced).any {
-            it.contentDescription == activity.getString(R.string.car_battery_for_the_iphone)
+            it.settingsControlTitle == activity.getString(R.string.car_battery_for_the_iphone)
         })
         assertTrue(labels(advanced).any { it.contains(activity.getString(R.string.bt_suspend_delay)) })
         assertTrue(labels(advanced).any { it.contains(activity.getString(R.string.bt_suspend_delay_option, 15)) })
@@ -126,7 +139,7 @@ class BydAdbSettingsUiTest {
 
         ReflectionHelpers.setField(activity, "adbSwitchChangePending", true)
         assertFalse(switches(advancedVehicleData()).single {
-            it.contentDescription == activity.getString(R.string.bt_suspend_during_carplay)
+            it.settingsControlTitle == activity.getString(R.string.bt_suspend_during_carplay)
         }.isEnabled)
     }
 
@@ -140,7 +153,7 @@ class BydAdbSettingsUiTest {
         try {
             PendingReconnect.clear()
             switches(advancedVehicleData()).single {
-                it.contentDescription == activity.getString(R.string.bt_suspend_during_carplay)
+                it.settingsControlTitle == activity.getString(R.string.bt_suspend_during_carplay)
             }.performClick()
             assertFalse(AirPlayPersistence.loadBtSuspendDuringCarplay(activity))
             assertTrue(PendingReconnect.isPending(session))
@@ -161,7 +174,7 @@ class BydAdbSettingsUiTest {
             assertEquals(0, controls.childCount)
             assertNull(ReflectionHelpers.getField<TextView?>(activity, "adbStatus"))
             assertTrue(switches(advancedVehicleData()).single {
-                it.contentDescription == activity.getString(R.string.car_battery_for_the_iphone)
+                it.settingsControlTitle == activity.getString(R.string.car_battery_for_the_iphone)
             }.isChecked)
         }
     }

@@ -41,7 +41,7 @@ class WifiDirectChannelSettingsTest {
         val control = channelControl(controls())!!
         assertTrue(control.text.toString().endsWith("Auto"))
         control.performClick()
-        val dialog = ShadowAlertDialog.getLatestAlertDialog()
+        val dialog = TestDialogs.latest()
         assertEquals(0, dialog.listView.checkedItemPosition)
         select(dialog, 149)
         dialog.getButton(AlertDialog.BUTTON_NEGATIVE).performClick()
@@ -53,7 +53,7 @@ class WifiDirectChannelSettingsTest {
     @Test fun savedChannelSurvivesModeChangesAndCanBeResetToAuto() {
         val control = channelControl(controls())!!
         control.performClick()
-        val dialog = ShadowAlertDialog.getLatestAlertDialog()
+        val dialog = TestDialogs.latest()
         select(dialog, 149)
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
         shadowOf(Looper.getMainLooper()).idle()
@@ -64,7 +64,7 @@ class WifiDirectChannelSettingsTest {
         assertEquals(149, AirPlayPersistence.loadWifiP2pPreferredChannel(activity))
         AirPlayPersistence.saveWirelessHotspotMode(activity, WirelessHotspotMode.WIFI_P2P)
         channelControl(controls())!!.performClick()
-        val reopened = ShadowAlertDialog.getLatestAlertDialog()
+        val reopened = TestDialogs.latest()
         assertEquals(choices.indexOf(149), reopened.listView.checkedItemPosition)
         select(reopened, WifiP2pChannels.AUTO)
         reopened.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
@@ -75,7 +75,7 @@ class WifiDirectChannelSettingsTest {
     @Test fun autoBandChoicesAreListedAfterAutoAndPersist() {
         val control = channelControl(controls())!!
         control.performClick()
-        val dialog = ShadowAlertDialog.getLatestAlertDialog()
+        val dialog = TestDialogs.latest()
         assertEquals("Auto · 5 GHz", dialog.listView.adapter.getItem(1).toString())
         assertEquals("Auto · 2.4 GHz", dialog.listView.adapter.getItem(2).toString())
         select(dialog, WifiP2pChannels.AUTO_5_GHZ)

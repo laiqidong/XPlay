@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class LocalAdb(
     private val key: KeyPair,
     private val host: String = "127.0.0.1",
-    private val port: Int = 5555,
+    private val port: Int = LocalAdbDevicePolicy.port(),
 ) : Closeable {
     enum class Access { READY, NOT_APPROVED, UNREACHABLE, UNSUPPORTED }
 

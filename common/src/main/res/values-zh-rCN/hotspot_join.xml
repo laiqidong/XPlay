@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="hotspot_join_title">自动加入热点（实验性）</string>
-    <string name="hotspot_join_description">适用于 Android 13 及以上、支持相关固件且仅使用 5 GHz 的车载热点。检查只准备私有恢复备份，不更改热点。需要已授权的 localhost:5555 本地 ADB；不支持 TLS 无线调试配对。</string>
+    <string name="hotspot_join_description">适用于 Android 13 及以上、支持相关固件且仅使用 5 GHz 的车载热点。检查只准备私有恢复备份，不更改热点。需要已授权的 localhost:5050/5555 本地 ADB；不支持 TLS 无线调试配对。</string>
     <string name="hotspot_join_check">检查热点修复</string>
     <string name="hotspot_join_apply">添加自动加入信息</string>
     <string name="hotspot_join_restore">恢复已保存的热点</string>
@@ -19,6 +19,6 @@
     <string name="hotspot_join_cancelled">已在写入前取消。请重新检查保留的恢复状态。</string>
     <string name="hotspot_join_failed_restored">修复失败或写入后被取消。已恢复原配置并读取验证。</string>
     <string name="hotspot_join_busy">另一热点操作仍在运行。请等待后重新检查。</string>
-    <string name="hotspot_join_adb_required">需要已授权的 localhost:5555 普通本地 ADB。请按车辆支持的方式启用并授权。仅 TLS 无线调试配对无法使用。</string>
+    <string name="hotspot_join_adb_required">需要已授权的 localhost:5050/5555 普通本地 ADB。请按车辆支持的方式启用并授权。仅 TLS 无线调试配对无法使用。</string>
     <string name="hotspot_join_recovery">结果或备份验证不确定。请关闭热点并重新检查后再继续。现有私有备份会保留；只有配置仍匹配时才允许恢复。</string>
 </resources>

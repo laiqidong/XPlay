@@ -29,9 +29,9 @@
     <string name="settings_car_hotspot_help">Activa el punto de acceso desde el inicio del vehículo. Introduce el mismo nombre y contraseña en XPlay, conecta el iPhone a ese punto y vuelve para conectar CarPlay.</string>
     <string name="settings_car_wifi_help">Conecta la unidad a Wi-Fi desde el inicio del vehículo. Conecta el iPhone a la misma red y vuelve a XPlay.</string>
     <string name="settings_car_bluetooth_help">Abre Bluetooth desde el inicio del vehículo y empareja el iPhone. Mantén Bluetooth y Wi-Fi activos en el teléfono, vuelve a XPlay y selecciona el iPhone emparejado.</string>
-    <string name="settings_car_adb_progress">Comprobando ADB local en 127.0.0.1:5555. Si el vehículo lo solicita, permite XPlay. La autorización puede tardar hasta 60 segundos. Puedes cancelar.</string>
+    <string name="settings_car_adb_progress">Comprobando ADB local en 127.0.0.1:5050/5555. Si el vehículo lo solicita, permite XPlay. La autorización puede tardar hasta 60 segundos. Puedes cancelar.</string>
     <string name="settings_car_adb_ready">XPlay se conectó al ADB local de esta unidad. Esto solo confirma el acceso ADB, no la compatibilidad con funciones de vehículos BYD.</string>
-    <string name="settings_car_adb_unreachable">No se puede conectar al ADB local en 127.0.0.1:5555. El servicio puede estar apagado, bloqueado o usar otro puerto. El acceso ADB desde un ordenador no confirma el acceso local de XPlay.</string>
+    <string name="settings_car_adb_unreachable">No se puede conectar al ADB local en 127.0.0.1:5050/5555. El servicio puede estar apagado, bloqueado o usar otro puerto. El acceso ADB desde un ordenador no confirma el acceso local de XPlay.</string>
     <string name="settings_car_adb_not_approved">La unidad no autorizó XPlay durante la espera. Si aparece una solicitud de depuración, permite XPlay y reintenta.</string>
     <string name="settings_car_adb_pairing">Este puerto requiere emparejamiento TLS de depuración inalámbrica, no compatible con XPlay. No se abrió ningún ajuste del sistema.</string>
 </resources>

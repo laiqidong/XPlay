@@ -78,7 +78,7 @@ class CarHotspotSwitchTest {
     @Test fun enablingDirectlyRequestsPermissionWithoutAnotherDialog() {
         hotspotSwitch().isChecked = true
         awaitGrant()
-        assertNull(ShadowAlertDialog.getLatestAlertDialog())
+        assertNull(TestDialogs.latest())
         assertFalse(CarHotspotSettings.enabled(activity))
         assertFalse(hotspotSwitch().isEnabled)
         assertSame(controls, activity.findViewById<ViewGroup>(android.R.id.content).getChildAt(0))
@@ -120,7 +120,7 @@ class CarHotspotSwitchTest {
         completeGrant()
         assertTrue(CarHotspotSettings.enabled(activity))
         assertTrue(hotspotSwitch().isChecked)
-        assertNull(ShadowAlertDialog.getLatestAlertDialog())
+        assertNull(TestDialogs.latest())
     }
 
     @Test fun selectingBootFirstGrantsBothRequiredPermissionsFromTheHotspotSwitch() {
@@ -274,7 +274,7 @@ class CarHotspotSwitchTest {
     private fun hotspotSwitch(): Switch = switchFor(R.string.auto_car_hotspot_title)
 
     private fun switchFor(title: Int): Switch = switches(controls).single {
-        it.contentDescription == activity.getString(title)
+        it.settingsControlTitle == activity.getString(title)
     }
 
     private fun refreshControls() {
@@ -285,14 +285,14 @@ class CarHotspotSwitchTest {
 
     private fun bootSwitch(): Switch {
         switches(controls).firstOrNull {
-            it.contentDescription == activity.getString(R.string.open_after_the_car_starts)
+            it.settingsControlTitle == activity.getString(R.string.open_after_the_car_starts)
         }?.let { return it }
         val bootControls = LinearLayout(activity)
         DiPlayActivity::class.java.getDeclaredMethod("connectionSettings", LinearLayout::class.java).apply {
             isAccessible = true
         }.invoke(activity, bootControls)
         controls.addView(bootControls)
-        return switches(controls).single { it.contentDescription == activity.getString(R.string.open_after_the_car_starts) }
+        return switches(controls).single { it.settingsControlTitle == activity.getString(R.string.open_after_the_car_starts) }
     }
 
     private fun switches(view: View): List<Switch> = buildList {

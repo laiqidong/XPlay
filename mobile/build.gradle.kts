@@ -14,7 +14,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.shihab.diplay"
+        applicationId = "com.laiqidong.xplay"
         minSdk = 25
         targetSdk = 37
         versionCode = 38
@@ -117,4 +117,9 @@ tasks.register("assembleStandaloneDebug") {
     group = "build"
     description = "Build a standalone car-test APK with explicitly provisioned authentication."
     dependsOn(verifyStandaloneAuthentication, "assembleDebug")
+}
+tasks.register("assembleStandaloneRelease") {
+    group = "build"
+    description = "Build a signed release APK with explicitly provisioned authentication."
+    dependsOn(verifyStandaloneAuthentication, "assembleRelease")
 }

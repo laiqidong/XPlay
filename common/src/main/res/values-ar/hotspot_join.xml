@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="hotspot_join_title">الانضمام التلقائي لنقطة الاتصال (تجريبي)</string>
-    <string name="hotspot_join_description">إصلاح اختياري للبرامج الثابتة المدعومة بنظام Android 13 أو أحدث ونقطة اتصال سيارة تعمل على 5 GHz فقط. يجهز الفحص نسخة خاصة للاستعادة دون تغيير نقطة الاتصال. يتطلب ADB محليًا مصرحًا على localhost:5555؛ اقتران تصحيح الأخطاء اللاسلكي عبر TLS غير مدعوم.</string>
+    <string name="hotspot_join_description">إصلاح اختياري للبرامج الثابتة المدعومة بنظام Android 13 أو أحدث ونقطة اتصال سيارة تعمل على 5 GHz فقط. يجهز الفحص نسخة خاصة للاستعادة دون تغيير نقطة الاتصال. يتطلب ADB محليًا مصرحًا على localhost:5050/5555؛ اقتران تصحيح الأخطاء اللاسلكي عبر TLS غير مدعوم.</string>
     <string name="hotspot_join_check">فحص إصلاح نقطة الاتصال</string>
     <string name="hotspot_join_apply">إضافة معلومات الانضمام التلقائي</string>
     <string name="hotspot_join_restore">استعادة نقطة الاتصال المحفوظة</string>
@@ -19,6 +19,6 @@
     <string name="hotspot_join_cancelled">ألغي قبل الكتابة. افحص مجددًا لمعرفة حالة الاستعادة المحفوظة.</string>
     <string name="hotspot_join_failed_restored">فشل الإصلاح أو ألغي بعد الكتابة. استعيدت الإعدادات الأصلية وتم التحقق من قراءتها.</string>
     <string name="hotspot_join_busy">عملية أخرى لنقطة الاتصال لا تزال جارية. انتظر ثم افحص مجددًا.</string>
-    <string name="hotspot_join_adb_required">يتطلب ADB محليًا عاديًا مصرحًا على localhost:5555. فعله وصرح به بالطريقة المدعومة لسيارتك. اقتران تصحيح الأخطاء اللاسلكي عبر TLS وحده لن يعمل.</string>
+    <string name="hotspot_join_adb_required">يتطلب ADB محليًا عاديًا مصرحًا على localhost:5050/5555. فعله وصرح به بالطريقة المدعومة لسيارتك. اقتران تصحيح الأخطاء اللاسلكي عبر TLS وحده لن يعمل.</string>
     <string name="hotspot_join_recovery">النتيجة أو التحقق من النسخة غير مؤكد. أوقف نقطة الاتصال وافحص مجددًا قبل المتابعة. تحتفظ النسخة الخاصة الموجودة؛ لا تسمح الاستعادة إلا إذا ظلت الإعدادات متطابقة.</string>
 </resources>

@@ -1,0 +1,13 @@
+<resources>
+    <string name="settings_experiments">التجارب</string>
+    <string name="settings_vehicle_probe_title">معلومات المركبة (تجريبي)</string>
+    <string name="settings_vehicle_probe_description">تُحدّث القيم عند تغير حالة المركبة. تتوقف المراقبة عند مغادرة الصفحة. — تعني غير متاح.</string>
+    <string name="settings_vehicle_probe_start">بدء المراقبة</string>
+    <string name="settings_vehicle_monitor_stop">إيقاف المراقبة</string>
+    <string name="settings_probe_gear">ناقل الحركة</string>
+    <string name="settings_probe_speed">السرعة (قيمة خام)</string>
+    <string name="settings_probe_accelerator">الوقود (قيمة خام)</string>
+    <string name="settings_probe_brake">الفرامل (0/1)</string>
+    <string name="settings_probe_battery">البطارية (قيمة خام)</string>
+    <string name="settings_vehicle_monitor_unavailable">الاشتراك في حالة المركبة غير متاح أو الإذن مرفوض.</string>
+</resources>

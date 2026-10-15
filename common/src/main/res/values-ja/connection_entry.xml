@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="connection_tap_to_start">「電話を接続」をタップして開始します。</string>
+    <string name="connection_opening_car_hotspot">車のアクセスポイントを有効にしています…</string>
+    <string name="connection_waiting_iphone_hotspot">iPhoneのアクセスポイントへの接続を待っています…</string>
+</resources>

@@ -163,17 +163,36 @@ private class AppPanelDialog(
         } else {
             panel.addView(contents, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(PANEL_GAP_DP) })
         }
-        // Vertical actions remain readable with large text and three-button dialogs.
-        listOf(DialogInterface.BUTTON_NEUTRAL, DialogInterface.BUTTON_NEGATIVE, DialogInterface.BUTTON_POSITIVE).forEach { id ->
-            actions[id]?.let { (caption, listener) ->
-                val control = DiPlayButton(context).apply {
-                    text = caption; textSize = 18f; minHeight = dp(PANEL_CONTROL_HEIGHT_DP)
-                    style(if (id == DialogInterface.BUTTON_POSITIVE) DiPlayButtonKind.PRIMARY else DiPlayButtonKind.SECONDARY, colors, false)
-                    setOnClickListener { listener?.onClick(this@AppPanelDialog, id); dismiss() }
+        fun actionControl(id: Int): Button? = actions[id]?.let { (caption, listener) ->
+            DiPlayButton(context).apply {
+                this.id = when (id) {
+                    DialogInterface.BUTTON_POSITIVE -> android.R.id.button1
+                    DialogInterface.BUTTON_NEGATIVE -> android.R.id.button2
+                    else -> android.R.id.button3
                 }
-                buttons[id] = control
-                panel.addView(control, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(PANEL_GAP_DP) })
+                text = caption; textSize = 18f; minHeight = dp(PANEL_CONTROL_HEIGHT_DP)
+                style(if (id == DialogInterface.BUTTON_POSITIVE) DiPlayButtonKind.PRIMARY else DiPlayButtonKind.SECONDARY, colors, false)
+                setOnClickListener { listener?.onClick(this@AppPanelDialog, id); dismiss() }
+                buttons[id] = this
             }
+        }
+        // Keep an optional third action separate; cancel and confirm share one row everywhere.
+        actionControl(DialogInterface.BUTTON_NEUTRAL)?.let { control ->
+            panel.addView(control, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(PANEL_GAP_DP) })
+        }
+        val confirmActions = listOf(DialogInterface.BUTTON_NEGATIVE, DialogInterface.BUTTON_POSITIVE)
+            .mapNotNull(::actionControl)
+        if (confirmActions.isNotEmpty()) {
+            val actionRow = LinearLayout(context).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+            }
+            confirmActions.forEachIndexed { index, control ->
+                actionRow.addView(control, LinearLayout.LayoutParams(0, -1, 1f).apply {
+                    if (index > 0) marginStart = dp(PANEL_GAP_DP)
+                })
+            }
+            panel.addView(actionRow, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(PANEL_GAP_DP) })
         }
         // Scroll the whole panel, including actions: keyboard/large text must never hide a button.
         window?.setContentView(AppDialogScrollView(context).apply { addView(panel) })

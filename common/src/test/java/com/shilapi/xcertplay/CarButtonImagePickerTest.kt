@@ -40,86 +40,44 @@ import org.robolectric.util.ReflectionHelpers
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28, 33], qualifiers = "en", manifest = Config.NONE)
 class CarButtonImagePickerTest {
-    @Test fun carButtonHasOneImageChoiceThatOpensDocumentLocations() = withHome { activity ->
-        val buttons = homeButtons(activity)
-        val choose = buttons.single { it.text == activity.getString(R.string.choose_image) }
+    // carButtonControls and buildAirPlayIconSection now use showCarImageUpload;
+    // keep testing cancellation, crop URI grants and host external-state cleanup.
+    @Test fun carButtonOffersPhoneUploadWithoutOpeningAnAndroidPicker() = withHome { activity ->
+        val choose = homeButtons(activity).single { it.text == activity.getString(R.string.settings_car_phone_image) }
         choose.performClick()
-        assertDocumentFilter(shadowOf(activity).nextStartedActivityForResult.intent)
+        val dialog = requireNotNull(TestDialogs.latestRaw())
+        assertTrue(dialog.isShowing)
         assertNull(shadowOf(activity).nextStartedActivityForResult)
+        dialog.dismiss()
     }
 
-    @Test fun homeChoiceFallsBackOnlyWhenDocumentPickerIsMissingAndReportsFinalFailure() = withHome { activity ->
-        val events = mutableListOf<String>()
-        var contentMissing = false
-        ReflectionHelpers.setField(activity, "iconDocumentPicker", launcher(ActivityResultContracts.OpenDocument()) {
-            events.add("document")
-            throw ActivityNotFoundException("No document picker")
-        })
-        ReflectionHelpers.setField(activity, "iconPicker", launcher(ActivityResultContracts.GetContent()) {
-            assertEquals("image/*", it)
-            events.add("content")
-            if (contentMissing) throw ActivityNotFoundException("No content picker")
-        })
-        val choose = homeButtons(activity).single { it.text == activity.getString(R.string.choose_image) }
-        choose.performClick()
-        assertEquals(listOf("document", "content"), events)
-        contentMissing = true
-        choose.performClick()
-        assertEquals(listOf("document", "content", "document", "content"), events)
-        assertEquals(activity.getString(R.string.this_head_unit_has_no_image_picker), ShadowToast.getTextOfLatestToast())
+    @Test fun cancellingPhoneUploadPreservesTheSavedImage() = withHome { activity ->
+        val previous = AirPlayPersistence.loadCustomAirPlayIconFile(activity)
+        homeButtons(activity).single { it.text == activity.getString(R.string.settings_car_phone_image) }.performClick()
+        requireNotNull(TestDialogs.latestRaw()).dismiss()
+        assertEquals(previous, AirPlayPersistence.loadCustomAirPlayIconFile(activity))
     }
 
-    @Test fun hostChoiceUsesDocumentPickerAndSameCropFlowThenClearsCancellationState() = withHost { activity ->
-        var documentIntent: Intent? = null
+    @Test fun hostPhoneUploadKeepsTheExistingCropFlow() = withHost { activity ->
         var cropIntent: Intent? = null
-        ReflectionHelpers.setField(activity, "imageDocumentPicker", launcher(ActivityResultContracts.OpenDocument()) {
-            documentIntent = ActivityResultContracts.OpenDocument().createIntent(activity, it)
-        })
-        ReflectionHelpers.setField(activity, "imagePicker", launcher(ActivityResultContracts.GetContent()) {
-            fail("A successful document launch must not also open the content picker")
-        })
-        ReflectionHelpers.setField(activity, "imageCrop", launcher(ActivityResultContracts.StartActivityForResult()) {
-            cropIntent = it
-        })
-        val buttons = hostButtons(activity)
-        assertEquals(listOf(activity.getString(R.string.choose_image), activity.getString(R.string.default_icon)),
-            buttons.map { it.text.toString() })
-        buttons.first().performClick()
-        assertDocumentFilter(documentIntent!!)
-        assertTrue(externalActivity(activity))
+        ReflectionHelpers.setField(activity, "imageCrop", launcher(ActivityResultContracts.StartActivityForResult()) { cropIntent = it })
         val uri = Uri.parse("content://test-images/icon")
+        ReflectionHelpers.setField(activity, "externalActivityInProgress", true)
         crop(activity, uri)
         assertEquals(uri, cropIntent!!.data)
         assertEquals(ImageCropActivity::class.java.name, cropIntent!!.component!!.className)
         assertTrue(cropIntent!!.flags and Intent.FLAG_GRANT_READ_URI_PERMISSION != 0)
-        assertTrue(externalActivity(activity))
         crop(activity, null)
         assertFalse(externalActivity(activity))
     }
 
-    @Test fun hostFallbackKeepsExternalStateUntilCancelButFinalFailureClearsIt() = withHost { activity ->
-        val events = mutableListOf<String>()
-        var contentMissing = false
-        ReflectionHelpers.setField(activity, "imageDocumentPicker", launcher(ActivityResultContracts.OpenDocument()) {
-            events.add("document")
-            throw ActivityNotFoundException("No document picker")
-        })
-        ReflectionHelpers.setField(activity, "imagePicker", launcher(ActivityResultContracts.GetContent()) {
-            assertEquals("image/*", it)
-            events.add("content")
-            if (contentMissing) throw ActivityNotFoundException("No content picker")
-        })
-        val choose = hostButtons(activity).single { it.text == activity.getString(R.string.choose_image) }
-        choose.performClick()
-        assertEquals(listOf("document", "content"), events)
-        assertTrue(externalActivity(activity))
-        crop(activity, null)
+    @Test fun hostPhoneUploadReleasesExternalStateWhenClosed() = withHost { activity ->
+        hostButtons(activity).single { it.text == activity.getString(R.string.settings_car_phone_image) }.performClick()
+        val dialog = requireNotNull(TestDialogs.latestRaw())
+        assertTrue(dialog.isShowing)
+        dialog.dismiss()
+        shadowOf(Looper.getMainLooper()).idle()
         assertFalse(externalActivity(activity))
-        contentMissing = true
-        choose.performClick()
-        assertEquals(listOf("document", "content", "document", "content"), events)
-        assertFalse(externalActivity(activity))
-        assertEquals(activity.getString(R.string.this_head_unit_has_no_image_picker), ShadowToast.getTextOfLatestToast())
     }
 
     @Test fun otherDocumentFailuresDoNotLaunchASecondPicker() {
@@ -184,7 +142,7 @@ class CarButtonImagePickerTest {
                 it.text.startsWith(activity.getString(R.string.car_button_name) + " · ")
             }
             name.performClick()
-            val dialog = requireNotNull(ShadowAlertDialog.getLatestAlertDialog())
+            val dialog = requireNotNull(TestDialogs.latest())
             views(dialog.window!!.decorView).filterIsInstance<EditText>().single().setText("My car")
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
             shadowOf(Looper.getMainLooper()).idle()

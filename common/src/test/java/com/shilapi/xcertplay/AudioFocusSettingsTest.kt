@@ -29,10 +29,10 @@ class AudioFocusSettingsTest {
         val switches = views(page).filterIsInstance<Switch>().toList()
         assertEquals(3, switches.size)
         val disableMediaKeyFocus = switches.single {
-            it.contentDescription == activity.getString(R.string.settings_disable_media_key_audio_focus)
+            it.settingsControlTitle == activity.getString(R.string.settings_disable_media_key_audio_focus)
         }
-        val focus = switches.single { it.contentDescription == activity.getString(R.string.contrib_audio_home_toggle_audio_focus) }
-        val mute = switches.single { it.contentDescription == activity.getString(R.string.audio_focus_auto_yield) }
+        val focus = switches.single { it.settingsControlTitle == activity.getString(R.string.contrib_audio_home_toggle_audio_focus) }
+        val mute = switches.single { it.settingsControlTitle == activity.getString(R.string.audio_focus_auto_yield) }
         val dependent = mute.parent.parent as View
         assertEquals(View.GONE, dependent.visibility)
         disableMediaKeyFocus.isChecked = true

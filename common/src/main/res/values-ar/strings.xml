@@ -832,7 +832,7 @@
     <string name="auto_grant_confirm_title">يرجى تأكيد ADB على الشاشة</string>
     <string name="auto_grant_confirm_msg">لم يتم تأكيد تفويض ADB. إذا عرضت السيارة طلب «السماح بتصحيح أخطاء USB؟»، فوافق عليه.\n\nحدّد «السماح دائمًا» واضغط على «موافق»، ثم اضغط على هذا الزر مجددًا لإكمال الإعداد!</string>
     <string name="retry_auto_grant">إعادة محاولة منح الأذونات تلقائيًا</string>
-    <string name="manual_grant_reason_adboff">ADB المحلي (المنفذ 5555) غير مُفعّل على وحدة السيارة هذه.\nيمكنك تفعيل تسهيل الاستخدام يدويًا في إعدادات النظام، أو تفعيل ADB عبر الشبكة.</string>
+    <string name="manual_grant_reason_adboff">ADB المحلي (المنفذ 5050/5555) غير مُفعّل على وحدة السيارة هذه.\nيمكنك تفعيل تسهيل الاستخدام يدويًا في إعدادات النظام، أو تفعيل ADB عبر الشبكة.</string>
     <string name="btn_open_accessibility_setting">فتح إعدادات تسهيل الاستخدام في النظام</string>
     <string name="btn_open_overlay_setting">فتح إعدادات الظهور فوق التطبيقات في النظام</string>
     <string name="manual_grant_cmd_hint">أو نفّذ أمر ADB هذا من جهاز الكمبيوتر:</string>
@@ -875,4 +875,8 @@
     <string name="settings_mfi_target_description">اختر USB/CH341 فقط عندما يكون محوّل مصادقة CH341 متصلًا بوحدة الوسائط. بدونه، اختر «محلي دون اتصال». يُطبَّق عند الاتصال التالي.</string>
     <string name="settings_call_speakerphone">المكالمات عبر مكبّر الصوت</string>
     <string name="settings_call_speakerphone_description">لهاتف أو جهاز لوحي بنظام Android يُستخدم كوحدة وسائط: يشغّل مكالمات CarPlay عبر مكبّر الصوت بدلًا من سمّاعة الأذن ويستخدم ميكروفون التحدث الحر. اتركه متوقفًا في وحدة وسائط السيارة. يُطبَّق من المكالمة التالية.</string>
+    <string name="settings_car_hotspot_adb_features">نقطة اتصال السيارة · تتطلب ADB</string>
+    <string name="settings_test_car_hotspot">اختبار تشغيل نقطة الاتصال</string>
+    <string name="settings_test_car_hotspot_already_on">نقطة الاتصال تعمل بالفعل. لاختبار بدء التشغيل، أوقفها في إعدادات السيارة ثم اضغط هذا الزر. الاختبار لا يوقف نقطة الاتصال.</string>
+    <string name="settings_test_car_hotspot_running">جارٍ اختبار التشغيل… وافق على طلب تصحيح الأخطاء إن ظهر.</string>
 </resources>

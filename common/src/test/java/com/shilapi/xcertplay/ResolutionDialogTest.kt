@@ -35,7 +35,7 @@ class ResolutionDialogTest {
         for (index in listOf(0)) {
             parent.getChildAt(index).performClick()
             shadowOf(Looper.getMainLooper()).idle()
-            val d = ShadowAlertDialog.getLatestAlertDialog()
+            val d = TestDialogs.latest()
             val decor = d.window!!.decorView
             fun measure(): Int {
                 fun force(v: View) {
@@ -77,7 +77,7 @@ class ResolutionDialogTest {
             assertEquals(160, saved)
             parent.getChildAt(index).performClick()
             shadowOf(Looper.getMainLooper()).idle()
-            val reset = ShadowAlertDialog.getLatestAlertDialog()
+            val reset = TestDialogs.latest()
             assertEquals("160", findInput(reset.window!!.decorView)!!.text.toString())
             reset.getButton(AlertDialog.BUTTON_NEUTRAL).performClick()
             assertEquals(160, saved)
@@ -85,7 +85,7 @@ class ResolutionDialogTest {
             assertEquals(160, saved)
             parent.getChildAt(index).performClick()
             shadowOf(Looper.getMainLooper()).idle()
-            val applyDefault = ShadowAlertDialog.getLatestAlertDialog()
+            val applyDefault = TestDialogs.latest()
             applyDefault.getButton(AlertDialog.BUTTON_NEUTRAL).performClick()
             applyDefault.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
             assertEquals(100, saved)
