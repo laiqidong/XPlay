@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_p7_vehicle">Vehicle &amp; controls</string>
+    <string name="settings_p7_vehicle_summary">Steering-wheel Siri, CarPlay gestures, car button and vehicle location</string>
+    <string name="settings_appearance_group">Appearance</string>
+    <string name="settings_carplay_picture_group">CarPlay picture</string>
+    <string name="settings_screen_group">Screen adaptation</string>
+    <string name="settings_video_compatibility">Video compatibility (experimental)</string>
+    <string name="settings_audio_compatibility">Audio compatibility (experimental)</string>
+    <string name="settings_vehicle_location">Vehicle location</string>
+    <string name="settings_diagnostic_tools">Reports and vehicle information</string>
+    <string name="settings_p7_advanced_summary">Compatibility options, P7 data sharing and diagnostics</string>
+    <string name="settings_location_reporting_required">Enable location reporting to iPhone first.</string>
+</resources>

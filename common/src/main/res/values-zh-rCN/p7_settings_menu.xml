@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_p7_vehicle">车辆与操作</string>
+    <string name="settings_p7_vehicle_summary">方向盘 Siri、CarPlay 手势、车标按钮和车辆定位</string>
+    <string name="settings_appearance_group">外观</string>
+    <string name="settings_carplay_picture_group">CarPlay 画面</string>
+    <string name="settings_screen_group">屏幕适配</string>
+    <string name="settings_video_compatibility">视频兼容（实验性）</string>
+    <string name="settings_audio_compatibility">音频兼容（实验性）</string>
+    <string name="settings_vehicle_location">车辆定位</string>
+    <string name="settings_diagnostic_tools">诊断报告与车辆信息</string>
+    <string name="settings_p7_advanced_summary">兼容性选项、P7 数据共享和诊断工具</string>
+    <string name="settings_location_reporting_required">请先开启“向 iPhone 报告位置”。</string>
+</resources>

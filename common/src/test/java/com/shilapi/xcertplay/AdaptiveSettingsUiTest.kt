@@ -361,7 +361,7 @@ class AdaptiveSettingsUiTest {
             .single { it.settingsControlTitle == screen.getString(R.string.settings_open_category,
                 screen.getString(R.string.settings_display)) }
             .performClick()
-        assertTrue(texts(screen).any { it.text == screen.getString(R.string.display_and_performance) })
+        assertTrue(texts(screen).any { it.text == screen.getString(R.string.settings_carplay_picture_group) })
 
         screen.onBackPressedDispatcher.onBackPressed()
 
@@ -447,7 +447,7 @@ class AdaptiveSettingsUiTest {
         assertTrue(texts(screen).any { it.text == screen.getString(R.string.carplay_map_on_instrument_cluster_experimental) })
         assertFalse(texts(screen).any { it.text == screen.getString(R.string.advanced_vehicle_data) })
         assertFalse(texts(screen).any { it.text == screen.getString(R.string.automatic_connection) })
-        assertFalse(texts(screen).any { it.text == screen.getString(R.string.display_and_performance) })
+        assertFalse(texts(screen).any { it.text == screen.getString(R.string.settings_carplay_picture_group) })
         assertFalse(texts(screen).any { it.text == screen.getString(R.string.audio_routing) })
         assertFalse(texts(screen).any { it.text == screen.getString(R.string.location) })
         assertFalse(texts(screen).any { it.text == screen.getString(R.string.diagnostics) })
@@ -464,6 +464,10 @@ class AdaptiveSettingsUiTest {
     }
 
     @Test fun settingsLiveWhereDriversLookForThem() {
+        // P7 keeps location sharing, drift protection and experimental motion data in Vehicle location.
+        assertTrue(SettingsSection.LOCATION in SettingsInformationArchitecture.sections(SettingsCategory.VEHICLE, true))
+        assertTrue(SettingsSection.AUTHENTICATION in SettingsInformationArchitecture.sections(SettingsCategory.ADVANCED, true))
+        assertFalse(SettingsSection.AUTHENTICATION in SettingsInformationArchitecture.sections(SettingsCategory.CONNECTION, true))
         val screen = openSettings()
         fun visibleIn(category: Int): List<CharSequence> {
             descendants(screen.window.decorView).first { candidate ->

@@ -21,6 +21,9 @@ import com.shilapi.xcertplay.host.R
 import kotlin.math.roundToInt
 
 object SettingsWidgets {
+    const val CARD_ROW_MIN_HEIGHT_DP = 80
+    const val CARD_ROW_VERTICAL_PADDING_DP = 12
+    private const val CARD_ROW_TEXT_GAP_DP = 16
 
     private fun TextView.applyTextStyle(context: Context, theme: SettingsTheme, bold: Boolean = false) {
         if (theme.isOverlay) {
@@ -134,9 +137,13 @@ object SettingsWidgets {
             row.addView(labelView, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
             row.addView(switch, LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
         } else {
-            row.setPadding(0, theme.dp(context, 12), 0, theme.dp(context, 12))
+            row.minimumHeight = theme.dp(context, CARD_ROW_MIN_HEIGHT_DP)
+            row.setPadding(0, theme.dp(context, CARD_ROW_VERTICAL_PADDING_DP), 0,
+                theme.dp(context, CARD_ROW_VERTICAL_PADDING_DP))
             val textCol = LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL
+                alpha = if (enabled) 1f else 0.45f
+                setPaddingRelative(0, 0, theme.dp(context, CARD_ROW_TEXT_GAP_DP), 0)
             }
             val labelView = TextView(context).apply {
                 text = label
@@ -148,7 +155,8 @@ object SettingsWidgets {
                 text = description
                 textSize = 14f
                 setTextColor(theme.textSecondary)
-                setPadding(0, theme.dp(context, 6), theme.dp(context, 16), 0)
+                setPadding(0, theme.dp(context, 6), 0, 0)
+                visibility = if (description.isBlank()) View.GONE else View.VISIBLE
                 applyTextStyle(context, theme)
             }
             textCol.addView(labelView)

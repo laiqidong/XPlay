@@ -36,10 +36,10 @@
     <string name="settings_vehicle_subscribe_start">Iniciar suscripción</string>
     <string name="settings_vehicle_subscribe_stop">Detener suscripción</string>
     <string name="settings_vehicle_subscription_ended">Suscripción finalizada. Consulte los registros de Android.</string>
-    <string name="settings_p7_carplay_title">Datos P7 CarPlay (experimental)</string>
+    <string name="settings_p7_carplay_title">Datos compartidos de P7 (experimental)</string>
     <string name="settings_p7_battery">Batería, autonomía y carga al iPhone</string>
     <string name="settings_p7_battery_description">Envía batería, autonomía WLTP y datos disponibles de carga y capacidad mediante ADB autorizado. Omite valores desconocidos. Se aplica en la próxima conexión.</string>
-    <string name="settings_p7_motion">Velocidad y marcha al iPhone</string>
-    <string name="settings_p7_motion_description">Envía velocidad real y marcha; convierte km/h y omite lecturas antiguas. Requiere compartir ubicación precisa en Navegación. Se aplica en la próxima conexión.</string>
+    <string name="settings_p7_motion">Velocidad y marcha al iPhone (experimental)</string>
+    <string name="settings_p7_motion_description">Envía la velocidad real y la marcha; convierte km/h y omite lecturas antiguas. Requiere compartir la ubicación precisa en Vehículo y controles. Se aplica en la próxima conexión.</string>
     <string name="settings_p7_location_link">Abrir ajustes de ubicación</string>
 </resources>

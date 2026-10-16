@@ -1256,6 +1256,7 @@ object AirPlayPersistence {
     }
 
     fun loadRightHandDrive(context: Context): Boolean =
+        !com.shilapi.xcertplay.adb.LocalAdbDevicePolicy.isXpengP7() &&
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .getBoolean(KEY_RIGHT_HAND_DRIVE, false)
 

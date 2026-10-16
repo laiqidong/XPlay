@@ -44,7 +44,7 @@ class VehicleExperimentScreenshotsTest {
             orientation = LinearLayout.VERTICAL
             layoutDirection = configuration.layoutDirection
         }
-        ReflectionHelpers.setField(activity, "settingsCategory", SettingsCategory.EXPERIMENTS)
+        ReflectionHelpers.setField(activity, "settingsCategory", SettingsCategory.DIAGNOSTICS)
         ReflectionHelpers.setField(activity, "vehicleProbeReport",
             VehicleInformationProbe.format(activity, listOf("4", "0.0", "0", "0", "49")))
         ReflectionHelpers.callInstanceMethod<Unit>(activity, "refreshAppearance")

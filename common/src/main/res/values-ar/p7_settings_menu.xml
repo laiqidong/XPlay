@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_p7_vehicle">السيارة والتحكم</string>
+    <string name="settings_p7_vehicle_summary">Siri من عجلة القيادة وإيماءات CarPlay وزر السيارة وموقعها</string>
+    <string name="settings_appearance_group">المظهر</string>
+    <string name="settings_carplay_picture_group">صورة CarPlay</string>
+    <string name="settings_screen_group">تكييف الشاشة</string>
+    <string name="settings_video_compatibility">توافق الفيديو (تجريبي)</string>
+    <string name="settings_audio_compatibility">توافق الصوت (تجريبي)</string>
+    <string name="settings_vehicle_location">موقع السيارة</string>
+    <string name="settings_diagnostic_tools">التقارير ومعلومات السيارة</string>
+    <string name="settings_p7_advanced_summary">خيارات التوافق ومشاركة بيانات P7 وأدوات التشخيص</string>
+    <string name="settings_location_reporting_required">فعّل إرسال الموقع إلى iPhone أولاً.</string>
+</resources>

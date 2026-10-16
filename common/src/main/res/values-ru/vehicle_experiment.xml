@@ -36,10 +36,10 @@
     <string name="settings_vehicle_subscribe_start">Начать подписку</string>
     <string name="settings_vehicle_subscribe_stop">Остановить подписку</string>
     <string name="settings_vehicle_subscription_ended">Подписка завершена. Подробности в журнале Android.</string>
-    <string name="settings_p7_carplay_title">Данные P7 CarPlay (экспериментально)</string>
+    <string name="settings_p7_carplay_title">Передача данных P7 (экспериментально)</string>
     <string name="settings_p7_battery">Батарея, запас хода и зарядка для iPhone</string>
     <string name="settings_p7_battery_description">Передаёт заряд, запас хода WLTP и доступные данные о зарядке и ёмкости через разрешённый ADB. Неизвестные значения пропускаются. Применяется при следующем подключении.</string>
-    <string name="settings_p7_motion">Скорость колёс и передача для iPhone</string>
-    <string name="settings_p7_motion_description">Передаёт фактическую скорость и передачу, преобразует км/ч и пропускает устаревшие данные. Требует передачи точного местоположения в разделе навигации. Применяется при следующем подключении.</string>
+    <string name="settings_p7_motion">Скорость колёс и передача для iPhone (экспериментально)</string>
+    <string name="settings_p7_motion_description">Передаёт фактическую скорость и передачу, преобразует km/h и пропускает устаревшие данные. Требуется передача точного местоположения в разделе «Автомобиль и управление». Применяется при следующем подключении.</string>
     <string name="settings_p7_location_link">Открыть настройки геопозиции</string>
 </resources>

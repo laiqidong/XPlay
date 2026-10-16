@@ -52,4 +52,12 @@ class SettingsLayoutPolicyTest {
         assertEquals(SettingsSection.entries.toSet(), assignments.toSet())
         assertEquals(assignments.toSet().size, assignments.size)
     }
+
+    @Test fun p7SectionsHaveOneDestinationAndExcludeOtherVehicleOutputs() {
+        val assignments = SettingsInformationArchitecture.categories(true)
+            .flatMap { SettingsInformationArchitecture.sections(it, true) }
+        assertEquals(assignments.toSet().size, assignments.size)
+        assertEquals(SettingsSection.entries.toSet() - setOf(SettingsSection.CLUSTER_MAP,
+            SettingsSection.AMBIENT_LIGHTING, SettingsSection.BYD_NAVIGATION), assignments.toSet())
+    }
 }

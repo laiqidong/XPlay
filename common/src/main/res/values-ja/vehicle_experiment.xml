@@ -36,10 +36,10 @@
     <string name="settings_vehicle_subscribe_start">購読を開始</string>
     <string name="settings_vehicle_subscribe_stop">購読を停止</string>
     <string name="settings_vehicle_subscription_ended">購読が終了しました。Androidログを確認してください。</string>
-    <string name="settings_p7_carplay_title">P7 CarPlayデータ（実験的機能）</string>
+    <string name="settings_p7_carplay_title">P7データ共有（実験的機能）</string>
     <string name="settings_p7_battery">バッテリー・航続距離・充電情報を iPhone に送信</string>
     <string name="settings_p7_battery_description">承認済み ADB で電池残量、WLTP 航続距離、取得できる充電状態と容量を送信します。不明な値は送信しません。次回の接続から適用されます。</string>
-    <string name="settings_p7_motion">車速とギアを iPhone に送信</string>
-    <string name="settings_p7_motion_description">実際の車速とギアを送信し、km/h を変換します。古いデータは送信しません。ナビゲーションで正確な位置情報の共有が必要です。次回の接続から適用されます。</string>
+    <string name="settings_p7_motion">車速とギアを iPhone に送信（実験的機能）</string>
+    <string name="settings_p7_motion_description">実際の車速とギアを送信します。km/hを変換し、古い値は送信しません。「車両と操作」で正確な位置情報の共有を有効にする必要があります。次回の接続から適用されます。</string>
     <string name="settings_p7_location_link">位置共有設定を開く</string>
 </resources>
