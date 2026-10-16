@@ -37,7 +37,6 @@ import android.widget.*
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.widget.doAfterTextChanged
 import androidx.core.view.doOnLayout
 import androidx.core.view.WindowCompat
 import androidx.core.view.ViewCompat
@@ -95,6 +94,7 @@ internal enum class SettingsCategory {
 /** A settings card. Every entry needs one category in [SettingsInformationArchitecture]; see AGENTS.md. */
 internal enum class SettingsSection {
     VEHICLE_EXPERIMENT,
+    P7_CARPLAY_DATA,
     CARPLAY_CONTROLS,
     WHEEL_KEYS,
     CONNECTION_SETUP,
@@ -119,7 +119,7 @@ internal enum class SettingsSection {
 internal object SettingsInformationArchitecture {
     val sectionsByCategory: Map<SettingsCategory, Set<SettingsSection>> = mapOf(
         SettingsCategory.OVERVIEW to emptySet(),
-        SettingsCategory.EXPERIMENTS to setOf(SettingsSection.VEHICLE_EXPERIMENT),
+        SettingsCategory.EXPERIMENTS to setOf(SettingsSection.VEHICLE_EXPERIMENT, SettingsSection.P7_CARPLAY_DATA),
         SettingsCategory.LANGUAGE to setOf(SettingsSection.LANGUAGE),
         SettingsCategory.ABOUT to emptySet(),
         SettingsCategory.CONNECTION to setOf(
@@ -154,7 +154,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     private var overviewBackPending = false
     private val overviewSingleBack = Runnable {
         overviewBackPending = false
-        if (page == "settings" && settingsCategory == SettingsCategory.OVERVIEW && !settingsSearchExpanded) {
+        if (page == "settings" && settingsCategory == SettingsCategory.OVERVIEW) {
             if (CarPlayBackgroundSession.hasSession()) openProjection() else openCarHome()
         }
     }
@@ -164,7 +164,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     private var appearanceObserverRemoval: (() -> Unit)? = null
     private var appearanceUpdatesResumed = false
     private var appearanceRenderPending = false
-    private var appearanceButtonFocusPending = false
     private var windowLearning: WindowKeyLearning? = null
     private val windowLearningPresses = WheelKeyPresses()
     private val endWindowLearning = Runnable { cancelKeyLearning() }
@@ -205,14 +204,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     private var settingsRailScroll: ScrollView? = null
     private var reconnectBar: View? = null
     private var readinessCard: LinearLayout? = null
-    private var searchIndexSink: MutableList<String>? = null
-    private var settingsSearchBox: EditText? = null
-    private var settingsSearchPopup: PopupWindow? = null
-    private var settingsSearchIndex: List<SettingsSearchResult>? = null
-    private var settingsSearchQuery = ""
-    private var settingsSearchExpanded = false
-    private var settingsSearchIndexing = false
-    private var settingsSearchRestoreFocus = false
     private var renderedPage: String? = null
     private var renderedSettingsCategory: SettingsCategory? = null
     private var pendingScrollY: Int? = null
@@ -393,7 +384,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (page != "settings" || settingsCategory != SettingsCategory.OVERVIEW || settingsSearchExpanded) navigateBack()
+                if (page != "settings" || settingsCategory != SettingsCategory.OVERVIEW) navigateBack()
                 else handleOverviewBack()
             }
         })
@@ -411,7 +402,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         connectionSettingsReturnCategory = null
         page = intent.getStringExtra("page")?.let { if (it == "home") "settings" else it } ?: "settings"
         settingsCategory = SettingsCategory.OVERVIEW
-        clearSettingsSearchState()
         render()
         automaticVehicleValidationStarted = false
         scheduleAutomaticVehicleValidation()
@@ -539,7 +529,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
 
     override fun onDestroy() {
         cancelOverviewBack()
-        settingsSearchPopup?.dismiss()
         appearanceObserverRemoval?.invoke()
         appearanceObserverRemoval = null
         handler.removeCallbacks(appearancePoll)
@@ -653,12 +642,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             (pendingRailFocus || settingsRailScroll?.hasFocus() == true)
         settingsRailScroll = null
         // The results hang off the old header; the new header reopens them if the search continues.
-        settingsSearchPopup?.dismiss()
-        settingsSearchPopup = null
-        settingsSearchRestoreFocus = settingsSearchRestoreFocus ||
-            (settingsSearchExpanded && settingsSearchBox?.hasFocus() == true)
-        settingsSearchBox = null
-        if (page != "settings") clearSettingsSearchState()
         status = null; connectButton = null; disconnectButton = null; lastRunning = null; carButtonCard = null
         readinessCard = null
         reconnectBar = null
@@ -774,9 +757,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             centreGlyphs = resources.configuration.locales[0].language != "zh").apply {
             setPadding(if (compact) dp(8) else dp(12), 0, 0, 0)
         }, LinearLayout.LayoutParams(0, if (compact) dp(44) else dp(52), 1f))
-        addView(appearanceButton(), LinearLayout.LayoutParams(dp(if (compact) 44 else 52), dp(if (compact) 44 else 52)).apply {
-            marginEnd = dp(if (compact) 8 else 12)
-        })
         addView(headerButton(if (page == "home") getString(R.string.car_home) else getString(R.string.back),
             if (page == "home") R.drawable.ic_dp_car else R.drawable.ic_dp_back, compact) {
             if (page == "home") startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME))
@@ -807,11 +787,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
 
     private fun navigateBack() {
         cancelOverviewBack()
-        // Back closes an open search first, like a system search bar.
-        if (page == "settings" && settingsSearchExpanded) {
-            closeSettingsSearch()
-            return
-        }
         val returnCategory = connectionSettingsReturnCategory
         when {
             page == "backup" -> {
@@ -846,7 +821,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
 
     private fun settingsHeader(compact: Boolean): LinearLayout = row().apply {
         val controlHeight = dp(if (compact) 44 else 52)
-        val iconOnlySearch = compact || resources.configuration.orientation == Configuration.ORIENTATION_PORTRAIT
         gravity = Gravity.CENTER_VERTICAL
         addView(headerButton(getString(if (settingsCategory == SettingsCategory.OVERVIEW) R.string.car_home else R.string.back),
             if (settingsCategory == SettingsCategory.OVERVIEW) R.drawable.ic_dp_car else R.drawable.ic_dp_back, compact) {
@@ -860,69 +834,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             setSingleLine(true)
             ellipsize = android.text.TextUtils.TruncateAt.END
         }
-        // Reserve the action buttons first; only the title may shrink in a narrow header.
-        addView(settingsTitle, LinearLayout.LayoutParams(
-            if (settingsSearchExpanded && !isExpandedSettingsLayout) -2 else 0, controlHeight,
-            if (settingsSearchExpanded && !isExpandedSettingsLayout) 0f else 1f,
-        ))
-        val searchGap = dp(if (compact) SETTINGS_HEADER_COMPACT_GAP_DP else SETTINGS_HEADER_GAP_DP)
-        run {
-            if (settingsSearchExpanded) {
-                val searchField = settingsSearchField(compact)
-                addView(searchField, LinearLayout.LayoutParams(0, controlHeight, 1f).apply {
-                    marginEnd = searchGap
-                })
-                searchField.doOnLayout {
-                    // Give a squeezed editor the title's space, using the current locale and font scale.
-                    val hintWidth = searchField.paint.measureText(searchField.hint.toString())
-                    val requiredWidth = hintWidth + searchField.compoundPaddingLeft + searchField.compoundPaddingRight
-                    if (searchField.width < requiredWidth) {
-                        settingsTitle.visibility = View.GONE
-                        searchField.layoutParams = (searchField.layoutParams as LinearLayout.LayoutParams).apply {
-                            marginStart = searchGap
-                        }
-                    }
-                }
-            } else {
-                val openSearch = {
-                    // Indexing rebuilds the settings widgets. Do it before focusing an editor,
-                    // so the first keystroke never replaces the IME's input connection.
-                    settingsSearchIndex = buildSettingsSearchIndex()
-                    settingsSearchExpanded = true
-                    settingsSearchRestoreFocus = true
-                    render()
-                }
-                val searchButton = if (iconOnlySearch) {
-                    iconButton(R.drawable.ic_dp_search, getString(R.string.settings_search), openSearch).apply {
-                        imageTintList = ColorStateList.valueOf(TEXT)
-                    }
-                } else {
-                    headerButton(getString(R.string.settings_search_hint), R.drawable.ic_dp_search, compact, openSearch)
-                }.apply {
-                    tag = SETTINGS_SEARCH_BUTTON_TAG
-                    contentDescription = getString(R.string.settings_search)
-                }
-                addView(searchButton, LinearLayout.LayoutParams(if (iconOnlySearch) controlHeight else -2, controlHeight).apply {
-                    marginEnd = searchGap
-                })
-            }
-        }
-        addView(appearanceButton(), LinearLayout.LayoutParams(controlHeight, controlHeight))
-    }
-
-    private fun appearanceButton(): ImageButton = iconButton(
-        icon = if (appNight) R.drawable.ic_dp_night else R.drawable.ic_dp_day,
-        description = getString(if (appNight) R.string.settings_switch_to_light_appearance
-            else R.string.settings_switch_to_dark_appearance),
-    ) {
-        AirPlayPersistence.saveAppAppearance(
-            this,
-            if (appNight) AppAppearance.LIGHT else AppAppearance.DARK,
-        )
-        rememberLaunchAppearance()
-        requestAppearanceRender(focusAppearanceButton = true)
-    }.apply {
-        tag = APPEARANCE_BUTTON_TAG
+        addView(settingsTitle, LinearLayout.LayoutParams(0, controlHeight, 1f))
     }
 
     private fun connectionModule(content: LinearLayout, availableWidthDp: Int) {
@@ -1183,8 +1095,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     private fun openSettingsCategory(category: SettingsCategory) {
         if (category != SettingsCategory.EXPERIMENTS) stopVehicleMonitor()
         cancelOverviewBack()
-        setSearchKeyboard(settingsSearchBox, false)
-        clearSettingsSearchState()
         settingsCategory = category
         render()
     }
@@ -1278,276 +1188,11 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         renderSections(content, SettingsInformationArchitecture.sectionsByCategory.getValue(SettingsCategory.DIAGNOSTICS))
     }
 
-    internal data class SettingsSearchResult(val title: String, val category: SettingsCategory)
-
-    // Renders every category into a detached view and records what the builders label.
-    // render() afterwards replaces every widget reference those detached builds assigned.
-    // ponytail: indexes the default state only; controls behind an expander (vehicle data) are not found.
-    private fun buildSettingsSearchIndex(): List<SettingsSearchResult> {
-        val selected = settingsCategory
-        // Category names first, so a card that only links to a category cannot claim its name.
-        val index = SettingsCategory.entries.associateByTo(linkedMapOf(), ::settingsCategoryTitle)
-        try {
-            for (category in SettingsCategory.entries.filter { it != SettingsCategory.OVERVIEW } + SettingsCategory.OVERVIEW) {
-                settingsCategory = category
-                val titles = mutableListOf(settingsCategoryTitle(category))
-                searchIndexSink = titles
-                settingsCategoryContent(column())
-                titles.forEach { index.putIfAbsent(it, category) }
-            }
-        } finally {
-            searchIndexSink = null
-            settingsCategory = selected
-        }
-        render()
-        return index.map { SettingsSearchResult(it.key, it.value) }
-    }
-
-    private fun searchSettings(index: List<SettingsSearchResult>, query: String): List<SettingsSearchResult> {
-        val words = query.trim().lowercase(Locale.getDefault()).split(Regex("\\s+")).filter(String::isNotEmpty)
-        if (words.isEmpty()) return emptyList()
-        return index.filter { result ->
-            val haystack = "${result.title} ${settingsCategoryTitle(result.category)}".lowercase(Locale.getDefault())
-            words.all(haystack::contains)
-        }
-    }
-
-    private fun openSearchResult(result: SettingsSearchResult) {
-        setSearchKeyboard(settingsSearchBox, false)
-        clearSettingsSearchState()
-        openSettingsCategory(result.category)
-        val scroll = rootScroll ?: return
-        val match = descendants(scroll).filterIsInstance<TextView>().firstOrNull {
-            it.text.toString() == result.title || it.text.startsWith(result.title + VALUE_SEPARATOR)
-        } ?: return
-        val target = generateSequence<View>(match) { it.parent as? View }.firstOrNull { it.isClickable } ?: match
-        scroll.doOnLayout {
-            var top = 0
-            var view: View? = target
-            while (view != null && view !== scroll) { top += view.top; view = view.parent as? View }
-            scroll.smoothScrollTo(0, (top - dp(24)).coerceAtLeast(0))
-            target.requestFocus()
-            target.isPressed = true
-            handler.postDelayed({ target.isPressed = false }, SEARCH_HIGHLIGHT_MILLIS)
-        }
-    }
-
     private fun descendants(view: View): Sequence<View> = sequence {
         yield(view)
-        if (view is ViewGroup) for (i in 0 until view.childCount) yieldAll(descendants(view.getChildAt(i)))
-    }
-
-    /**
-     * The settings header search box; matches drop down under it as the driver types.
-     * The index is built before expanding the field, so typing keeps the same editor
-     * and keyboard input connection.
-     */
-    private fun settingsSearchField(compact: Boolean): EditText = SettingsSearchEditText(this).apply {
-        settingsSearchBox = this
-        setSingleLine()
-        hint = getString(R.string.settings_search_hint)
-        contentDescription = getString(R.string.settings_search)
-        textSize = if (compact) 16f else 18f
-        setTextColor(TEXT)
-        setHintTextColor(MUTED)
-        // The editor scrolls long text sideways and its drawing canvas scrolls with it, but Android
-        // draws the background unscrolled. The icon and focus ring live there, so they stay put
-        // without compensating for scroll or for the text's vertical centring.
-        val iconSize = headerIconSize(compact)
-        val icon = getDrawable(R.drawable.ic_dp_search)?.mutate()?.apply { setTint(MUTED) }
-        background = android.graphics.drawable.LayerDrawable(
-            listOfNotNull(buttonShape(BUTTON, BORDER), icon, buttonFocusRing()).toTypedArray(),
-        ).apply {
-            if (icon != null) {
-                setLayerGravity(1, Gravity.START or Gravity.CENTER_VERTICAL)
-                setLayerSize(1, iconSize, iconSize)
-                setLayerInsetRelative(1, dp(16), 0, 0, 0)
-            }
+        if (view is ViewGroup) for (index in 0 until view.childCount) {
+            yieldAll(descendants(view.getChildAt(index)))
         }
-        gravity = Gravity.CENTER_VERTICAL or Gravity.START
-        includeFontPadding = false
-        setPaddingRelative(dp(16) + if (icon != null) iconSize + dp(10) else 0, 0, dp(16), 0)
-        inputType = android.text.InputType.TYPE_CLASS_TEXT
-        // Landscape head units would otherwise cover the results with a full-screen editor.
-        imeOptions = android.view.inputmethod.EditorInfo.IME_FLAG_NO_EXTRACT_UI or
-            android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH
-        // Touch focus waits for a tap, so opening settings never focuses the box or raises the keyboard.
-        isFocusableInTouchMode = settingsSearchRestoreFocus
-        setText(settingsSearchQuery)
-        setSelection(text.length)
-        setOnClickListener {
-            if (!isFocusableInTouchMode) {
-                isFocusableInTouchMode = true
-                requestFocus()
-                setSearchKeyboard(this, true)
-            }
-            showSettingsSearchResults()
-        }
-        setOnFocusChangeListener { _, focused -> if (focused) showSettingsSearchResults() }
-        setOnEditorActionListener { _, actionId, event ->
-            val search = actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH ||
-                event?.keyCode == KeyEvent.KEYCODE_ENTER
-            if (!search) return@setOnEditorActionListener false
-            if (event == null || event.action == KeyEvent.ACTION_DOWN) settingsSearchResults().firstOrNull()?.let(::openSearchResult)
-            true
-        }
-        doAfterTextChanged { onSettingsSearchChanged(this) }
-        // The keyboard resizes the window, not this field, so follow window layouts. A listener added
-        // here would join the window's observer and outlive every rebuilt field; register it only
-        // while this field is attached.
-        val followWindow = android.view.ViewTreeObserver.OnGlobalLayoutListener {
-            if (settingsSearchBox === this && settingsSearchPopup?.isShowing == true) {
-                positionSettingsSearchResults(this, settingsSearchPopup!!)
-            }
-        }
-        addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-            override fun onViewAttachedToWindow(view: View) = view.viewTreeObserver.addOnGlobalLayoutListener(followWindow)
-            override fun onViewDetachedFromWindow(view: View) = view.viewTreeObserver.removeOnGlobalLayoutListener(followWindow)
-        })
-        if (settingsSearchRestoreFocus) {
-            settingsSearchRestoreFocus = false
-            post {
-                if (settingsSearchBox !== this) return@post
-                requestFocus()
-                setSearchKeyboard(this, true)
-                showSettingsSearchResults()
-            }
-        }
-    }
-
-    private fun onSettingsSearchChanged(box: EditText) {
-        if (box !== settingsSearchBox) return
-        settingsSearchQuery = box.text.toString()
-        if (settingsSearchQuery.isEmpty()) {
-            // Keep this search's index when the query is cleared. Closing search invalidates it.
-            settingsSearchPopup?.dismiss()
-            return
-        }
-        if (settingsSearchIndex != null) {
-            showSettingsSearchResults()
-            return
-        }
-        if (settingsSearchIndexing) return
-        settingsSearchIndexing = true
-        // Not from inside the text watcher: indexing replaces this box.
-        handler.post {
-            settingsSearchIndexing = false
-            if (page != "settings" || settingsSearchQuery.isEmpty() || settingsSearchIndex != null) return@post
-            settingsSearchRestoreFocus = true
-            settingsSearchIndex = buildSettingsSearchIndex()
-        }
-    }
-
-    private fun settingsSearchResults(): List<SettingsSearchResult> =
-        settingsSearchIndex?.let { searchSettings(it, settingsSearchQuery) }.orEmpty()
-
-    private fun showSettingsSearchResults() {
-        val box = settingsSearchBox ?: return
-        if (settingsSearchIndex == null || settingsSearchQuery.isBlank() || !box.isAttachedToWindow) {
-            settingsSearchPopup?.dismiss()
-            return
-        }
-        val results = settingsSearchResults()
-        val list = column().apply { setPadding(dp(8), dp(8), dp(8), dp(8)) }
-        if (results.isEmpty()) {
-            list.addView(label(getString(R.string.settings_search_empty), 15, MUTED).apply {
-                setPadding(dp(12), dp(12), dp(12), dp(12))
-            })
-        }
-        results.forEach { list.addView(settingsSearchRow(it)) }
-        val existing = settingsSearchPopup?.takeIf { it.isShowing }
-        val scroll = (existing?.contentView as? ScrollView) ?: ScrollView(this)
-        scroll.removeAllViews()
-        scroll.addView(list)
-        if (existing != null) {
-            positionSettingsSearchResults(box, existing)
-            return
-        }
-        settingsSearchPopup = PopupWindow(scroll, box.width, 0, false).apply {
-            setBackgroundDrawable(rounded(SURFACE, BORDER))
-            elevation = dp(8).toFloat()
-            // Tapping elsewhere closes the list and keeps the query; tapping the box reopens it.
-            isOutsideTouchable = true
-            inputMethodMode = PopupWindow.INPUT_METHOD_NEEDED
-            // The list is placed in screen coordinates. Android 10 made this call public; before it the
-            // same switch is setLayoutInScreenEnabled, and calling the new name stops the app.
-            if (Build.VERSION.SDK_INT >= 29) setIsLaidOutInScreen(true)
-            else runCatching {
-                PopupWindow::class.java.getMethod("setLayoutInScreenEnabled", Boolean::class.javaPrimitiveType)
-                    .invoke(this, true)
-            }
-            positionSettingsSearchResults(box, this)
-        }
-    }
-
-    private fun positionSettingsSearchResults(box: EditText, popup: PopupWindow) {
-        val visible = android.graphics.Rect()
-        box.getWindowVisibleDisplayFrame(visible)
-        val location = IntArray(2)
-        box.getLocationOnScreen(location)
-        val top = location[1] + box.height + dp(SETTINGS_SEARCH_RESULTS_GAP_DP)
-        val width = minOf(box.width, visible.width())
-        val maxHeight = minOf(
-            visible.bottom - top,
-            dp(if (resources.configuration.screenHeightDp < 600)
-                SETTINGS_SEARCH_RESULTS_SHORT_HEIGHT_DP else SETTINGS_SEARCH_RESULTS_HEIGHT_DP),
-        )
-        // Never let Android flip the list above its anchor and cover the field.
-        if (width <= 0 || maxHeight <= 0) {
-            popup.dismiss()
-            return
-        }
-        val left = location[0].coerceIn(visible.left, visible.right - width)
-        val content = popup.contentView
-        content.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY),
-            View.MeasureSpec.makeMeasureSpec(maxHeight, View.MeasureSpec.AT_MOST))
-        val height = content.measuredHeight.coerceIn(1, maxHeight)
-        if (popup.isShowing) {
-            popup.update(left, top, width, height)
-        } else {
-            popup.width = width
-            popup.height = height
-            popup.showAtLocation(box.rootView, Gravity.TOP or Gravity.LEFT, left, top)
-        }
-    }
-
-    private fun settingsSearchRow(result: SettingsSearchResult): View = column().apply {
-        val category = settingsCategoryTitle(result.category)
-        isClickable = true
-        isFocusable = true
-        contentDescription = "${result.title}, $category"
-        foreground = android.graphics.drawable.LayerDrawable(arrayOf(
-            android.graphics.drawable.RippleDrawable(ColorStateList.valueOf(RIPPLE), null, null), focusRing(12)))
-        minimumHeight = dp(56)
-        gravity = Gravity.CENTER_VERTICAL
-        setPadding(dp(12), dp(8), dp(12), dp(8))
-        addView(label(result.title, 17, TEXT, true))
-        addView(label(category, 13, MUTED))
-        setOnClickListener { openSearchResult(result) }
-    }
-
-    private fun closeSettingsSearch() {
-        val box = settingsSearchBox
-        setSearchKeyboard(box, false)
-        clearSettingsSearchState()
-        box?.clearFocus()
-        render()
-        descendants(window.decorView).firstOrNull { it.tag == SETTINGS_SEARCH_BUTTON_TAG }?.requestFocus()
-    }
-
-    private fun clearSettingsSearchState() {
-        settingsSearchQuery = ""
-        settingsSearchExpanded = false
-        settingsSearchIndex = null
-        settingsSearchRestoreFocus = false
-        settingsSearchPopup?.dismiss()
-    }
-
-    private fun setSearchKeyboard(view: View?, show: Boolean) {
-        view ?: return
-        val keyboard = getSystemService(INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
-        if (show) keyboard.showSoftInput(view, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
-        else keyboard.hideSoftInputFromWindow(view.windowToken, 0)
     }
 
     private fun advancedSettings(content: LinearLayout) {
@@ -1592,26 +1237,46 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
 
     private var vehicleMonitor: VehicleInformationMonitor? = null
     private var vehicleProbeLabel: TextView? = null
+    private var vehicleReader: VehicleInformationReader? = null
     private var vehicleProbeReport: String? = null
 
     private fun stopVehicleMonitor() {
         vehicleMonitor?.stop()
         vehicleMonitor = null
+        vehicleReader?.cancel()
+        vehicleReader = null
     }
 
-    private fun toggleVehicleMonitor() {
+    private fun readVehicleInformation() {
+        if (vehicleReader != null || vehicleMonitor != null) return
+        lateinit var reader: VehicleInformationReader
+        reader = VehicleInformationReader(applicationContext) { values ->
+            handler.post {
+                if (vehicleReader === reader && !isFinishing && !isDestroyed) {
+                    vehicleReader = null
+                    vehicleProbeReport = VehicleInformationProbe.format(this, values)
+                    if (values.none { it != null }) Toast.makeText(this,
+                        getString(R.string.settings_vehicle_read_unavailable), Toast.LENGTH_LONG).show()
+                    render()
+                }
+            }
+        }
+        vehicleReader = reader
+        render()
+        reader.start()
+    }
+
+    private fun toggleVehicleSubscription() {
         if (vehicleMonitor != null) {
-            stopVehicleMonitor()
-        } else {
+            vehicleMonitor?.stop()
+            vehicleMonitor = null
+        } else if (vehicleReader == null) {
             lateinit var monitor: VehicleInformationMonitor
             monitor = VehicleInformationMonitor(applicationContext, onValues = { values ->
                 handler.post {
                     if (vehicleMonitor === monitor && !isFinishing && !isDestroyed) {
-                        val report = VehicleInformationProbe.format(this, values)
-                        if (vehicleProbeReport != report) {
-                            vehicleProbeReport = report
-                            vehicleProbeLabel?.text = report
-                        }
+                        vehicleProbeReport = VehicleInformationProbe.format(this, values)
+                        vehicleProbeLabel?.text = vehicleProbeReport
                     }
                 }
             }, onClosed = {
@@ -1619,7 +1284,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                     if (vehicleMonitor === monitor) {
                         vehicleMonitor = null
                         if (!isFinishing && !isDestroyed) {
-                            Toast.makeText(this, getString(R.string.settings_vehicle_monitor_unavailable), Toast.LENGTH_LONG).show()
+                            Toast.makeText(this, getString(R.string.settings_vehicle_subscription_ended), Toast.LENGTH_LONG).show()
                             render()
                         }
                     }
@@ -1632,11 +1297,40 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     }
 
     private fun allSettingsSections(content: LinearLayout) {
+        if (com.shilapi.xcertplay.adb.LocalAdbDevicePolicy.isXpengP7()) {
+            filteredSection(content, SettingsSection.P7_CARPLAY_DATA,
+                getString(R.string.settings_p7_carplay_title), R.drawable.ic_dp_car) { card ->
+                toggle(card, getString(R.string.settings_p7_battery), getString(R.string.settings_p7_battery_description),
+                    P7CarPlaySettings.battery(this)) {
+                    P7CarPlaySettings.saveBattery(this, it)
+                    markReconnectNeeded()
+                }
+                toggle(card, getString(R.string.settings_p7_motion), getString(R.string.settings_p7_motion_description),
+                    P7CarPlaySettings.motion(this)) {
+                    P7CarPlaySettings.saveMotion(this, it)
+                    markReconnectNeeded()
+                }
+                card.addView(button(getString(R.string.settings_p7_location_link), false) {
+                    openSettingsCategory(SettingsCategory.NAVIGATION)
+                }.apply {
+                    setSingleLine(false)
+                    maxLines = Int.MAX_VALUE
+                    wrapHeightForText = true
+                }, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+            }
+        }
+
         filteredSection(content, SettingsSection.VEHICLE_EXPERIMENT,
             getString(R.string.settings_vehicle_probe_title), R.drawable.ic_dp_dashboard) { card ->
-            card.addView(button(getString(if (vehicleMonitor != null) R.string.settings_vehicle_monitor_stop
-                else R.string.settings_vehicle_probe_start), false, ::toggleVehicleMonitor),
-                matchButton(0, SETTINGS_RAIL_ROW_HEIGHT_DP))
+            card.addView(button(getString(if (vehicleReader != null) R.string.settings_vehicle_read_running
+                else R.string.settings_vehicle_read_start), false, ::readVehicleInformation).apply {
+                    isEnabled = vehicleReader == null && vehicleMonitor == null
+                }, matchButton(0, SETTINGS_RAIL_ROW_HEIGHT_DP))
+            card.addView(space(SETTINGS_BLOCK_GAP_DP))
+            card.addView(button(getString(if (vehicleMonitor != null) R.string.settings_vehicle_subscribe_stop
+                else R.string.settings_vehicle_subscribe_start), false, ::toggleVehicleSubscription).apply {
+                    isEnabled = vehicleReader == null
+                }, matchButton(0, SETTINGS_RAIL_ROW_HEIGHT_DP))
             card.addView(label(vehicleProbeReport ?: VehicleInformationProbe.empty(this), 18, TEXT).apply {
                 vehicleProbeLabel = this
                 setTextIsSelectable(true)
@@ -2018,6 +1712,12 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                 getString(R.string.sends_precise_android_location_as_carplay_gps_data_when_th),
                 AirPlayPersistence.loadLocationReportingEnabled(this), save = ::onLocationReportingChanged)
             card.addView(label(getString(R.string.location_reporting_reconnects), 14, MUTED))
+            toggle(card, getString(R.string.settings_location_drift_protection),
+                getString(R.string.settings_location_drift_protection_description),
+                AirPlayPersistence.loadLocationDriftProtection(this)) {
+                AirPlayPersistence.saveLocationDriftProtection(this, it)
+                markReconnectNeeded()
+            }
         }
         // Cluster video does not require a BYD navigation broadcast receiver.
         filteredSection(content, SettingsSection.CLUSTER_MAP,
@@ -2484,15 +2184,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         if (AirPlayPersistence.loadWirelessHotspotMode(this) != WirelessHotspotMode.MANUAL) return
         if (!CarHotspotSetup.supportsHotspotAutomation(this)) {
             Log.i("DiPlay-Hotspot", "settings hidden: supported head unit not detected")
-            return
-        }
-        if (searchIndexSink != null) {
-            // Index discoverable names without starting the asynchronous permission probe.
-            searchIndexSink?.addAll(listOf(
-                getString(if (com.shilapi.xcertplay.adb.LocalAdbDevicePolicy.isXpengP7()) R.string.settings_car_hotspot_adb_features else R.string.byd_adb_features),
-                getString(R.string.auto_car_hotspot_title),
-                getString(R.string.btn_auto_apply_permissions),
-            ))
             return
         }
         val controls = column().apply { visibility = View.GONE }
@@ -5437,7 +5128,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     }
 
     private fun section(parent: LinearLayout, title: String, icon: Int? = null, build: (LinearLayout) -> Unit) {
-        searchIndexSink?.add(title)
         val card = card()
         val heading = row().apply { gravity = Gravity.CENTER_VERTICAL; setPadding(0, 0, 0, dp(16)) }
         if (icon != null) heading.addView(ImageView(this).apply {
@@ -5507,7 +5197,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     }
 
     private fun toggle(parent: LinearLayout, title: String, description: String, value: Boolean, enabled: Boolean = true, save: (Boolean) -> Unit): Switch {
-        searchIndexSink?.add(title)
         val result = SettingsWidgets.createSwitchRow(
             context = this,
             label = title,
@@ -5641,54 +5330,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     private fun card() = column().apply { background = rounded(SURFACE, BORDER); setPadding(dp(24), dp(24), dp(24), dp(24)) }
     private fun column() = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(-1, -2) }
     private fun row() = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(-1, -2) }
-    private class SettingsSearchEditText(context: android.content.Context) : EditText(context) {
-        private val glyphBounds = android.graphics.Rect()
-        private var measuredHint: String? = null
-        private var measuredHintHeight = -1
-        private var measuredHintTextSize = -1f
-        private var measuredHintBaseline = 0
-
-        override fun onDraw(canvas: android.graphics.Canvas) {
-            val value: CharSequence = if (text.isNullOrEmpty()) hint ?: "" else text
-            val drawingBaseline = if (text.isNullOrEmpty() && value.isNotEmpty()) hintBaseline(value) else baseline
-            val offset = if (baseline >= 0) {
-                val contentCentre = paddingTop + (height - paddingTop - paddingBottom) / 2f
-                contentCentre - alignedTextCentreY(this, value, glyphBounds, drawingBaseline)
-            } else 0f
-            // Text, selection and cursor move together.
-            val checkpoint = canvas.save()
-            canvas.translate(0f, offset)
-            super.onDraw(canvas)
-            canvas.restoreToCount(checkpoint)
-        }
-
-        /**
-         * TextView.baseline describes the editable layout, even while it draws a hint, and a hint in
-         * a fallback font can sit differently. Measured once per hint, height and text size rather
-         * than on every frame of the blinking cursor.
-         */
-        private fun hintBaseline(value: CharSequence): Int {
-            if (value.toString() != measuredHint || height != measuredHintHeight || paint.textSize != measuredHintTextSize) {
-                // The editor scrolls horizontally rather than wrapping: lay the hint out on one line.
-                val hintWidth = maxOf(
-                    (width - compoundPaddingLeft - compoundPaddingRight).coerceAtLeast(1),
-                    kotlin.math.ceil(android.text.Layout.getDesiredWidth(value, paint).toDouble()).toInt(),
-                )
-                val hintLayout = android.text.StaticLayout.Builder.obtain(value, 0, value.length, paint, hintWidth)
-                    .setMaxLines(1).setIncludePad(includeFontPadding).apply {
-                        if (Build.VERSION.SDK_INT >= 28) setUseLineSpacingFromFallbacks(isFallbackLineSpacing)
-                    }.build()
-                measuredHintBaseline = extendedPaddingTop +
-                    ((height - extendedPaddingTop - extendedPaddingBottom - hintLayout.height).coerceAtLeast(0) / 2) +
-                    hintLayout.getLineBaseline(0)
-                measuredHint = value.toString()
-                measuredHintHeight = height
-                measuredHintTextSize = paint.textSize
-            }
-            return measuredHintBaseline
-        }
-    }
-
     private class HeaderTitleView(context: android.content.Context) : TextView(context) {
         private val glyphBounds = android.graphics.Rect()
 
@@ -5754,13 +5395,14 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
 
     private fun button(title: String, primary: Boolean, click: () -> Unit) = SettingButton(this, MUTED, ACCENT, page == "settings").apply {
         isAllCaps = false; textSize = 18f; setTextColor(if (primary) ON_ACCENT else TEXT)
+        setSingleLine(false)
+        maxLines = Int.MAX_VALUE
         typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
         background = android.graphics.drawable.RippleDrawable(ColorStateList.valueOf(RIPPLE), buttonShape(if (primary) ACCENT else BUTTON, if (primary) ACCENT else BORDER), null)
         setPadding(dp(16), 0, dp(16), 0); minHeight = dp(56); stateListAnimator = null
         compoundDrawablePadding = dp(12)
         foreground = buttonFocusRing()
         text = title
-        searchIndexSink?.add(title.substringBefore(VALUE_SEPARATOR))
         setOnClickListener { click() }
         doOnLayout {
             val shape = buttonShape(if (primary) ACCENT else BUTTON, if (primary) ACCENT else BORDER, height)
@@ -5803,6 +5445,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         private val trailingValue: Boolean,
     ) : Button(context) {
         var action = false
+        var wrapHeightForText = false
         var contentOffsetY = 0f
         var alignVisibleGlyphs = true
         private val glyphBounds = android.graphics.Rect()
@@ -5893,7 +5536,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
 
     /**
      * One vertical rhythm for every card, whatever margins each control builder chose:
-     * buttons are one height with one gap, a note under a button closes its group with a larger gap,
+     * buttons share a height (wrapped actions may grow), a note closes its group with a larger gap,
      * and the last item adds nothing to the card's own padding.
      */
     private fun normalizeSpacing(container: LinearLayout, isCard: Boolean = true) {
@@ -5914,7 +5557,12 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             val lp = child.layoutParams as? LinearLayout.LayoutParams ?: continue
             when {
                 child is Button -> {
-                    lp.height = dp(CONTROL_HEIGHT_DP); lp.topMargin = 0
+                    child.minimumHeight = dp(CONTROL_HEIGHT_DP)
+                    lp.height = if (child is SettingButton &&
+                        (child.wrapHeightForText || resources.configuration.fontScale > 1f)) {
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                    } else dp(CONTROL_HEIGHT_DP)
+                    lp.topMargin = 0
                     lp.bottomMargin = dp(if (isNote(next)) NOTE_ATTACH_GAP_DP else CONTROL_GAP_DP)
                 }
                 // Toggle rows carried their own vertical padding, which doubled the gap after a button.
@@ -5974,21 +5622,15 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         }
     }
 
-    private fun requestAppearanceRender(focusAppearanceButton: Boolean = false) {
+    private fun requestAppearanceRender() {
         appearanceRenderPending = true
-        appearanceButtonFocusPending = appearanceButtonFocusPending || focusAppearanceButton
         if (!appearanceUpdatesResumed || shouldDeferAppearanceRender(
                 windowKeyLearning = windowLearning != null,
                 serviceKeyLearning = WheelKeyService.isLearning(),
             )
         ) return
         appearanceRenderPending = false
-        val restoreAppearanceButton = appearanceButtonFocusPending
-        appearanceButtonFocusPending = false
-        render(
-            appearanceOnly = true,
-            preferredFocusTag = APPEARANCE_BUTTON_TAG.takeIf { restoreAppearanceButton },
-        )
+        render(appearanceOnly = true)
     }
 
     private fun applyPendingAppearanceRender() {
@@ -6081,15 +5723,8 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         private const val VEHICLE_VALIDATION_RETRY_MILLIS = 500L
         private const val ADB_KEY_SAVE_WAIT_MILLIS = 500L
         private const val APPEARANCE_POLL_MILLIS = 2_000L
-        private const val APPEARANCE_BUTTON_TAG = "app_appearance_button"
-        private const val SETTINGS_SEARCH_BUTTON_TAG = "settings_search_button"
         private const val SETTINGS_HEADER_COMPACT_GAP_DP = 8
-        private const val SETTINGS_HEADER_GAP_DP = 12
-        private const val SETTINGS_SEARCH_RESULTS_GAP_DP = 6
-        private const val SETTINGS_SEARCH_RESULTS_SHORT_HEIGHT_DP = 200
-        private const val SETTINGS_SEARCH_RESULTS_HEIGHT_DP = 380
         private const val VALUE_SEPARATOR = " · "
-        private const val SEARCH_HIGHLIGHT_MILLIS = 900L
         private const val SPACER = "spacer"
         private const val CONTROL_HEIGHT_DP = 60
         private const val CONTROL_GAP_DP = 12

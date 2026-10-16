@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_location_drift_protection">Location drift protection</string>
+    <string name="settings_location_drift_protection_description">Prioritizes reliable GPS, filters sudden jumps, and uses network location only after GPS is lost. Withholds unreliable positions. Off uses the default behavior. Applies at the next connection.</string>
+</resources>

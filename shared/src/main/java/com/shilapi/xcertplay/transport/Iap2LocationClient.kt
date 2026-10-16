@@ -36,6 +36,9 @@ interface Iap2LocationProvider : AutoCloseable {
     /** The 0xFFFA parameter ids, i.e. the sentence types the iPhone asked for; called before [start]. */
     fun onRequested(components: Set<Int>) = Unit
 
+    /** Optional fresh wheel-speed evidence; does not consume the source a second time. */
+    fun onVehicleSpeed(reading: VehicleSpeedReading) = Unit
+
     /** Starts location updates and returns whether at least one source was subscribed. */
     fun start(): Boolean
 

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_location_drift_protection">Защита от дрейфа координат</string>
+    <string name="settings_location_drift_protection_description">Приоритет надёжному GPS, фильтрация резких скачков и переход на сетевое местоположение только после потери GPS. Ненадёжные координаты не передаются. При отключении используется стандартная логика. Применяется при следующем подключении.</string>
+</resources>

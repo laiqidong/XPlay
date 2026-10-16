@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_location_drift_protection">Protección contra la deriva de ubicación</string>
+    <string name="settings_location_drift_protection_description">Prioriza el GPS fiable, filtra saltos bruscos y usa la ubicación de red solo tras perder el GPS. No envía posiciones poco fiables. Desactivado usa el comportamiento predeterminado. Se aplica en la próxima conexión.</string>
+</resources>

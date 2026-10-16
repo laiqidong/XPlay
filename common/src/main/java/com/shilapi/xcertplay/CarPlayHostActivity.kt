@@ -185,9 +185,9 @@ class CarPlayHostActivity : ComponentActivity() {
             hardwareVersion = "1.0",
             carPlayUsbInterfaceNumber = 3,
             locationInformationEnabled = locationReportingEnabled,
-            vehicleStatusEnabled = com.shilapi.xcertplay.hud.BydOutputSettings.batteryToIphoneActive(this),
-            chargingConnectors = com.shilapi.xcertplay.hud.BydOutputSettings.chargingConnectors(this),
-            vehicleSpeedEnabled = locationReportingEnabled && com.shilapi.xcertplay.hud.BydOutputSettings.wheelSpeedToIphoneActive(this),
+            vehicleStatusEnabled = P7CarPlaySettings.battery(this) || com.shilapi.xcertplay.hud.BydOutputSettings.batteryToIphoneActive(this),
+            chargingConnectors = if (P7CarPlaySettings.battery(this)) com.shilapi.xcertplay.transport.EvChargingConnectors.GB_T else com.shilapi.xcertplay.hud.BydOutputSettings.chargingConnectors(this),
+            vehicleSpeedEnabled = locationReportingEnabled && (P7CarPlaySettings.motion(this) || com.shilapi.xcertplay.hud.BydOutputSettings.wheelSpeedToIphoneActive(this)),
         ),
         label = "XPlay",
         hostName = "diplay-" + DiPlayBootstrap.deviceId(airPlayIdentity).replace(":", "").lowercase(),
@@ -738,7 +738,7 @@ class CarPlayHostActivity : ComponentActivity() {
         lastConfiguration = Configuration(resources.configuration)
         darkMode = savedInstanceState?.getBoolean("carplay_night_active")
             ?: nightModeOrNull(resources.configuration.uiMode) ?: false
-        appNight = resolveAppNightNow(darkMode)
+        appNight = resolveAppNightNow()
         logThemeState(ThemeModeDiagnostics.Source.CREATE, resources.configuration)
         advancedAudioChannelMappingSupported =
             resources.getBoolean(R.bool.config_advanced_audio_channel_mapping)
@@ -1700,6 +1700,7 @@ class CarPlayHostActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        if (!CarPlayBackgroundSession.hasSession()) P7CarPlayData.stopSession()
         cancelSystemBack()
         discardLastPicture()
         if (pictureCopyThreadStarted) pictureCopyThread.quitSafely()
@@ -2406,7 +2407,9 @@ class CarPlayHostActivity : ComponentActivity() {
 
     // The battery shows only where DiPlay already reads it for the iPhone.
     private fun refreshSidePanel() {
-        val battery = if (com.shilapi.xcertplay.hud.BydOutputSettings.batteryToIphoneActive(this)) {
+        val battery = if (P7CarPlaySettings.battery(this)) {
+            P7CarPlayData.snapshot()
+        } else if (com.shilapi.xcertplay.hud.BydOutputSettings.batteryToIphoneActive(this)) {
             com.shilapi.xcertplay.hud.BydNavigationOutputs.batteryStatus(applicationContext).snapshot()
         } else null
         sidePanelBattery?.text = battery?.let { "🔋 ${Math.round(it.batteryPercent)} %  ·  ${it.rangeKm} km" }.orEmpty()
@@ -2435,7 +2438,7 @@ class CarPlayHostActivity : ComponentActivity() {
     private val MENU_DANGER: Int get() = overlayPalette.overlayDanger
 
     private fun refreshAppAppearance() {
-        val nextNight = resolveAppNightNow(darkMode)
+        val nextNight = resolveAppNightNow()
         if (nextNight == appNight) return
         appNight = nextNight
         paintWaitingScreen()
@@ -5103,9 +5106,27 @@ class CarPlayHostActivity : ComponentActivity() {
         return true
     }
 
+    private var p7PrepareDeadline = 0L
+    private var p7PreparePending = false
+
     private fun startCarPlay(size: DisplaySize) {
         if (CarPlayBackgroundSession.hasSession() && !CarPlayBackgroundSession.isOwner(this)) return
         if (shuttingDown.get() || menuOpen || handshakeResetInProgress || controller != null) return
+        if (p7PreparePending) return
+        P7CarPlayData.startSession(applicationContext)
+        if (P7CarPlaySettings.battery(this) && P7CarPlayData.snapshot() == null) {
+            if (p7PrepareDeadline == 0L) p7PrepareDeadline = android.os.SystemClock.elapsedRealtime() + 4000
+            if (android.os.SystemClock.elapsedRealtime() < p7PrepareDeadline) {
+                val generation = restartGeneration
+                p7PreparePending = true
+                mainHandler.postDelayed({
+                    p7PreparePending = false
+                    if (generation == restartGeneration && !isDestroyed && !shuttingDown.get()) startCarPlay(size)
+                }, 200)
+                return
+            }
+            appendLog("P7 battery unavailable at identification; EV reporting requires reconnect after data is ready")
+        }
         val controllerGeneration = restartGeneration
         // Settings → Connection can change the target while this screen stays open (#696).
         mfiTarget = AirPlayPersistence.loadMfiTarget(this)
@@ -5123,10 +5144,11 @@ class CarPlayHostActivity : ComponentActivity() {
             when {
                 !config.locationReportingEnabled -> null
                 config.identification.vehicleSpeedEnabled -> VehicleSpeedLocationProvider(
-                    AndroidCarPlayLocationProvider(this),
-                    com.shilapi.xcertplay.hud.BydNavigationOutputs.wheelSpeed(applicationContext),
+                    AndroidCarPlayLocationProvider(this, driftProtectionEnabled = AirPlayPersistence.loadLocationDriftProtection(this)),
+                    if (P7CarPlaySettings.motion(this)) P7CarPlayData else
+                        com.shilapi.xcertplay.hud.BydNavigationOutputs.wheelSpeed(applicationContext),
                 )
-                else -> AndroidCarPlayLocationProvider(this)
+                else -> AndroidCarPlayLocationProvider(this, driftProtectionEnabled = AirPlayPersistence.loadLocationDriftProtection(this))
             }
         appendLog(
             "Starting CarPlay controller at ${size.width}x${size.height} -> " +
@@ -5179,7 +5201,9 @@ class CarPlayHostActivity : ComponentActivity() {
             savePairRecord = { record -> AirPlayPersistence.saveLockdownRecord(this, record) },
             clearPairRecord = { AirPlayPersistence.clearLockdownRecord(this) },
             locationProvider = locationProvider,
-            vehicleStatusProvider = if (com.shilapi.xcertplay.hud.BydOutputSettings.batteryToIphoneActive(this)) {
+            vehicleStatusProvider = if (P7CarPlaySettings.battery(this)) {
+                P7CarPlayData
+            } else if (com.shilapi.xcertplay.hud.BydOutputSettings.batteryToIphoneActive(this)) {
                 com.shilapi.xcertplay.hud.BydNavigationOutputs.batteryStatus(applicationContext)
             } else {
                 null
@@ -5597,6 +5621,7 @@ class CarPlayHostActivity : ComponentActivity() {
         val oldSink = sink
         CarPlayMediaKeys.detach(oldController)
         CarPlayBackgroundSession.clear(oldController, keepOwner = true)
+        p7PrepareDeadline = 0L
         controller = null
         oldSink?.let(retiringSinks::add)
         sink = null
@@ -5818,6 +5843,8 @@ class CarPlayHostActivity : ComponentActivity() {
         val oldSink = sink
         CarPlayMediaKeys.detach(oldController)
         CarPlayBackgroundSession.clear(oldController)
+        P7CarPlayData.stopSession()
+        p7PrepareDeadline = 0L
         controller = null
         oldSink?.let(retiringSinks::add)
         sink = null
@@ -6454,6 +6481,7 @@ internal object CarPlayBackgroundSession {
     @Synchronized
     fun clear(expected: CarPlayController? = null, keepOwner: Boolean = false) {
         if (expected != null && controller !== expected) return
+        P7CarPlayData.stopSession()
         controller = null
         sink = null
         if (!keepOwner) { stopAction = null; owner = null }

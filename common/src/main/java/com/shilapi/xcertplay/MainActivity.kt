@@ -82,6 +82,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        appNight = resolveAppNightNow()
+    }
+
     override fun onPause() {
         stopObservingAppearance?.invoke()
         stopObservingAppearance = null

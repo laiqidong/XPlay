@@ -21,6 +21,27 @@ class Iap2LocationClientTest {
         assertTrue(parameter.payload.contentEquals("\$GPGGA\u0000".encodeToByteArray()))
     }
 
+    @Test fun multipleSentencesUseSeparateNulTerminatedParameters() {
+        val frame = Iap2LocationMessages.locationInformation("\$GPGGA\r\n\$GPRMC\r\n\$PASCD\r\n")
+        val parameters = Iap2BodyReader.of(frame).list()
+        assertEquals(3, parameters.size)
+        assertTrue(parameters.all { it.id == 0 && it.payload.last() == 0.toByte() })
+        assertEquals(listOf("\$GPGGA\r\n\u0000", "\$GPRMC\r\n\u0000", "\$PASCD\r\n\u0000"),
+            parameters.map { it.payload.decodeToString() })
+    }
+
+    @Test fun wheelSpeedIsOptInAndDeprecatedMotionIsNeverAdvertised() {
+        val base = wiredIdentification(true)
+        val default = Iap2ParameterList.parse(Iap2IdentificationClient.identificationInformation(base).payload)
+        val defaults = Iap2ParameterList.parse(default.first(22)!!.payload)
+        for (id in 20..23) assertNull(defaults.first(id))
+        val config = base.copy(vehicleSpeedEnabled = true)
+        val fields = Iap2ParameterList.parse(Iap2IdentificationClient.identificationInformation(config).payload)
+        val component = Iap2ParameterList.parse(fields.first(22)!!.payload)
+        assertNotNull(component.first(20))
+        for (id in 21..23) assertNull(component.first(id))
+    }
+
     @Test
     fun nmeaEncoderBuildsGgaAndRmcPairWithValidChecksums() {
         val encoded = NmeaLocationEncoder.encode(

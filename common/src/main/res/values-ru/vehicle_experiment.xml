@@ -1,7 +1,7 @@
 <resources>
     <string name="settings_experiments">Эксперименты</string>
     <string name="settings_vehicle_probe_title">Данные автомобиля (экспериментально)</string>
-    <string name="settings_vehicle_probe_description">Значения обновляются по событиям автомобиля. При выходе наблюдение прекращается. — означает недоступность.</string>
+    <string name="settings_vehicle_probe_description">Запрос или подписка через разрешённый локальный ADB. Сначала считываются начальные значения. Дополнительные значения исходные; единицы и коды не проверены. При выходе подписка прекращается.</string>
     <string name="settings_vehicle_probe_start">Начать наблюдение</string>
     <string name="settings_vehicle_monitor_stop">Остановить наблюдение</string>
     <string name="settings_probe_gear">Передача</string>
@@ -10,4 +10,36 @@
     <string name="settings_probe_brake">Тормоз (0/1)</string>
     <string name="settings_probe_battery">Батарея (исходное значение)</string>
     <string name="settings_vehicle_monitor_unavailable">Подписка недоступна или нет разрешения.</string>
+    <string name="settings_vehicle_read_start">Прочитать данные автомобиля</string>
+    <string name="settings_vehicle_read_running">Чтение…</string>
+    <string name="settings_vehicle_read_unavailable">Не удалось прочитать данные: интерфейс недоступен или нет разрешения.</string>
+    <string name="settings_probe_extra_5">Запас хода CLTC</string>
+    <string name="settings_probe_extra_6">Запас хода WLTP</string>
+    <string name="settings_probe_extra_7">Разъём зарядки</string>
+    <string name="settings_probe_extra_8">Двери</string>
+    <string name="settings_probe_extra_9">Занятость места водителя</string>
+    <string name="settings_probe_extra_10">Ремень водителя</string>
+    <string name="settings_probe_extra_11">Левый поворотник</string>
+    <string name="settings_probe_extra_12">Правый поворотник</string>
+    <string name="settings_probe_extra_13">Дальний свет</string>
+    <string name="settings_probe_extra_14">Габаритные огни</string>
+    <string name="settings_probe_extra_15">Угол руля</string>
+    <string name="settings_probe_extra_16">Температура снаружи</string>
+    <string name="settings_probe_extra_17">Температура в салоне</string>
+    <string name="settings_probe_extra_18">Давление спереди слева</string>
+    <string name="settings_probe_extra_19">Давление спереди справа</string>
+    <string name="settings_probe_extra_20">Давление сзади слева</string>
+    <string name="settings_probe_extra_21">Давление сзади справа</string>
+    <string name="settings_probe_extra_22">Температуры шин</string>
+    <string name="settings_probe_extra_23">Автоудержание</string>
+    <string name="settings_probe_extra_24">Режим движения</string>
+    <string name="settings_vehicle_subscribe_start">Начать подписку</string>
+    <string name="settings_vehicle_subscribe_stop">Остановить подписку</string>
+    <string name="settings_vehicle_subscription_ended">Подписка завершена. Подробности в журнале Android.</string>
+    <string name="settings_p7_carplay_title">Данные P7 CarPlay (экспериментально)</string>
+    <string name="settings_p7_battery">Батарея, запас хода и зарядка для iPhone</string>
+    <string name="settings_p7_battery_description">Передаёт заряд, запас хода WLTP и доступные данные о зарядке и ёмкости через разрешённый ADB. Неизвестные значения пропускаются. Применяется при следующем подключении.</string>
+    <string name="settings_p7_motion">Скорость колёс и передача для iPhone</string>
+    <string name="settings_p7_motion_description">Передаёт фактическую скорость и передачу, преобразует км/ч и пропускает устаревшие данные. Требует передачи точного местоположения в разделе навигации. Применяется при следующем подключении.</string>
+    <string name="settings_p7_location_link">Открыть настройки геопозиции</string>
 </resources>

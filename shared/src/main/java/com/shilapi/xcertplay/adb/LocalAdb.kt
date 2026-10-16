@@ -100,6 +100,43 @@ class LocalAdb(
         }
     }
 
+    /** Continuous shell output. No read timer: idle waits end on data, EOF, or cancellation. */
+    @Synchronized
+    fun stream(command: String, onChunk: (String) -> Unit) {
+        check(connect(mayAsk = false) == Access.READY)
+        try {
+            socket?.soTimeout = 0
+            val local = nextStreamId++
+            send(AdbPacket(AdbPacket.OPEN, local, 0, "shell:$command\u0000".toByteArray()))
+            while (!cancelled.get()) {
+                val packet = receive()
+                if (packet.arg1 != local) {
+                    // shell() can leave the peer's final CLSE acknowledgement queued.
+                    // Only discard packets for our already-retired stream ids.
+                    if (packet.arg1 !in 1 until local) throw IOException("Wrong shell stream")
+                    if (packet.command == AdbPacket.WRTE) {
+                        send(AdbPacket(AdbPacket.CLSE, packet.arg1, packet.arg0, ByteArray(0)))
+                    } else if (packet.command != AdbPacket.CLSE && packet.command != AdbPacket.OKAY) {
+                        throw IOException("Unexpected retired shell packet")
+                    }
+                    continue
+                }
+                when (packet.command) {
+                    AdbPacket.OKAY -> Unit
+                    AdbPacket.WRTE -> {
+                        send(AdbPacket(AdbPacket.OKAY, local, packet.arg0, ByteArray(0)))
+                        onChunk(String(packet.payload, Charsets.UTF_8))
+                    }
+                    AdbPacket.CLSE -> {
+                        send(AdbPacket(AdbPacket.CLSE, local, packet.arg0, ByteArray(0)))
+                        return
+                    }
+                    else -> throw IOException("Unexpected shell packet")
+                }
+            }
+        } finally { closeQuietly() }
+    }
+
     /** Exclusive interactive stream. Use a dedicated LocalAdb instance; never mix with [shell]. */
     @Synchronized
     fun openShell(command: String): InteractiveShell? {

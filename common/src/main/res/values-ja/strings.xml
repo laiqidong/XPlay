@@ -374,9 +374,6 @@
     <string name="settings_advanced_subtitle">上級者向けの実験的機能と車種固有の設定</string>
     <string name="settings_advanced_caution_title">変更時は注意してください</string>
     <string name="settings_advanced_caution_description">車両のファームウェア、ADB権限、実験段階のCarPlay機能に依存する項目があります。通常使用する設定は上の各カテゴリにあります。</string>
-    <string name="settings_search">検索</string>
-    <string name="settings_search_hint">設定を検索</string>
-    <string name="settings_search_empty">一致する設定がありません。別の語句で検索してください。</string>
     <string name="settings_open_category">%1$sの設定を開く</string>
     <string name="settings_ready_connected">CarPlayは接続中です。再接続が必要な変更は画面に表示されます。</string>
     <string name="settings_ready_wireless">ワイヤレスCarPlayで%1$sに接続します。</string>

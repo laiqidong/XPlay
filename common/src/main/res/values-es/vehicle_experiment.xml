@@ -1,7 +1,7 @@
 <resources>
     <string name="settings_experiments">Experimentos</string>
     <string name="settings_vehicle_probe_title">Información del vehículo (experimental)</string>
-    <string name="settings_vehicle_probe_description">Los cambios se reciben del vehículo. Se detiene al salir. — significa no disponible.</string>
+    <string name="settings_vehicle_probe_description">Consulta o suscripción mediante ADB local autorizado. Incluye valores iniciales. Los valores adicionales son brutos; códigos y unidades sin verificar. Se detiene al salir.</string>
     <string name="settings_vehicle_probe_start">Iniciar seguimiento</string>
     <string name="settings_vehicle_monitor_stop">Detener seguimiento</string>
     <string name="settings_probe_gear">Marcha</string>
@@ -10,4 +10,36 @@
     <string name="settings_probe_brake">Freno (0/1)</string>
     <string name="settings_probe_battery">Batería (valor bruto)</string>
     <string name="settings_vehicle_monitor_unavailable">Suscripción no disponible o permiso denegado.</string>
+    <string name="settings_vehicle_read_start">Leer información del vehículo</string>
+    <string name="settings_vehicle_read_running">Leyendo…</string>
+    <string name="settings_vehicle_read_unavailable">No se pudo leer; interfaz no disponible o permiso denegado.</string>
+    <string name="settings_probe_extra_5">Autonomía CLTC</string>
+    <string name="settings_probe_extra_6">Autonomía WLTP</string>
+    <string name="settings_probe_extra_7">Conector de carga</string>
+    <string name="settings_probe_extra_8">Puertas</string>
+    <string name="settings_probe_extra_9">Asiento ocupado</string>
+    <string name="settings_probe_extra_10">Cinturón del conductor</string>
+    <string name="settings_probe_extra_11">Intermitente izquierdo</string>
+    <string name="settings_probe_extra_12">Intermitente derecho</string>
+    <string name="settings_probe_extra_13">Luces largas</string>
+    <string name="settings_probe_extra_14">Luces de posición</string>
+    <string name="settings_probe_extra_15">Ángulo de dirección</string>
+    <string name="settings_probe_extra_16">Temperatura exterior</string>
+    <string name="settings_probe_extra_17">Temperatura interior</string>
+    <string name="settings_probe_extra_18">Presión delantera izquierda</string>
+    <string name="settings_probe_extra_19">Presión delantera derecha</string>
+    <string name="settings_probe_extra_20">Presión trasera izquierda</string>
+    <string name="settings_probe_extra_21">Presión trasera derecha</string>
+    <string name="settings_probe_extra_22">Temperaturas de neumáticos</string>
+    <string name="settings_probe_extra_23">Retención automática</string>
+    <string name="settings_probe_extra_24">Modo de conducción</string>
+    <string name="settings_vehicle_subscribe_start">Iniciar suscripción</string>
+    <string name="settings_vehicle_subscribe_stop">Detener suscripción</string>
+    <string name="settings_vehicle_subscription_ended">Suscripción finalizada. Consulte los registros de Android.</string>
+    <string name="settings_p7_carplay_title">Datos P7 CarPlay (experimental)</string>
+    <string name="settings_p7_battery">Batería, autonomía y carga al iPhone</string>
+    <string name="settings_p7_battery_description">Envía batería, autonomía WLTP y datos disponibles de carga y capacidad mediante ADB autorizado. Omite valores desconocidos. Se aplica en la próxima conexión.</string>
+    <string name="settings_p7_motion">Velocidad y marcha al iPhone</string>
+    <string name="settings_p7_motion_description">Envía velocidad real y marcha; convierte km/h y omite lecturas antiguas. Requiere compartir ubicación precisa en Navegación. Se aplica en la próxima conexión.</string>
+    <string name="settings_p7_location_link">Abrir ajustes de ubicación</string>
 </resources>

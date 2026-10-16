@@ -2,7 +2,6 @@ package com.shilapi.xcertplay
 
 import android.content.Context
 import android.content.res.Configuration
-import java.util.Calendar
 
 /** Stable preference values; never persist enum ordinals. */
 enum class AppAppearance(val key: String) {
@@ -11,44 +10,24 @@ enum class AppAppearance(val key: String) {
     AUTO("auto");
 
     companion object {
-        fun fromKey(key: String?): AppAppearance = entries.firstOrNull { it.key == key } ?: DARK
+        fun fromKey(key: String?): AppAppearance = entries.firstOrNull { it.key == key } ?: AUTO
     }
 }
 
 /** Resolves DiPlay chrome without changing the day/night mode sent to CarPlay. */
-internal fun resolveAppNight(
-    appearance: AppAppearance,
-    carPlayMode: CarPlayNightMode,
-    schedule: CarPlayNightSchedule,
-    systemNight: Boolean,
-    minuteOfDay: Int,
-    hostNight: Boolean?,
-): Boolean = when (appearance) {
+internal fun resolveAppNight(appearance: AppAppearance, systemNight: Boolean): Boolean = when (appearance) {
     AppAppearance.DARK -> true
     AppAppearance.LIGHT -> false
-    AppAppearance.AUTO -> hostNight ?: when (carPlayMode) {
-        CarPlayNightMode.DAY -> false
-        CarPlayNightMode.NIGHT -> true
-        CarPlayNightMode.SCHEDULE -> schedule.isNight(minuteOfDay)
-        CarPlayNightMode.SYSTEM, CarPlayNightMode.AMBIENT -> systemNight
-    }
+    AppAppearance.AUTO -> systemNight
 }
 
 internal fun shouldDeferAppearanceRender(windowKeyLearning: Boolean, serviceKeyLearning: Boolean): Boolean =
     windowKeyLearning || serviceKeyLearning
 
-internal fun Context.resolveAppNightNow(hostNight: Boolean? = AppAppearanceRuntime.hostNight()): Boolean {
-    val now = Calendar.getInstance()
-    return resolveAppNight(
-        appearance = AirPlayPersistence.loadAppAppearance(this),
-        carPlayMode = AirPlayPersistence.loadCarPlayNightMode(this),
-        schedule = AirPlayPersistence.loadCarPlayNightSchedule(this),
-        systemNight = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-            Configuration.UI_MODE_NIGHT_YES,
-        minuteOfDay = now.get(Calendar.HOUR_OF_DAY) * 60 + now.get(Calendar.MINUTE),
-        hostNight = hostNight,
-    )
-}
+internal fun Context.resolveAppNightNow(): Boolean = resolveAppNight(
+    appearance = AirPlayPersistence.loadAppAppearance(this),
+    systemNight = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES,
+)
 
 /**
  * The resumed CarPlay host owns the live controller result. Identity ownership prevents a stale

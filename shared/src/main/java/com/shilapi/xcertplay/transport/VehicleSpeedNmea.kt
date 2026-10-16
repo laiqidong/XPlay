@@ -73,8 +73,10 @@ class VehicleSpeedLocationProvider(
     }
 
     override fun latestNmea(): String? {
+        val reading = if (speedRequested) speed.drain() else null
+        reading?.let(position::onVehicleSpeed)
         val fix = position.latestNmea()
-        val pascd = if (speedRequested) speed.drain()?.let(PascdEncoder::encode) else null
+        val pascd = reading?.let(PascdEncoder::encode)
         return if (fix == null) pascd else fix + pascd.orEmpty()
     }
 }

@@ -1,7 +1,7 @@
 <resources>
     <string name="settings_experiments">التجارب</string>
     <string name="settings_vehicle_probe_title">معلومات المركبة (تجريبي)</string>
-    <string name="settings_vehicle_probe_description">تُحدّث القيم عند تغير حالة المركبة. تتوقف المراقبة عند مغادرة الصفحة. — تعني غير متاح.</string>
+    <string name="settings_vehicle_probe_description">استعلام أو اشتراك عبر ADB المحلي المصرح به. يبدأ بلقطة أولية. القيم الإضافية خام ووحداتها غير مؤكدة. يتوقف عند مغادرة الصفحة.</string>
     <string name="settings_vehicle_probe_start">بدء المراقبة</string>
     <string name="settings_vehicle_monitor_stop">إيقاف المراقبة</string>
     <string name="settings_probe_gear">ناقل الحركة</string>
@@ -10,4 +10,36 @@
     <string name="settings_probe_brake">الفرامل (0/1)</string>
     <string name="settings_probe_battery">البطارية (قيمة خام)</string>
     <string name="settings_vehicle_monitor_unavailable">الاشتراك في حالة المركبة غير متاح أو الإذن مرفوض.</string>
+    <string name="settings_vehicle_read_start">قراءة معلومات المركبة</string>
+    <string name="settings_vehicle_read_running">جارٍ القراءة…</string>
+    <string name="settings_vehicle_read_unavailable">تعذرت قراءة المعلومات؛ الواجهة غير متاحة أو الإذن مرفوض.</string>
+    <string name="settings_probe_extra_5">مدى CLTC</string>
+    <string name="settings_probe_extra_6">مدى WLTP</string>
+    <string name="settings_probe_extra_7">موصل الشحن</string>
+    <string name="settings_probe_extra_8">الأبواب</string>
+    <string name="settings_probe_extra_9">إشغال مقعد السائق</string>
+    <string name="settings_probe_extra_10">حزام السائق</string>
+    <string name="settings_probe_extra_11">الإشارة اليسرى</string>
+    <string name="settings_probe_extra_12">الإشارة اليمنى</string>
+    <string name="settings_probe_extra_13">الضوء العالي</string>
+    <string name="settings_probe_extra_14">أضواء الموضع</string>
+    <string name="settings_probe_extra_15">زاوية التوجيه</string>
+    <string name="settings_probe_extra_16">الحرارة الخارجية</string>
+    <string name="settings_probe_extra_17">حرارة المقصورة</string>
+    <string name="settings_probe_extra_18">ضغط الإطار الأمامي الأيسر</string>
+    <string name="settings_probe_extra_19">ضغط الإطار الأمامي الأيمن</string>
+    <string name="settings_probe_extra_20">ضغط الإطار الخلفي الأيسر</string>
+    <string name="settings_probe_extra_21">ضغط الإطار الخلفي الأيمن</string>
+    <string name="settings_probe_extra_22">حرارة الإطارات</string>
+    <string name="settings_probe_extra_23">التثبيت التلقائي</string>
+    <string name="settings_probe_extra_24">وضع القيادة</string>
+    <string name="settings_vehicle_subscribe_start">بدء الاشتراك</string>
+    <string name="settings_vehicle_subscribe_stop">إيقاف الاشتراك</string>
+    <string name="settings_vehicle_subscription_ended">انتهى الاشتراك. راجع سجلات Android.</string>
+    <string name="settings_p7_carplay_title">بيانات P7 CarPlay (تجريبي)</string>
+    <string name="settings_p7_battery">إرسال البطارية والمدى والشحن إلى iPhone</string>
+    <string name="settings_p7_battery_description">يرسل البطارية ومدى WLTP وبيانات الشحن والسعة المتاحة عبر ADB المصرح به. تُحذف القيم غير المعروفة. يسري عند الاتصال التالي.</string>
+    <string name="settings_p7_motion">إرسال سرعة العجلات والترس إلى iPhone</string>
+    <string name="settings_p7_motion_description">يرسل سرعة المركبة الفعلية والترس، ويحول كم/س ويحذف القراءات القديمة. يتطلب مشاركة الموقع الدقيق في التنقل. يسري عند الاتصال التالي.</string>
+    <string name="settings_p7_location_link">فتح إعدادات مشاركة الموقع</string>
 </resources>

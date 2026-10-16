@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_location_drift_protection">定位防漂移</string>
+    <string name="settings_location_drift_protection_description">優先使用可靠 GPS，過濾異常跳點，GPS 持續無法使用時才使用網路定位。不傳送不可靠的位置。關閉時使用預設定位邏輯。下次連線生效。</string>
+</resources>

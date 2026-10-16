@@ -67,6 +67,29 @@ class Iap2VehicleStatusTest {
         assertEquals(25_000, ByteBuffer.wrap(parameters.first(24)!!.payload).int)
     }
 
+    @Test fun actualChargeStateConnectorAndMinimumChargeUseTheirOwnFields() {
+        val state = reading.copy(charging = true, minChargeWh = 2_000, activeConnector = EvChargingConnector.GB_T_DC)
+        val fields = Iap2ParameterList.parse(Iap2VehicleStatus.update(state).payload)
+        assertEquals(2_000, ByteBuffer.wrap(fields.first(21)!!.payload).int)
+        assertEquals(5, fields.first(28)!!.payload.single().toInt())
+        val idle = Iap2ParameterList.parse(Iap2VehicleStatus.update(state.copy(charging = false)).payload)
+        assertNull(idle.first(28))
+        val unknown = Iap2ParameterList.parse(Iap2VehicleStatus.update(state.copy(minChargeWh = null, charging = null)).payload)
+        assertNull(unknown.first(21))
+        assertNull(unknown.first(25))
+        assertNull(unknown.first(28))
+    }
+
+    @Test fun onlyRealSupportedConnectorPowerIsAdvertised() {
+        val config = identification(true).copy(chargingConnectors = EvChargingConnectors.GB_T,
+            chargingConnectorPowerWatts = mapOf(EvChargingConnector.GB_T_DC to 120_000,
+                EvChargingConnector.GB_T_AC to 7_000, EvChargingConnector.CCS2 to 250_000))
+        val vehicle = Iap2ParameterList.parse(parameters(config).first(20)!!.payload)
+        assertEquals(120_000, ByteBuffer.wrap(vehicle.first(17)!!.payload).int)
+        assertEquals(7_000, ByteBuffer.wrap(vehicle.first(18)!!.payload).int)
+        assertNull(vehicle.first(13))
+    }
+
     private fun connectors(choice: EvChargingConnectors): List<Int> {
         val config = identification(vehicleStatusEnabled = true).copy(chargingConnectors = choice)
         val vehicle = Iap2ParameterList.parse(parameters(config).first(20)!!.payload)

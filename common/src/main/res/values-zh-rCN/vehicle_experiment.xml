@@ -1,7 +1,7 @@
 <resources>
     <string name="settings_experiments">实验</string>
     <string name="settings_vehicle_probe_title">车辆信息（实验性）</string>
-    <string name="settings_vehicle_probe_description">车辆状态变化时自动更新，离开页面后停止监听。— 表示暂不可读。</string>
+    <string name="settings_vehicle_probe_description">通过已授权的本机 ADB 手动查询或订阅。订阅时先读取初始状态；扩展字段显示原始值，编码及单位待验证。离开页面后停止订阅。</string>
     <string name="settings_vehicle_probe_start">开始监听</string>
     <string name="settings_vehicle_monitor_stop">停止监听</string>
     <string name="settings_probe_gear">档位</string>
@@ -10,4 +10,36 @@
     <string name="settings_probe_brake">刹车（0/1）</string>
     <string name="settings_probe_battery">电量（原始值）</string>
     <string name="settings_vehicle_monitor_unavailable">无法订阅车辆状态，接口不可用或权限不足。</string>
+    <string name="settings_vehicle_read_start">手动读取车辆信息</string>
+    <string name="settings_vehicle_read_running">正在读取…</string>
+    <string name="settings_vehicle_read_unavailable">无法读取车辆信息，接口不可用或权限不足。</string>
+    <string name="settings_probe_extra_5">CLTC 续航</string>
+    <string name="settings_probe_extra_6">WLTP 续航</string>
+    <string name="settings_probe_extra_7">充电枪状态</string>
+    <string name="settings_probe_extra_8">车门状态</string>
+    <string name="settings_probe_extra_9">驾驶座占用</string>
+    <string name="settings_probe_extra_10">驾驶位安全带</string>
+    <string name="settings_probe_extra_11">左转向灯</string>
+    <string name="settings_probe_extra_12">右转向灯</string>
+    <string name="settings_probe_extra_13">远光灯</string>
+    <string name="settings_probe_extra_14">位置灯</string>
+    <string name="settings_probe_extra_15">方向盘转角</string>
+    <string name="settings_probe_extra_16">车外温度</string>
+    <string name="settings_probe_extra_17">车内温度</string>
+    <string name="settings_probe_extra_18">左前胎压</string>
+    <string name="settings_probe_extra_19">右前胎压</string>
+    <string name="settings_probe_extra_20">左后胎压</string>
+    <string name="settings_probe_extra_21">右后胎压</string>
+    <string name="settings_probe_extra_22">轮胎温度</string>
+    <string name="settings_probe_extra_23">自动驻车</string>
+    <string name="settings_probe_extra_24">驾驶模式</string>
+    <string name="settings_vehicle_subscribe_start">开始订阅</string>
+    <string name="settings_vehicle_subscribe_stop">停止订阅</string>
+    <string name="settings_vehicle_subscription_ended">订阅已结束，具体原因请查看 Android 日志。</string>
+    <string name="settings_p7_carplay_title">P7 CarPlay 数据（实验性）</string>
+    <string name="settings_p7_battery">向 iPhone 发送电池、续航与充电数据</string>
+    <string name="settings_p7_battery_description">通过已授权 ADB 发送电量、WLTP 续航及可读的充电状态和电池容量。未知项不发送，下次连接生效。</string>
+    <string name="settings_p7_motion">向 iPhone 发送车速与挡位</string>
+    <string name="settings_p7_motion_description">使用车辆真实车速与挡位，车速由 km/h 转换；过期数据不发送。需在导航中开启精确定位共享，下次连接生效。</string>
+    <string name="settings_p7_location_link">打开车机定位共享设置</string>
 </resources>

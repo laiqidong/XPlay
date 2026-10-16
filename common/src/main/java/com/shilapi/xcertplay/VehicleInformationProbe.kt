@@ -1,9 +1,13 @@
 package com.shilapi.xcertplay
 
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
+import com.shilapi.xcertplay.adb.AdbKeys
+import com.shilapi.xcertplay.adb.LocalAdb
 import com.shilapi.xcertplay.host.R
 
-/** Reads only the five known P7 fields from the vehicle service's last reported events. */
 internal object VehicleInformationProbe {
     internal val fields = listOf(
         "VCU_CURRENT_GEARLEV" to R.string.settings_probe_gear,
@@ -11,8 +15,28 @@ internal object VehicleInformationProbe {
         "VCU_ACCPEDAL_SIG" to R.string.settings_probe_accelerator,
         "VCU_BRKPEDAL_ST" to R.string.settings_probe_brake,
         "VCU_BMS_SOCDISP" to R.string.settings_probe_battery,
+        "VCU_DSTBAT_DISP_CLTC_FLOAT" to R.string.settings_probe_extra_5,
+        "VCU_DSTBAT_DISP_WLTP_FLOAT" to R.string.settings_probe_extra_6,
+        "VCU_CHARGE_GUN_STATUS" to R.string.settings_probe_extra_7,
+        "BCM_DOOR" to R.string.settings_probe_extra_8,
+        "BCM_DRIVERSEAT_OCCUPIED" to R.string.settings_probe_extra_9,
+        "BCM_DRVSEAT_BELTSBR_WARNING" to R.string.settings_probe_extra_10,
+        "BCM_LTURNLAMP_ST" to R.string.settings_probe_extra_11,
+        "BCM_RTURNLAMP_ST" to R.string.settings_probe_extra_12,
+        "HIGH_BEAM_LIGHTS_STATE" to R.string.settings_probe_extra_13,
+        "BCM_PARKING_LAMP" to R.string.settings_probe_extra_14,
+        "EPS_STEERING_ANGLE" to R.string.settings_probe_extra_15,
+        "ENV_OUTSIDE_TEMPERATURE" to R.string.settings_probe_extra_16,
+        "HVAC_INNER_TEMPERATURE" to R.string.settings_probe_extra_17,
+        "TPMS_PRFL" to R.string.settings_probe_extra_18,
+        "TPMS_PRFR" to R.string.settings_probe_extra_19,
+        "TPMS_PRRL" to R.string.settings_probe_extra_20,
+        "TPMS_PRRR" to R.string.settings_probe_extra_21,
+        "TPMS_TEMP_ALL" to R.string.settings_probe_extra_22,
+        "ESC_AVH" to R.string.settings_probe_extra_23,
+        "VCU_DRIMODE_FB" to R.string.settings_probe_extra_24
     )
-
+    internal val ids = listOf(557847045,559944229,557847064,557847063,557847042,559944314,559944315,557847080,557915161,557849607,557849612,557849623,557849624,289410561,557849626,559948806,291505923,559946285,559947266,559947267,559947268,559947269,557915663,557851651,557847079)
     internal fun gear(raw: String?): String = when (raw) {
         "4" -> "P (4)"
         "1" -> "D (1)"
@@ -21,107 +45,118 @@ internal object VehicleInformationProbe {
         null -> "—"
         else -> "? ($raw)"
     }
-
     fun format(context: Context, values: List<String?>): String = fields.mapIndexed { index, (_, title) ->
         val raw = values.getOrNull(index)
-        val value = if (index == 0) gear(raw) else raw ?: "—"
-        "${context.getString(title)}: $value"
+        "${context.getString(title)}: ${if (index == 0) gear(raw) else raw ?: "—"}"
     }.joinToString("\n")
-
     fun empty(context: Context) = format(context, emptyList())
 }
 
-/** Native CarPropertyManager subscription. No polling and no ADB shell helper. */
-internal class VehicleInformationMonitor(
+/** A real event subscription through the user's authorized local ADB shell, with an initial snapshot. */
+internal class VehicleInformationMonitor(context: Context, onValues: (List<String?>) -> Unit, onClosed: () -> Unit) {
+    private val session = VehicleShellSession(context, true, onValues, onClosed)
+    fun start() = session.start()
+    fun stop() = session.stop()
+}
+
+internal class VehicleInformationReader(context: Context, onResult: (List<String?>) -> Unit) {
+    private val result = MutableList<String?>(VehicleInformationProbe.ids.size) { null }
+    private val session = VehicleShellSession(context, false, { values ->
+        values.forEachIndexed { i, value -> result[i] = value }
+    }, { onResult(result.toList()) })
+    fun start() = session.start()
+    fun cancel() = session.stop()
+}
+
+internal class VehicleShellSession(
     private val context: Context,
+    private val subscribe: Boolean,
     private val onValues: (List<String?>) -> Unit,
     private val onClosed: () -> Unit,
+    private val carPlay: Boolean = false,
+    private val profile: String = "both",
+    private val onField: ((Int, String?) -> Unit)? = null,
+    private val onReady: (() -> Unit)? = null,
 ) {
-    private val ids = listOf(557847045, 559944229, 557847064, 557847063, 557847042)
-    private val values = MutableList<String?>(5) { null }
-    private var stopped = false
-    private var car: Any? = null
-    private var manager: Any? = null
-    private var listener: Any? = null
-
+    @Volatile private var stopped = false
+    @Volatile private var adb: LocalAdb? = null
+    private val handler = Handler(Looper.getMainLooper())
+    private val startTimeout = Runnable {
+        Log.e("XPlay-VehicleRead", "ADB bridge startup timeout")
+        adb?.cancelPendingOperations()
+    }
     fun start() {
-        try {
-            val carClass = Class.forName("android.car.Car")
-            val connection = object : android.content.ServiceConnection {
-                override fun onServiceConnected(name: android.content.ComponentName, binder: android.os.IBinder) {
-                    if (stopped) return
-                    try {
-                        val properties = carClass.getMethod("getCarManager", String::class.java).invoke(car, "property")
-                            ?: error("Vehicle properties unavailable")
-                        manager = properties
-                        val callbackClass = Class.forName("android.car.hardware.property.CarPropertyManager\$CarPropertyEventCallback")
-                        val callback = java.lang.reflect.Proxy.newProxyInstance(callbackClass.classLoader, arrayOf(callbackClass)) { proxy, method, args ->
-                            when (method.name) {
-                                "onChangeEvent" -> args?.firstOrNull()?.let { property ->
-                                    val type = property.javaClass
-                                    val id = type.getMethod("getPropertyId").invoke(property) as Int
-                                    val index = ids.indexOf(id)
-                                    if (index >= 0 && !stopped) {
-                                        val available = type.getMethod("getStatus").invoke(property) == 0
-                                        val value = if (available) type.getMethod("getValue").invoke(property) as? Number else null
-                                        update(index, value?.toString())
-                                    }
-                                }
-                                "onErrorEvent" -> (args?.firstOrNull() as? Int)?.let { id ->
-                                    val index = ids.indexOf(id)
-                                    if (index >= 0 && !stopped) update(index, null)
-                                }
-                                "hashCode" -> System.identityHashCode(proxy)
-                                "equals" -> proxy === args?.firstOrNull()
-                                "toString" -> "XPlayVehicleEvents"
-                                else -> null
+        handler.postDelayed(startTimeout, 20_000)
+        Thread({
+            val root = "/data/local/tmp/xplay-vehicle-${java.util.UUID.randomUUID()}"
+            try {
+                LocalAdb(AdbKeys.load(context)).use { client ->
+                    adb = client
+                    if (stopped) return@use
+                    val access = client.connect(mayAsk = !carPlay)
+                    Log.i("XPlay-VehicleRead", "ADB access=$access subscribe=$subscribe")
+                    check(access == LocalAdb.Access.READY) { "ADB $access" }
+                    val encoded = android.util.Base64.encodeToString(context.assets.open("p7-probe.jar").use { it.readBytes() }, android.util.Base64.NO_WRAP)
+                    check(client.shell("umask 077; : > $root.b64; echo XPLAY_OK")?.contains("XPLAY_OK") == true)
+                    for (chunk in encoded.chunked(2000)) {
+                        if (stopped) return@use
+                        check(client.shell("printf '%s' '$chunk' >> $root.b64; echo XPLAY_OK")?.contains("XPLAY_OK") == true)
+                    }
+                    check(client.shell("base64 -d $root.b64 > $root.jar && echo XPLAY_OK")?.contains("XPLAY_OK") == true)
+                    val values = MutableList<String?>(VehicleInformationProbe.ids.size) { null }
+                    val pending = StringBuilder()
+                    val mode = if (subscribe) "subscribe" else "read"
+                    // Fixed-character paths and arguments only; no user-controlled shell text.
+                    val command = "trap 'rm -f $root.jar $root.b64' EXIT; CLASSPATH=$root.jar app_process /system/bin com.laiqidong.xplay.tools.P7VehicleBridge $mode${if (carPlay) " carplay $profile" else ""}"
+                    client.stream(command) { chunk ->
+                        pending.append(chunk)
+                        check(pending.length <= 32768) { "Invalid bridge output" }
+                        while (pending.indexOf("\n") >= 0) {
+                            val end = pending.indexOf("\n")
+                            val line = pending.substring(0, end).trim()
+                            pending.delete(0, end + 1)
+                            if (!carPlay || partsForLog(line)) Log.i("XPlay-VehicleRead", "bridge $line")
+                            val parts = line.split(',', limit = 3)
+                            val id = parts.getOrNull(1)?.toIntOrNull()
+                            val index = VehicleInformationProbe.ids.indexOf(id)
+                            if (carPlay && id in P7CarPlayTelemetry.PROPERTY_IDS && !stopped &&
+                                parts[0] in listOf("VALUE", "UNAVAILABLE")) {
+                                onField?.invoke(requireNotNull(id), if (parts[0] == "VALUE")
+                                    parts.getOrNull(2)?.takeIf { it.toDoubleOrNull()?.isFinite() == true } else null)
                             }
+                            if (index >= 0 && !stopped) {
+                                val value = if (parts[0] == "VALUE") parts.getOrNull(2)?.takeIf { text ->
+                                    text.split(" / ").all { it.toDoubleOrNull()?.isFinite() == true }
+                                } else null
+                                if (!carPlay && parts[0] in listOf("VALUE", "UNAVAILABLE")) onField?.invoke(VehicleInformationProbe.ids[index], value)
+                                if (parts[0] in listOf("VALUE", "UNAVAILABLE") && values[index] != value) {
+                                    values[index] = value
+                                    onValues(values.toList())
+                                }
+                            }
+                            if (parts[0] == "READY") onReady?.invoke()
+                            if (parts[0] == "READY" || parts[0] == "DONE") handler.removeCallbacks(startTimeout)
                         }
-                        listener = callback
-                        val register = properties.javaClass.getMethod("registerCallback", callbackClass,
-                            Int::class.javaPrimitiveType, Float::class.javaPrimitiveType)
-                        var registered = 0
-                        ids.forEach { id ->
-                            runCatching { if (register.invoke(properties, callback, id, 0f) == true) registered++ }
-                        }
-                        if (registered == 0) fail()
-                        // The service sends the initial value on registration; later updates are events.
-                    } catch (_: Exception) { fail() }
+                    }
                 }
-                override fun onServiceDisconnected(name: android.content.ComponentName) { fail() }
+            } catch (error: Exception) {
+                if (!stopped) Log.e("XPlay-VehicleRead", "ADB vehicle bridge failed", error)
+            } finally {
+                handler.removeCallbacks(startTimeout)
+                adb = null
+                if (!stopped) onClosed() // Invalidate published data before potentially slow cleanup.
+                // Use a fresh connection for cleanup if the event socket was cancelled.
+                runCatching { LocalAdb(AdbKeys.load(context)).use { cleanup ->
+                    if (cleanup.connect(mayAsk = false) == LocalAdb.Access.READY) cleanup.shell("rm -f $root.jar $root.b64")
+                } }
             }
-            car = carClass.getMethod("createCar", Context::class.java, android.content.ServiceConnection::class.java,
-                android.os.Handler::class.java).invoke(null, context, connection, android.os.Handler(android.os.Looper.getMainLooper()))
-                ?: error("Vehicle service unavailable")
-            carClass.getMethod("connect").invoke(car)
-        } catch (_: Exception) { fail() }
+        }, "XPlay-Vehicle-Shell").start()
     }
-
-    private fun update(index: Int, value: String?) {
-        if (values[index] == value) return
-        values[index] = value
-        onValues(values.toList())
-    }
-
-    private fun fail() {
-        if (stopped) return
-        stop()
-        onValues(emptyList())
-        onClosed()
-    }
+    private fun partsForLog(line: String) = line.startsWith("READY") || line.startsWith("ERROR") || line.startsWith("INFO,connection")
 
     fun stop() {
-        if (stopped) return
         stopped = true
-        val properties = manager
-        val callback = listener
-        if (properties != null && callback != null) runCatching {
-            properties.javaClass.methods.first { it.name == "unregisterCallback" && it.parameterTypes.size == 1 }
-                .invoke(properties, callback)
-        }
-        car?.let { runCatching { it.javaClass.getMethod("disconnect").invoke(it) } }
-        car = null
-        manager = null
-        listener = null
+        handler.removeCallbacks(startTimeout)
+        adb?.cancelPendingOperations()
     }
 }

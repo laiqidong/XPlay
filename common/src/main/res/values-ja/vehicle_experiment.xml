@@ -1,7 +1,7 @@
 <resources>
     <string name="settings_experiments">実験</string>
     <string name="settings_vehicle_probe_title">車両情報（実験的機能）</string>
-    <string name="settings_vehicle_probe_description">車両の状態が変わると更新します。このページを離れると監視を停止します。— は取得不可です。</string>
+    <string name="settings_vehicle_probe_description">承認済みのローカルADBで取得または購読します。最初に初期値を取得します。追加項目は生の値で、コードと単位は未検証です。このページを離れると停止します。</string>
     <string name="settings_vehicle_probe_start">監視を開始</string>
     <string name="settings_vehicle_monitor_stop">監視を停止</string>
     <string name="settings_probe_gear">ギア</string>
@@ -10,4 +10,36 @@
     <string name="settings_probe_brake">ブレーキ（0/1）</string>
     <string name="settings_probe_battery">バッテリー（生の値）</string>
     <string name="settings_vehicle_monitor_unavailable">車両状態の購読が利用できないか、権限がありません。</string>
+    <string name="settings_vehicle_read_start">車両情報を手動取得</string>
+    <string name="settings_vehicle_read_running">読み取り中…</string>
+    <string name="settings_vehicle_read_unavailable">車両情報を取得できません。インターフェースが利用できないか権限がありません。</string>
+    <string name="settings_probe_extra_5">CLTC航続距離</string>
+    <string name="settings_probe_extra_6">WLTP航続距離</string>
+    <string name="settings_probe_extra_7">充電コネクタ</string>
+    <string name="settings_probe_extra_8">ドア状態</string>
+    <string name="settings_probe_extra_9">運転席の着座</string>
+    <string name="settings_probe_extra_10">運転席シートベルト</string>
+    <string name="settings_probe_extra_11">左ウインカー</string>
+    <string name="settings_probe_extra_12">右ウインカー</string>
+    <string name="settings_probe_extra_13">ハイビーム</string>
+    <string name="settings_probe_extra_14">車幅灯</string>
+    <string name="settings_probe_extra_15">ステアリング角度</string>
+    <string name="settings_probe_extra_16">外気温</string>
+    <string name="settings_probe_extra_17">室温</string>
+    <string name="settings_probe_extra_18">左前タイヤ空気圧</string>
+    <string name="settings_probe_extra_19">右前タイヤ空気圧</string>
+    <string name="settings_probe_extra_20">左後タイヤ空気圧</string>
+    <string name="settings_probe_extra_21">右後タイヤ空気圧</string>
+    <string name="settings_probe_extra_22">タイヤ温度</string>
+    <string name="settings_probe_extra_23">オートホールド</string>
+    <string name="settings_probe_extra_24">走行モード</string>
+    <string name="settings_vehicle_subscribe_start">購読を開始</string>
+    <string name="settings_vehicle_subscribe_stop">購読を停止</string>
+    <string name="settings_vehicle_subscription_ended">購読が終了しました。Androidログを確認してください。</string>
+    <string name="settings_p7_carplay_title">P7 CarPlayデータ（実験的機能）</string>
+    <string name="settings_p7_battery">バッテリー・航続距離・充電情報を iPhone に送信</string>
+    <string name="settings_p7_battery_description">承認済み ADB で電池残量、WLTP 航続距離、取得できる充電状態と容量を送信します。不明な値は送信しません。次回の接続から適用されます。</string>
+    <string name="settings_p7_motion">車速とギアを iPhone に送信</string>
+    <string name="settings_p7_motion_description">実際の車速とギアを送信し、km/h を変換します。古いデータは送信しません。ナビゲーションで正確な位置情報の共有が必要です。次回の接続から適用されます。</string>
+    <string name="settings_p7_location_link">位置共有設定を開く</string>
 </resources>

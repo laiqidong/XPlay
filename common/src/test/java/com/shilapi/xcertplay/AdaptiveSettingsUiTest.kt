@@ -1,7 +1,6 @@
 package com.shilapi.xcertplay
 
 import android.app.AlertDialog
-import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
@@ -13,19 +12,14 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.PopupWindow
 import android.widget.ScrollView
 import android.widget.Switch
 import android.widget.TextView
-import com.shilapi.xcertplay.adb.LocalAdb
 import com.shilapi.xcertplay.host.R
 import com.shilapi.xcertplay.orchestration.WirelessHotspotMode
 import com.shilapi.xcertplay.orchestration.CarPlayController
 import com.shilapi.xcertplay.media.AndroidMediaSink
 import java.time.Duration
-import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -41,8 +35,6 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
-import org.robolectric.annotation.Implementation
-import org.robolectric.annotation.Implements
 import org.robolectric.shadows.ShadowAlertDialog
 import org.robolectric.util.ReflectionHelpers
 
@@ -129,42 +121,41 @@ class AdaptiveSettingsUiTest {
         assertEquals(DiPlayPalette.settings(false).systemBar, screen.window.navigationBarColor)
     }
 
-    @Test fun headerShortcutTogglesAppearanceAndReturnsFocusToItself() {
+    @Test fun appearanceIsConfiguredOnlyInDisplaySettingsAndHeaderHasNoMoon() {
         val screen = openSettings()
-        val switchToLight = screen.getString(R.string.settings_switch_to_light_appearance)
-        val button = descendants(screen.window.decorView).single {
-            it.settingsControlTitle == switchToLight
-        }
-        assertEquals(Math.round(52 * screen.resources.displayMetrics.density), button.layoutParams.width)
-        assertTrue(button.requestFocus())
-
-        button.performClick()
+        assertEquals(AppAppearance.AUTO, AirPlayPersistence.loadAppAppearance(screen))
+        assertFalse(descendants(screen.window.decorView).any { it.tag == "app_appearance_button" })
+        ReflectionHelpers.callInstanceMethod<Unit>(screen, "openSettingsCategory",
+            ReflectionHelpers.ClassParameter(SettingsCategory::class.java, SettingsCategory.DISPLAY))
+        texts(screen).first { it.text.startsWith(screen.getString(R.string.settings_app_appearance) + " · ") }.performClick()
+        val dialog = TestDialogs.latest()
+        assertEquals(3, dialog.listView.adapter.count)
+        shadowOf(dialog).clickOnItem(0)
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
         shadowOf(Looper.getMainLooper()).idle()
-        layoutRoot(screen)
-
-        assertEquals(AppAppearance.LIGHT, AirPlayPersistence.loadAppAppearance(screen))
-        assertSame(DiPlayPalette.LIGHT, ReflectionHelpers.getField<DiPlayPalette>(screen, "palette"))
-        val replacement = descendants(screen.window.decorView).single {
-            it.settingsControlTitle == screen.getString(R.string.settings_switch_to_dark_appearance)
-        }
-        assertTrue(replacement.isFocused)
+        assertEquals(AppAppearance.DARK, AirPlayPersistence.loadAppAppearance(screen))
+        assertSame(DiPlayPalette.DARK, ReflectionHelpers.getField<DiPlayPalette>(screen, "palette"))
+        ReflectionHelpers.setField(screen, "page", "home")
+        ReflectionHelpers.callInstanceMethod<Unit>(screen, "render")
+        assertFalse(descendants(screen.window.decorView).any { it.tag == "app_appearance_button" })
     }
 
-    @Test fun autoAppearanceRepaintsWhenTheCarPlayPolicyChanges() {
+    @Test fun autoAppearanceRepaintsWhenTheVehicleSystemThemeChanges() {
         AirPlayPersistence.saveAppAppearance(context, AppAppearance.AUTO)
-        AirPlayPersistence.saveCarPlayNightMode(context, CarPlayNightMode.DAY)
+        AirPlayPersistence.saveCarPlayNightMode(context, CarPlayNightMode.NIGHT)
         val screen = openSettings()
         assertSame(DiPlayPalette.LIGHT, ReflectionHelpers.getField<DiPlayPalette>(screen, "palette"))
-
-        AirPlayPersistence.saveCarPlayNightMode(screen, CarPlayNightMode.NIGHT)
-        shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2))
-
+        val config = android.content.res.Configuration(screen.resources.configuration).apply {
+            uiMode = (uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK.inv()) or
+                android.content.res.Configuration.UI_MODE_NIGHT_YES
+        }
+        @Suppress("DEPRECATION")
+        screen.resources.updateConfiguration(config, screen.resources.displayMetrics)
+        screen.onConfigurationChanged(config)
         assertSame(DiPlayPalette.DARK, ReflectionHelpers.getField<DiPlayPalette>(screen, "palette"))
-        val scroll = ReflectionHelpers.getField<ScrollView>(screen, "rootScroll")
-        assertEquals(DiPlayPalette.settings(true).background, (scroll.background as ColorDrawable).color)
     }
 
-    @Test fun hostAppearancePublishedOffMainRepaintsOnMain() {
+    @Test fun hostAppearancePublishedOffMainDoesNotOverrideVehicleSystemTheme() {
         AirPlayPersistence.saveAppAppearance(context, AppAppearance.AUTO)
         AirPlayPersistence.saveCarPlayNightMode(context, CarPlayNightMode.DAY)
         val screen = openSettings()
@@ -184,7 +175,7 @@ class AdaptiveSettingsUiTest {
 
         assertNull(failure.get())
         shadowOf(Looper.getMainLooper()).idle()
-        assertSame(DiPlayPalette.DARK, ReflectionHelpers.getField<DiPlayPalette>(screen, "palette"))
+        assertSame(DiPlayPalette.LIGHT, ReflectionHelpers.getField<DiPlayPalette>(screen, "palette"))
         AppAppearanceRuntime.clearHost(owner)
     }
 
@@ -204,9 +195,8 @@ class AdaptiveSettingsUiTest {
         val previousY = oldScroll.scrollY
         assertTrue(previousY > 0)
 
-        descendants(screen.window.decorView).single {
-            it.settingsControlTitle == screen.getString(R.string.settings_switch_to_light_appearance)
-        }.performClick()
+        AirPlayPersistence.saveAppAppearance(screen, AppAppearance.DARK)
+        ReflectionHelpers.callInstanceMethod<Unit>(screen, "checkForAppearanceChange")
         shadowOf(Looper.getMainLooper()).idle()
         layoutRoot(screen)
 
@@ -217,10 +207,9 @@ class AdaptiveSettingsUiTest {
     @Test fun openDialogKeepsItsAppearanceAndEditsWhileTheScreenRepaints() {
         AirPlayPersistence.saveAppAppearance(context, AppAppearance.LIGHT)
         val screen = openSettings()
-        // Search is an inline box now; any themed text dialog shows the same behaviour.
         DiPlayActivity::class.java.getDeclaredMethod("textInput", String::class.java, String::class.java,
             Boolean::class.javaPrimitiveType, Function1::class.java).apply { isAccessible = true }
-            .invoke(screen, screen.getString(R.string.settings_search), "", false, { _: String -> })
+            .invoke(screen, screen.getString(R.string.settings_app_appearance), "", false, { _: String -> })
         val dialog = TestDialogs.latest()
         val input = descendants(dialog.window!!.decorView).filterIsInstance<EditText>().single()
         input.setText("display")
@@ -310,198 +299,6 @@ class AdaptiveSettingsUiTest {
         assertEquals("settings", ReflectionHelpers.getField<String>(screen, "page"))
     }
 
-    @Test fun searchOpensTheCategoryThatOwnsTheSetting() {
-        val screen = openSettings()
-        val index = ReflectionHelpers.callInstanceMethod<List<Any>>(screen, "buildSettingsSearchIndex")
-        val results = ReflectionHelpers.callInstanceMethod<List<Any>>(screen, "searchSettings",
-            ReflectionHelpers.ClassParameter(List::class.java, index),
-            ReflectionHelpers.ClassParameter(String::class.java, "FRAME rate"))
-        val frameRate = results.single {
-            ReflectionHelpers.getField<String>(it, "title") == screen.getString(R.string.frame_rate)
-        }
-
-        ReflectionHelpers.callInstanceMethod<Unit>(screen, "openSearchResult",
-            ReflectionHelpers.ClassParameter(frameRate.javaClass, frameRate))
-
-        assertEquals(SettingsCategory.DISPLAY, ReflectionHelpers.getField<SettingsCategory>(screen, "settingsCategory"))
-        assertTrue(texts(screen).any { it.text.startsWith(screen.getString(R.string.frame_rate) + " · ") })
-    }
-
-    // Android 7.1 and 9 too: the result list once called a PopupWindow method that Android 10 added.
-    @Test
-    @Config(sdk = [25, 28, 29])
-    fun headerSearchBoxListsMatchesAsYouTypeAndOpensTheChosenSetting() {
-        val screen = openSettings()
-        fun box() = descendants(screen.window.decorView).filterIsInstance<EditText>()
-            .single { it.settingsControlTitle == screen.getString(R.string.settings_search) }
-        assertTrue(descendants(screen.window.decorView).none { it is EditText })
-        descendants(screen.window.decorView).single {
-            it.settingsControlTitle == screen.getString(R.string.settings_search)
-        }.performClick()
-        shadowOf(Looper.getMainLooper()).idle()
-        assertTrue(box().hasFocus())
-
-        val editor = box()
-        box().setText("FRAME rate")
-        shadowOf(Looper.getMainLooper()).idle()
-
-        // Typing and clearing a query must keep the keyboard's original editor.
-        assertSame(editor, box())
-        box().setText("")
-        shadowOf(Looper.getMainLooper()).idle()
-        box().setText("FRAME rate")
-        shadowOf(Looper.getMainLooper()).idle()
-        assertSame(editor, box())
-        assertEquals("FRAME rate", box().text.toString())
-        assertTrue(box().hasFocus())
-        val popup = ReflectionHelpers.getField<PopupWindow>(screen, "settingsSearchPopup")
-        assertTrue(popup.isShowing)
-        // The list's position is worked out in screen coordinates, so it is laid out in the screen.
-        assertTrue(ReflectionHelpers.getField<Boolean>(popup, "mLayoutInScreen"))
-        val row = descendants(popup.contentView).first {
-            it.isClickable && it.settingsControlTitle?.startsWith(screen.getString(R.string.frame_rate) + ", ") == true
-        }
-        row.performClick()
-        shadowOf(Looper.getMainLooper()).idle()
-
-        assertFalse(popup.isShowing)
-        assertEquals(SettingsCategory.DISPLAY, ReflectionHelpers.getField<SettingsCategory>(screen, "settingsCategory"))
-        assertTrue(texts(screen).any { it.text.startsWith(screen.getString(R.string.frame_rate) + " · ") })
-        assertTrue(descendants(screen.window.decorView).none { it is EditText })
-    }
-
-    @Test fun backClosesAnOpenSearchBeforeLeavingSettings() {
-        val screen = openSettings()
-        fun box() = descendants(screen.window.decorView).filterIsInstance<EditText>()
-            .single { it.settingsControlTitle == screen.getString(R.string.settings_search) }
-        descendants(screen.window.decorView).single {
-            it.settingsControlTitle == screen.getString(R.string.settings_search)
-        }.performClick()
-        shadowOf(Looper.getMainLooper()).idle()
-        box().setText("no such setting zz")
-        shadowOf(Looper.getMainLooper()).idle()
-        val popup = ReflectionHelpers.getField<PopupWindow>(screen, "settingsSearchPopup")
-        assertTrue(descendants(popup.contentView).filterIsInstance<TextView>()
-            .any { it.text == screen.getString(R.string.settings_search_empty) })
-
-        screen.onBackPressedDispatcher.onBackPressed()
-
-        assertEquals("settings", ReflectionHelpers.getField<String>(screen, "page"))
-        assertFalse(popup.isShowing)
-        assertTrue(descendants(screen.window.decorView).none { it is EditText })
-        screen.onBackPressedDispatcher.onBackPressed()
-        assertEquals("settings", ReflectionHelpers.getField<String>(screen, "page"))
-    }
-
-    @Test fun rebuiltSearchFieldsDoNotLeaveLayoutListenersOnTheWindow() {
-        val screen = openSettings()
-        descendants(screen.window.decorView).single {
-            it.settingsControlTitle == screen.getString(R.string.settings_search)
-        }.performClick()
-        shadowOf(Looper.getMainLooper()).idle()
-        fun globalLayoutListeners(): Int {
-            val listeners = ReflectionHelpers.getField<Any?>(screen.window.decorView.viewTreeObserver, "mOnGlobalLayoutListeners")
-                ?: return 0
-            return ReflectionHelpers.callInstanceMethod<Int>(listeners, "size")
-        }
-        val before = globalLayoutListeners()
-        repeat(5) {
-            ReflectionHelpers.callInstanceMethod<Unit>(screen, "render")
-            shadowOf(Looper.getMainLooper()).idle()
-        }
-        assertTrue(descendants(screen.window.decorView).any { it is EditText })
-        assertEquals(before, globalLayoutListeners())
-    }
-
-    @Test
-    @Config(qualifiers = "en-w900dp-h600dp-land")
-    fun backCollapsesAnEmptySearchAndFullLayoutKeepsItsExistingLabel() {
-        val screen = openSettings()
-        val button = descendants(screen.window.decorView).single {
-            it.settingsControlTitle == screen.getString(R.string.settings_search)
-        }
-        assertTrue(button is android.widget.Button)
-        assertEquals(screen.getString(R.string.settings_search_hint), (button as TextView).text.toString())
-        button.performClick()
-        shadowOf(Looper.getMainLooper()).idle()
-        assertTrue(descendants(screen.window.decorView).any { it is EditText && it.hasFocus() })
-        screen.onBackPressedDispatcher.onBackPressed()
-        assertEquals("settings", ReflectionHelpers.getField<String>(screen, "page"))
-        assertTrue(descendants(screen.window.decorView).none { it is EditText })
-        assertTrue(descendants(screen.window.decorView).single {
-            it.settingsControlTitle == screen.getString(R.string.settings_search)
-        }.hasFocus())
-    }
-
-    @Test
-    @Config(qualifiers = "en-w500dp-h400dp-land")
-    fun compactSearchUsesAnIconTheSameSizeAsAppearanceAndCollapsesAfterBack() {
-        val screen = openSettings()
-        fun search() = descendants(screen.window.decorView).single {
-            it.settingsControlTitle == screen.getString(R.string.settings_search)
-        }
-        val appearance = descendants(screen.window.decorView).single { it.tag == "app_appearance_button" }
-        assertTrue(search() is android.widget.ImageButton)
-        assertEquals(appearance.layoutParams.width, search().layoutParams.width)
-        assertEquals(appearance.layoutParams.height, search().layoutParams.height)
-        search().performClick()
-        shadowOf(Looper.getMainLooper()).idle()
-        assertTrue(search() is EditText)
-        screen.onBackPressedDispatcher.onBackPressed()
-        assertTrue(search() is android.widget.ImageButton)
-        assertEquals("settings", ReflectionHelpers.getField<String>(screen, "page"))
-    }
-
-    @Test
-    @Config(shadows = [HotspotSearchProbe::class])
-    fun hotspotSearchIndexesItsAsyncCardWithoutStartingAnAdbProbe() {
-        installBydSettingsPackage()
-        AirPlayPersistence.saveWirelessHotspotMode(context, WirelessHotspotMode.MANUAL)
-        HotspotSearchProbe.workers.clear()
-        HotspotSearchProbe.entered = CountDownLatch(1)
-        val screen = openSettings()
-        val index = ReflectionHelpers.callInstanceMethod<List<DiPlayActivity.SettingsSearchResult>>(
-            screen, "buildSettingsSearchIndex")
-        val result = index.single { it.title == screen.getString(R.string.auto_car_hotspot_title) }
-
-        assertEquals(SettingsCategory.CONNECTION, result.category)
-        assertTrue("Building search metadata must not contact ADB", HotspotSearchProbe.workers.isEmpty())
-        assertFalse(texts(screen).any { it.text == screen.getString(R.string.auto_car_hotspot_title) })
-
-        ReflectionHelpers.callInstanceMethod<Unit>(screen, "openSearchResult",
-            ReflectionHelpers.ClassParameter(result.javaClass, result))
-        assertTrue(HotspotSearchProbe.entered.await(3, TimeUnit.SECONDS))
-        val worker = HotspotSearchProbe.workers.single()
-        worker.join(3_000)
-        assertFalse(worker.isAlive)
-        shadowOf(Looper.getMainLooper()).idle()
-
-        assertEquals(SettingsCategory.CONNECTION,
-            ReflectionHelpers.getField<SettingsCategory>(screen, "settingsCategory"))
-        assertEquals(1, descendants(screen.window.decorView).filterIsInstance<Switch>().count {
-            it.settingsControlTitle == screen.getString(R.string.auto_car_hotspot_title)
-        })
-    }
-
-    @Test
-    @Config(shadows = [HotspotSearchProbe::class])
-    fun hotspotSearchKeepsTheBydAndCarHotspotAudienceGates() {
-        installBydSettingsPackage()
-        AirPlayPersistence.saveWirelessHotspotMode(context, WirelessHotspotMode.EXISTING_WIFI)
-        HotspotSearchProbe.workers.clear()
-        HotspotSearchProbe.entered = CountDownLatch(1)
-        val screen = openSettings()
-        fun index() = ReflectionHelpers.callInstanceMethod<List<DiPlayActivity.SettingsSearchResult>>(
-            screen, "buildSettingsSearchIndex")
-        val title = screen.getString(R.string.auto_car_hotspot_title)
-
-        assertFalse(index().any { it.title == title })
-        AirPlayPersistence.saveWirelessHotspotMode(context, WirelessHotspotMode.MANUAL)
-        shadowOf(context.packageManager).removePackage("com.byd.carsettings")
-        assertFalse(index().any { it.title == title })
-        assertTrue(HotspotSearchProbe.workers.isEmpty())
-    }
-
     @Test fun cardControlsShareOneHeightAndGap() {
         val screen = openSettings()
         descendants(screen.window.decorView)
@@ -525,14 +322,6 @@ class AdaptiveSettingsUiTest {
         }
         val page = scroll.getChildAt(0)
         assertFalse(descendants(scroll).any { it.tag == "spacer" && it.parent !== page })
-    }
-
-    @Test fun searchNamesOpenTheirOwnCategoryNotACardThatLinksToIt() {
-        val screen = openSettings()
-        val index = ReflectionHelpers.callInstanceMethod<List<Any>>(screen, "buildSettingsSearchIndex")
-        val advanced = index.single { ReflectionHelpers.getField<String>(it, "title") == screen.getString(R.string.settings_advanced) }
-
-        assertEquals(SettingsCategory.ADVANCED, ReflectionHelpers.getField<SettingsCategory>(advanced, "category"))
     }
 
     @Test fun aRowBeforeAButtonKeepsTheGap() {
@@ -949,21 +738,18 @@ class AdaptiveSettingsUiTest {
         }
     }
 
-    @Test fun headerActionsShareOneHeight() = assertHeaderActionsShareOneHeight()
-
     @Test
-    @Config(sdk = [29], qualifiers = "en-w400dp-h700dp-port")
-    fun compactHeaderActionsShareOneHeight() = assertHeaderActionsShareOneHeight()
-
-    private fun assertHeaderActionsShareOneHeight() {
+    @Config(qualifiers = "en-w1280dp-h700dp-land")
+    fun settingsHeaderHasNoSearchAndBackReturnsToOverview() {
         val screen = openSettings()
-        val appearance = descendants(screen.window.decorView).single { it.tag == "app_appearance_button" }
-        val actions = (appearance.parent as ViewGroup).let { header ->
-            (0 until header.childCount).map(header::getChildAt)
-                .filter { it is android.widget.Button || it is android.widget.ImageButton || it is EditText }
-        }
-        assertTrue(actions.size >= 3)
-        assertEquals(1, actions.map { it.layoutParams.height }.toSet().size)
+        ReflectionHelpers.callInstanceMethod<Unit>(screen, "openSettingsCategory",
+            ReflectionHelpers.ClassParameter(SettingsCategory::class.java, SettingsCategory.DISPLAY))
+        assertFalse(descendants(screen.window.decorView).any {
+            it.tag == "settings_search_button" || it is EditText
+        })
+        screen.onBackPressedDispatcher.onBackPressed()
+        assertEquals(SettingsCategory.OVERVIEW,
+            ReflectionHelpers.getField<SettingsCategory>(screen, "settingsCategory"))
     }
 
     @Test fun compactLanguageAndAboutDestinationsWork() {
@@ -1087,20 +873,6 @@ class AdaptiveSettingsUiTest {
                 flags = ApplicationInfo.FLAG_SYSTEM
             }
         })
-    }
-
-    @Implements(CarHotspotSetup::class, isInAndroidSdk = false)
-    class HotspotSearchProbe {
-        @Implementation fun check(context: Context, adb: LocalAdb): LocalAdb.Access {
-            workers += Thread.currentThread()
-            entered.countDown()
-            return LocalAdb.Access.READY
-        }
-
-        companion object {
-            val workers = CopyOnWriteArrayList<Thread>()
-            var entered = CountDownLatch(1)
-        }
     }
 
     // The report is troubleshooting evidence: its way onto a phone starts in Diagnostics and returns there.

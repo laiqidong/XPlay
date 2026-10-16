@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.view.View
 import android.view.ViewGroup
+import android.view.Surface
 import android.widget.Switch
 import com.shilapi.xcertplay.host.R
 import org.junit.After
@@ -19,6 +20,9 @@ import org.robolectric.Shadows.shadowOf
 import org.robolectric.android.controller.ActivityController
 import org.robolectric.annotation.Config
 import org.robolectric.util.ReflectionHelpers
+import org.mockito.Mockito.mock
+import com.shilapi.xcertplay.orchestration.CarPlayController
+import com.shilapi.xcertplay.media.AndroidMediaSink
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [32])
@@ -33,7 +37,30 @@ class LocationReportingSettingsTest {
 
     @After fun tearDown() {
         CarPlayBackgroundSession.clear()
+        PendingReconnect.clear()
         controller?.pause()?.stop()?.destroy()
+    }
+
+    @Test fun driftProtectionDefaultsOffPersistsAndDoesNotInterruptTheSession() {
+        openSettings()
+        assertFalse(AirPlayPersistence.loadLocationDriftProtection(context))
+        assertFalse(driftSwitch().isChecked)
+        val session = mock(CarPlayController::class.java)
+        var stops = 0
+        CarPlayBackgroundSession.store(session, mock(AndroidMediaSink::class.java), 800, 480, Any(),
+            CarPlaySessionDisplay(800, 480, Surface.ROTATION_0, false, false, 800, 480)) { stops++ }
+        CarPlayBackgroundSession.active = true
+        driftSwitch().performClick()
+        assertTrue(AirPlayPersistence.loadLocationDriftProtection(context))
+        assertTrue(PendingReconnect.isPending(session))
+        assertFalse(AirPlayPersistence.loadLocationReportingEnabled(context))
+        assertEquals(0, stops)
+        assertSame(session, CarPlayBackgroundSession.snapshot()?.controller)
+        requireNotNull(controller).recreate()
+        assertTrue(driftSwitch().isChecked)
+        driftSwitch().performClick()
+        assertFalse(AirPlayPersistence.loadLocationDriftProtection(context))
+        assertEquals(0, stops)
     }
 
     @Test fun currentSettingsExposeLocationSwitchWithDefaultOff() {
@@ -122,6 +149,10 @@ class LocationReportingSettingsTest {
     private fun locationSwitch(): Switch = descendants(activity.window.decorView)
         .filterIsInstance<Switch>()
         .single { it.settingsControlTitle == activity.getString(R.string.report_location_to_iphone) }
+
+    private fun driftSwitch(): Switch = descendants(activity.window.decorView)
+        .filterIsInstance<Switch>()
+        .single { it.settingsControlTitle == activity.getString(R.string.settings_location_drift_protection) }
 
     private fun descendants(view: View): Sequence<View> = sequence {
         yield(view)

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_location_drift_protection">الحد من انحراف الموقع</string>
+    <string name="settings_location_drift_protection_description">يعطي الأولوية لموقع GPS الموثوق ويستبعد القفزات المفاجئة، ويستخدم موقع الشبكة فقط بعد فقدان GPS. لا يرسل المواقع غير الموثوقة. عند إيقافه يُستخدم السلوك الافتراضي. يسري عند الاتصال التالي.</string>
+</resources>

@@ -42,7 +42,7 @@ def build(output):
         shutil.rmtree(classes)
     classes.mkdir()
     code, text = command([javac, '--release', '8', '-classpath', platforms[-1], '-d', classes,
-                          ROOT / 'tools/p7-probe/P7Probe.java'])
+                          *sorted((ROOT / 'tools/p7-probe').glob('*.java'))])
     if code:
         raise RuntimeError(text)
     artifact = output / 'p7-probe.jar'

@@ -6,6 +6,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertSame
 import org.junit.Test
 
 class VehicleSpeedNmeaTest {
@@ -59,6 +60,29 @@ class VehicleSpeedNmeaTest {
         provider.onRequested(setOf(Iap2LocationMessages.VEHICLE_SPEED_DATA))
         assertTrue(provider.start())
         assertTrue(provider.latestNmea()!!.startsWith("\$PASCD,"))
+    }
+
+    @Test
+    fun forwardsTheSameSpeedReadingBeforeChoosingPositionWithoutDoubleDrain() {
+        var drains = 0
+        var supplied: VehicleSpeedReading? = null
+        val reading = VehicleSpeedReading(VehicleGear.PARK, listOf(VehicleSpeedSample(5_000, 0.0)))
+        val position = object : Iap2LocationProvider {
+            override fun start() = true
+            override fun stop() = Unit
+            override fun onVehicleSpeed(reading: VehicleSpeedReading) { supplied = reading }
+            override fun latestNmea(): String? { assertSame(reading, supplied); return null }
+        }
+        val speed = object : VehicleSpeedSource {
+            override fun start() = Unit
+            override fun stop() = Unit
+            override fun drain(): VehicleSpeedReading { drains++; return reading }
+        }
+        val provider = VehicleSpeedLocationProvider(position, speed)
+        provider.onRequested(setOf(Iap2LocationMessages.VEHICLE_SPEED_DATA))
+        provider.start()
+        assertEquals(PascdEncoder.encode(reading), provider.latestNmea())
+        assertEquals(1, drains)
     }
 
     @Test

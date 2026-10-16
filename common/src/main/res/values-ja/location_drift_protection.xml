@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_location_drift_protection">位置ずれ防止</string>
+    <string name="settings_location_drift_protection_description">信頼できる GPS を優先し、急な位置の飛びを除外します。GPS が継続して利用できない場合のみネットワーク測位を使用し、不確かな位置は送信しません。オフでは標準の動作になります。次回の接続から適用されます。</string>
+</resources>

@@ -7,7 +7,7 @@
     <string name="settings_app_appearance_dark">ダーク</string>
     <string name="settings_app_appearance_light">ライト</string>
     <string name="settings_app_appearance_auto">自動</string>
-    <string name="settings_app_appearance_description">「自動」では保存済みのCarPlay昼／夜設定に従い、CarPlayの表示中は実際の表示状態に合わせます。「ライト」と「ダーク」は固定され、再接続は不要です。</string>
+    <string name="settings_app_appearance_description">「自動」は車載システムの外観に従います。「ダーク」と「ライト」は固定されます。変更は再接続せずにすぐ適用されます。</string>
     <string name="settings_switch_to_light_appearance">ライト表示に切り替え</string>
     <string name="settings_switch_to_dark_appearance">ダーク表示に切り替え</string>
     <string name="carplay_night_system">Androidのシステム設定に従う</string>

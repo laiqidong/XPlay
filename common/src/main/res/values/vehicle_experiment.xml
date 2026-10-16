@@ -1,7 +1,7 @@
 <resources>
     <string name="settings_experiments">Experiments</string>
     <string name="settings_vehicle_probe_title">Vehicle information (experimental)</string>
-    <string name="settings_vehicle_probe_description">Vehicle changes are pushed by the vehicle service. Leaving this page stops monitoring. — means unavailable.</string>
+    <string name="settings_vehicle_probe_description">Read once or subscribe through authorized local ADB. Subscription starts with a snapshot. Additional values are raw; encodings and units need verification. Leaving this page stops subscription.</string>
     <string name="settings_vehicle_probe_start">Start monitoring</string>
     <string name="settings_vehicle_monitor_stop">Stop monitoring</string>
     <string name="settings_probe_gear">Gear</string>
@@ -10,4 +10,36 @@
     <string name="settings_probe_brake">Brake (0/1)</string>
     <string name="settings_probe_battery">Battery (raw value)</string>
     <string name="settings_vehicle_monitor_unavailable">Vehicle subscription unavailable or permission denied.</string>
+    <string name="settings_vehicle_read_start">Read vehicle information</string>
+    <string name="settings_vehicle_read_running">Reading…</string>
+    <string name="settings_vehicle_read_unavailable">Unable to read vehicle information. The interface may be unavailable or permission denied.</string>
+    <string name="settings_probe_extra_5">CLTC range</string>
+    <string name="settings_probe_extra_6">WLTP range</string>
+    <string name="settings_probe_extra_7">Charging connector</string>
+    <string name="settings_probe_extra_8">Doors</string>
+    <string name="settings_probe_extra_9">Driver seat occupied</string>
+    <string name="settings_probe_extra_10">Driver seat belt</string>
+    <string name="settings_probe_extra_11">Left indicator</string>
+    <string name="settings_probe_extra_12">Right indicator</string>
+    <string name="settings_probe_extra_13">High beam</string>
+    <string name="settings_probe_extra_14">Position lights</string>
+    <string name="settings_probe_extra_15">Steering angle</string>
+    <string name="settings_probe_extra_16">Outside temperature</string>
+    <string name="settings_probe_extra_17">Cabin temperature</string>
+    <string name="settings_probe_extra_18">Front left tyre pressure</string>
+    <string name="settings_probe_extra_19">Front right tyre pressure</string>
+    <string name="settings_probe_extra_20">Rear left tyre pressure</string>
+    <string name="settings_probe_extra_21">Rear right tyre pressure</string>
+    <string name="settings_probe_extra_22">Tyre temperatures</string>
+    <string name="settings_probe_extra_23">Auto Hold</string>
+    <string name="settings_probe_extra_24">Driving mode</string>
+    <string name="settings_vehicle_subscribe_start">Start subscription</string>
+    <string name="settings_vehicle_subscribe_stop">Stop subscription</string>
+    <string name="settings_vehicle_subscription_ended">Subscription ended. See Android logs for details.</string>
+    <string name="settings_p7_carplay_title">P7 CarPlay data (experimental)</string>
+    <string name="settings_p7_battery">Vehicle battery, range and charging to iPhone</string>
+    <string name="settings_p7_battery_description">Sends battery, WLTP range and available charging and capacity data through authorized ADB. Unknown values are omitted. Applies at the next connection.</string>
+    <string name="settings_p7_motion">Wheel speed and gear to iPhone</string>
+    <string name="settings_p7_motion_description">Sends actual vehicle speed and gear; converts km/h and omits stale readings. Requires precise location sharing in Navigation. Applies at the next connection.</string>
+    <string name="settings_p7_location_link">Open location sharing settings</string>
 </resources>

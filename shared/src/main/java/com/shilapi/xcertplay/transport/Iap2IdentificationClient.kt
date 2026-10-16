@@ -58,6 +58,7 @@ data class Iap2IdentificationConfig(
     val chargingConnectors: EvChargingConnectors = EvChargingConnectors.CCS2_TYPE2,
     /** Also offer wheel speed ($PASCD) in the location component; needs [locationInformationEnabled]. */
     val vehicleSpeedEnabled: Boolean = false,
+    val chargingConnectorPowerWatts: Map<EvChargingConnector, Long> = emptyMap(),
 ) {
     constructor(
         name: String,
@@ -377,7 +378,8 @@ class Iap2IdentificationClient(private val session: Iap2Session) {
                         void(5)
                     }
                 }
-                if (config.vehicleStatusEnabled) electricVehicleComponents(config.manufacturer, config.chargingConnectors)
+                if (config.vehicleStatusEnabled) electricVehicleComponents(config.manufacturer,
+                    config.chargingConnectors, config.chargingConnectorPowerWatts)
                 if (config.locationInformationEnabled) {
                     group(22) {
                         u16(0, 0)
