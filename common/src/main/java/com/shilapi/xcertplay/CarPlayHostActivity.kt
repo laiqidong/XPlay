@@ -75,6 +75,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.shilapi.xcertplay.adb.LocalAdb
 import com.shilapi.xcertplay.airplay.CarPlayMediaButton
 import com.shilapi.xcertplay.airplay.AirPlayConfig
+import com.shilapi.xcertplay.airplay.AirPlayKnobState
 import com.shilapi.xcertplay.airplay.AirPlayDisplaySettings
 import com.shilapi.xcertplay.airplay.AirPlayPhysicalSizeBasis
 import com.shilapi.xcertplay.airplay.AirPlayPhysicalSizeMm
@@ -5663,8 +5664,8 @@ class CarPlayHostActivity : ComponentActivity() {
             val action = Runnable {
                 pendingSystemBack = null
                 controller?.sendTouch(emptyList())
-                // Match the head unit's own background action; launching HOME can rebuild its window.
-                moveTaskToBack(true)
+                // Return to CarPlay's own home; the XPENG icon opens the vehicle desktop.
+                controller?.sendKnob(AirPlayKnobState(home = true))
             }
             pendingSystemBack = action
             mainHandler.postDelayed(action, 350L)

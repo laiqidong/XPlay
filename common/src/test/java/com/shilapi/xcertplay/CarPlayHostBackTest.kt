@@ -33,11 +33,11 @@ class CarPlayHostBackTest {
 
     private fun back() = ReflectionHelpers.callInstanceMethod<Unit>(activity, "handleSystemBack")
 
-    @Test fun singleBackOpensVehicleHome() {
+    @Test fun singleBackKeepsCarPlayInForeground() {
         back()
         assertNull(shadowOf(activity).nextStartedActivity)
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(350))
-        assertTrue(shadowOf(activity).isTaskMovedToBack)
+        assertFalse(shadowOf(activity).isTaskMovedToBack)
         assertNull(shadowOf(activity).nextStartedActivity)
         assertFalse(activity.isFinishing)
     }
@@ -49,7 +49,7 @@ class CarPlayHostBackTest {
         assertNull(shadowOf(activity).nextStartedActivity)
         back()
         shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(350))
-        assertTrue(shadowOf(activity).isTaskMovedToBack)
+        assertFalse(shadowOf(activity).isTaskMovedToBack)
         assertNull(shadowOf(activity).nextStartedActivity)
     }
 
