@@ -3,35 +3,38 @@ package com.shilapi.xcertplay.location
 import com.shilapi.xcertplay.transport.CarPlayLocationFix
 import kotlin.math.*
 
-/** Session-local GPS priority and continuity filter. All ages use time since boot. */
-class StableLocationSelector(private val startedAtMillis: Long) {
+/** Session-local GPS validity and continuity filter. All ages use time since boot. */
+class StableLocationSelector(@Suppress("UNUSED_PARAMETER") startedAtMillis: Long) {
     enum class Source { GPS, NETWORK }
     data class Sample(val source: Source, val elapsedMillis: Long, val fix: CarPlayLocationFix)
     private data class Track(var latest: Sample? = null, var count: Int = 0,
                              var suspect: Sample? = null, var suspectCount: Int = 0,
                              var lastSeen: Long = Long.MIN_VALUE)
     private val tracks = Source.entries.associateWith { Track() }
-    private var active: Source? = null
-    private var lastGoodGpsAt = startedAtMillis
-    private var lastOutput: Sample? = null
+    private var recovering = false
     private var stationaryAnchor: CarPlayLocationFix? = null
     private var lastSentAt = Long.MIN_VALUE
 
     fun offer(sample: Sample, nowMillis: Long) {
+        if (sample.source != Source.GPS) return
         val track = tracks.getValue(sample.source)
         // Polling the same fix must never count as several recovery samples.
         if (sample.elapsedMillis <= track.lastSeen) return
-        track.lastSeen = sample.elapsedMillis
-        val maxAge = if (sample.source == Source.GPS) GPS_AGE else NETWORK_AGE
-        val accuracy = sample.fix.accuracyMeters
-        if (nowMillis - sample.elapsedMillis !in 0..maxAge || accuracy == null ||
-            !accuracy.isFinite() || accuracy <= 0 ||
-            accuracy > if (sample.source == Source.GPS) 30.0 else 50.0) {
-            track.count = 0
-            track.suspect = null
-            track.suspectCount = 0
+        // Reject impossible ages before advancing the duplicate watermark.
+        if (nowMillis - sample.elapsedMillis !in 0..GPS_AGE) {
+            invalidateGps()
             return
         }
+        track.lastSeen = sample.elapsedMillis
+        val maxAge = GPS_AGE
+        val accuracy = sample.fix.accuracyMeters
+        if (accuracy == null ||
+            !accuracy.isFinite() || accuracy <= 0 ||
+            accuracy > 30.0) {
+            invalidateGps()
+            return
+        }
+        if (track.latest?.let { sample.elapsedMillis - it.elapsedMillis > GPS_AGE } == true) invalidateGps()
         val previous = track.latest
         if (previous != null && !continuous(previous, sample)) {
             val suspect = track.suspect
@@ -52,27 +55,13 @@ class StableLocationSelector(private val startedAtMillis: Long) {
         track.suspect = null
         track.suspectCount = 0
         track.latest = sample
-        if (sample.source == Source.GPS) lastGoodGpsAt = sample.elapsedMillis
+        if (track.count >= 3) recovering = false
     }
 
     /** Null means withhold position; never refresh the timestamp of an old coordinate. */
     fun latest(nowMillis: Long, trustedSpeedMetersPerSecond: Double? = null): CarPlayLocationFix? {
-        val gpsTrack = tracks.getValue(Source.GPS)
-        val networkTrack = tracks.getValue(Source.NETWORK)
-        val gps = gpsTrack.latest?.takeIf { nowMillis - it.elapsedMillis in 0..GPS_AGE }
-        val network = networkTrack.latest?.takeIf { nowMillis - it.elapsedMillis in 0..NETWORK_AGE }
-        val selected = when {
-            gps != null && (active != Source.NETWORK || gpsTrack.count >= 3) -> gps
-            active == Source.NETWORK && network != null && networkTrack.count >= 3 -> network
-            nowMillis - lastGoodGpsAt >= GPS_FALLBACK_DELAY && network != null && networkTrack.count >= 3 -> network
-            else -> return null
-        }
-        // A fallback must also agree with the last output, or have three coherent new points.
-        val previous = lastOutput
-        val count = tracks.getValue(selected.source).count
-        if (previous != null && previous.source != selected.source &&
-            !continuous(previous, selected) && count < 3) return null
-        active = selected.source
+        if (!hasValidGps(nowMillis)) return null
+        val selected = requireNotNull(tracks.getValue(Source.GPS).latest)
         if (selected.elapsedMillis <= lastSentAt) return null
         val speed = trustedSpeedMetersPerSecond?.takeIf { it.isFinite() && it >= 0 }
         val parked = speed != null && speed <= 0.3
@@ -89,9 +78,32 @@ class StableLocationSelector(private val startedAtMillis: Long) {
             },
         )
         stationaryAnchor = if (parked) (if (pinToAnchor) anchor else fix) else null
-        lastOutput = selected
         lastSentAt = selected.elapsedMillis
         return fix
+    }
+
+    /** Distinguishes a duplicate poll from a lost/invalid fix. */
+    fun hasValidGps(nowMillis: Long): Boolean {
+        val sample = tracks.getValue(Source.GPS).latest ?: run {
+            recovering = true // Once no-fix is reported, even cold startup requires confirmation.
+            return false
+        }
+        if (nowMillis - sample.elapsedMillis !in 0..GPS_AGE) {
+            invalidateGps()
+            return false
+        }
+        return !recovering
+    }
+
+    fun invalidateGps() {
+        tracks.getValue(Source.GPS).apply {
+            latest = null
+            count = 0
+            suspect = null
+            suspectCount = 0
+        }
+        recovering = true
+        stationaryAnchor = null
     }
 
     private fun continuous(a: Sample, b: Sample): Boolean {
@@ -114,7 +126,5 @@ class StableLocationSelector(private val startedAtMillis: Long) {
 
     private companion object {
         const val GPS_AGE = 3_000L
-        const val NETWORK_AGE = 5_000L
-        const val GPS_FALLBACK_DELAY = 5_000L
     }
 }

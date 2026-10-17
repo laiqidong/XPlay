@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_location_drift_protection">الحد من انحراف الموقع</string>
-    <string name="settings_location_drift_protection_description">يعطي الأولوية لموقع GPS الموثوق ويستبعد القفزات المفاجئة، ويستخدم موقع الشبكة فقط بعد فقدان GPS. لا يرسل المواقع غير الموثوقة. عند إيقافه يُستخدم السلوك الافتراضي. يسري عند الاتصال التالي.</string>
+    <string name="settings_location_drift_protection_description">يستخدم GPS الموثوق ويستبعد القفزات. عند فقدان GPS، يبلغ iPhone بعدم وجود موقع صالح ويواصل إرسال سرعة السيارة المتاحة؛ يحدد iOS طريقة تحديد الموقع. يستأنف بعد ثلاثة تحديثات GPS موثوقة متتالية. عند إيقافه يُستخدم السلوك الافتراضي. يسري عند الاتصال التالي.</string>
+    <string name="settings_location_gps_only">موقع GPS فقط</string>
+    <string name="settings_location_gps_only_description">يستبعد تحديد الموقع عبر الشبكة والموقع المدمج. يتم التحكم في منع الانحراف بشكل مستقل؛ عطّله لإرسال إحداثيات GPS دون تصفية. يبلغ عن عدم وجود موقع صالح عند فقدان GPS أو تقادم بياناته. يسري عند الاتصال التالي.</string>
 </resources>

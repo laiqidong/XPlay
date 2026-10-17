@@ -114,6 +114,7 @@ object AirPlayPersistence {
     private const val KEY_HIDE_BYD_CALL_POPUP = "hide_byd_call_popup"
     private const val KEY_BT_SUSPEND_DELAY = "bt_suspend_delay_seconds"
     private const val KEY_LOCATION_REPORTING_ENABLED = "location_reporting_enabled"
+    private const val KEY_LOCATION_GPS_ONLY = "location_gps_only"
     private const val KEY_LOCATION_DRIFT_PROTECTION = "location_drift_protection"
     private const val KEY_EXTERNAL_CONTROLLER = "external_controller"
     private const val KEY_USB_CHARGING_CURRENT = "usb_charging_current"
@@ -525,6 +526,14 @@ object AirPlayPersistence {
     fun loadLocationReportingEnabled(context: Context): Boolean =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .getBoolean(KEY_LOCATION_REPORTING_ENABLED, false)
+
+    fun loadLocationGpsOnly(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_LOCATION_GPS_ONLY, false)
+
+    fun saveLocationGpsOnly(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putBoolean(KEY_LOCATION_GPS_ONLY, enabled).apply()
+    }
 
     fun loadLocationDriftProtection(context: Context): Boolean =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

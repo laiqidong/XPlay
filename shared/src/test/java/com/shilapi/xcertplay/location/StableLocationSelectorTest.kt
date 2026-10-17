@@ -17,39 +17,59 @@ class StableLocationSelectorTest {
         selector.offer(sample(time, source, latitude, accuracy), time)
     }
 
+    @Test fun futureTimestampCannotBlockLaterRealSamples() {
+        selector.offer(sample(60_000), 1_000)
+        for (time in listOf(2_000L, 3_000L)) {
+            offer(time)
+            assertNull(selector.latest(time))
+        }
+        offer(4_000)
+        assertNotNull(selector.latest(4_000))
+    }
+
+    @Test fun noFixAtStartupRequiresThreeDistinctGpsSamples() {
+        assertFalse(selector.hasValidGps(10_000))
+        for (time in listOf(11_000L, 12_000L)) {
+            offer(time)
+            assertNull(selector.latest(time))
+        }
+        offer(13_000)
+        assertNotNull(selector.latest(13_000))
+    }
+
     @Test fun newerNetworkNeverDisplacesHealthyGps() {
         offer(1_000)
         for (t in listOf(1_100L, 2_100L, 3_100L)) offer(t, NETWORK, 30.001)
         assertEquals(30.0, selector.latest(3_100)!!.latitudeDegrees, 0.0)
     }
 
-    @Test fun fallbackWaitsFiveSecondsAndRecoveryNeedsThreeNewGpsFixes() {
+    @Test fun garageLossNeverFallsBackToNetworkAndGpsRecoveryNeedsThreeFixes() {
         offer(1_000)
         assertNotNull(selector.latest(1_000))
-        for (t in listOf(3_000L, 4_000L, 5_000L)) offer(t, NETWORK, 30.001)
-        assertNull(selector.latest(5_000))
-        offer(6_000, NETWORK, 30.001)
-        assertEquals(30.001, selector.latest(6_000)!!.latitudeDegrees, 0.0)
-        for (t in listOf(7_000L, 8_000L)) {
+        for (t in listOf(5_000L, 6_000L, 7_000L)) offer(t, NETWORK)
+        assertNull(selector.latest(7_000))
+        assertFalse(selector.hasValidGps(7_000))
+        for (t in listOf(8_000L, 9_000L)) {
             offer(t)
-            offer(t + 1, NETWORK, 30.001)
-            assertEquals(30.001, selector.latest(t + 1)!!.latitudeDegrees, 0.0)
+            assertNull(selector.latest(t))
         }
-        offer(9_000)
-        assertEquals(30.0, selector.latest(9_000)!!.latitudeDegrees, 0.0)
+        offer(10_000)
+        assertNotNull(selector.latest(10_000))
     }
 
-    @Test fun pollingOrDuplicateCallbacksCannotSatisfyNetworkConfirmation() {
-        offer(6_000, NETWORK)
+    @Test fun duplicateCallbacksCannotSatisfyRecoveryConfirmation() {
+        selector.invalidateGps()
+        offer(6_000)
         repeat(5) {
-            offer(6_000, NETWORK)
+            offer(6_000)
             assertNull(selector.latest(6_000))
         }
-        offer(7_000, NETWORK)
+        offer(7_000)
         assertNull(selector.latest(7_000))
-        offer(8_000, NETWORK)
+        offer(8_000)
         assertNotNull(selector.latest(8_000))
-        assertNull(selector.latest(8_001)) // Never resend a cached point as a new fix.
+        assertNull(selector.latest(8_001))
+        assertTrue(selector.hasValidGps(8_001))
     }
 
     @Test fun rejectsStaleFutureUnknownAndPoorAccuracyFixes() {
@@ -90,14 +110,19 @@ class StableLocationSelectorTest {
     }
 
     @Test fun confirmationResetsAfterBadFixOrLongGap() {
-        offer(6_000, NETWORK)
-        offer(7_000, NETWORK, accuracy = 200.0)
-        offer(8_000, NETWORK)
+        selector.invalidateGps()
+        offer(6_000)
+        offer(7_000, accuracy = 200.0)
+        offer(8_000)
         assertNull(selector.latest(8_000))
-        offer(9_000, NETWORK)
+        offer(9_000)
         assertNull(selector.latest(9_000))
-        offer(20_000, NETWORK)
+        offer(20_000)
         assertNull(selector.latest(20_000))
+        offer(21_000)
+        assertNull(selector.latest(21_000))
+        offer(22_000)
+        assertNotNull(selector.latest(22_000))
     }
 
     @Test fun monotonicAgeSurvivesWallClockChanges() {
@@ -117,6 +142,15 @@ class StableLocationSelectorTest {
         assertNull(parked.bearingDegrees)
         offer(3_000, latitude = 30.0001)
         assertEquals(30.0001, selector.latest(3_000, 5.0)!!.latitudeDegrees, 0.0)
+    }
+
+    @Test fun lowSpeedClearsCourseAndDoesNotInventMissingCourse() {
+        val movingSlowly = sample(1_000).copy(fix = sample(1_000).fix.copy(speedMetersPerSecond = 0.2))
+        selector.offer(movingSlowly, 1_000)
+        assertNull(selector.latest(1_000, 0.2)!!.bearingDegrees)
+        val next = sample(2_000).copy(fix = sample(2_000).fix.copy(bearingDegrees = null))
+        selector.offer(next, 2_000)
+        assertNull(selector.latest(2_000, 0.0)!!.bearingDegrees)
     }
 
     @Test fun noTrustedSpeedDoesNotFreezePosition() {

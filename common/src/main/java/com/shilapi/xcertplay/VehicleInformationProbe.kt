@@ -103,41 +103,14 @@ internal class VehicleShellSession(
                         check(client.shell("printf '%s' '$chunk' >> $root.b64; echo XPLAY_OK")?.contains("XPLAY_OK") == true)
                     }
                     check(client.shell("base64 -d $root.b64 > $root.jar && echo XPLAY_OK")?.contains("XPLAY_OK") == true)
-                    val values = MutableList<String?>(VehicleInformationProbe.ids.size) { null }
-                    val pending = StringBuilder()
+                    val output = VehicleBridgeOutput(carPlay, { stopped }, onValues, onField, onReady) {
+                        if (!carPlay || partsForLog(it)) Log.i("XPlay-VehicleRead", "bridge $it")
+                        if (it.substringBefore(',') in listOf("READY", "DONE")) handler.removeCallbacks(startTimeout)
+                    }
                     val mode = if (subscribe) "subscribe" else "read"
                     // Fixed-character paths and arguments only; no user-controlled shell text.
                     val command = "trap 'rm -f $root.jar $root.b64' EXIT; CLASSPATH=$root.jar app_process /system/bin com.laiqidong.xplay.tools.P7VehicleBridge $mode${if (carPlay) " carplay $profile" else ""}"
-                    client.stream(command) { chunk ->
-                        pending.append(chunk)
-                        check(pending.length <= 32768) { "Invalid bridge output" }
-                        while (pending.indexOf("\n") >= 0) {
-                            val end = pending.indexOf("\n")
-                            val line = pending.substring(0, end).trim()
-                            pending.delete(0, end + 1)
-                            if (!carPlay || partsForLog(line)) Log.i("XPlay-VehicleRead", "bridge $line")
-                            val parts = line.split(',', limit = 3)
-                            val id = parts.getOrNull(1)?.toIntOrNull()
-                            val index = VehicleInformationProbe.ids.indexOf(id)
-                            if (carPlay && id in P7CarPlayTelemetry.PROPERTY_IDS && !stopped &&
-                                parts[0] in listOf("VALUE", "UNAVAILABLE")) {
-                                onField?.invoke(requireNotNull(id), if (parts[0] == "VALUE")
-                                    parts.getOrNull(2)?.takeIf { it.toDoubleOrNull()?.isFinite() == true } else null)
-                            }
-                            if (index >= 0 && !stopped) {
-                                val value = if (parts[0] == "VALUE") parts.getOrNull(2)?.takeIf { text ->
-                                    text.split(" / ").all { it.toDoubleOrNull()?.isFinite() == true }
-                                } else null
-                                if (!carPlay && parts[0] in listOf("VALUE", "UNAVAILABLE")) onField?.invoke(VehicleInformationProbe.ids[index], value)
-                                if (parts[0] in listOf("VALUE", "UNAVAILABLE") && values[index] != value) {
-                                    values[index] = value
-                                    onValues(values.toList())
-                                }
-                            }
-                            if (parts[0] == "READY") onReady?.invoke()
-                            if (parts[0] == "READY" || parts[0] == "DONE") handler.removeCallbacks(startTimeout)
-                        }
-                    }
+                    client.stream(command, output::feed)
                 }
             } catch (error: Exception) {
                 if (!stopped) Log.e("XPlay-VehicleRead", "ADB vehicle bridge failed", error)
@@ -158,5 +131,52 @@ internal class VehicleShellSession(
         stopped = true
         handler.removeCallbacks(startTimeout)
         adb?.cancelPendingOperations()
+    }
+}
+
+
+/** Streaming bridge protocol: complete lines only, validated values and no updates after stop. */
+internal class VehicleBridgeOutput(
+    private val carPlay: Boolean,
+    private val stopped: () -> Boolean,
+    private val onValues: (List<String?>) -> Unit,
+    private val onField: ((Int, String?) -> Unit)? = null,
+    private val onReady: (() -> Unit)? = null,
+    private val onLine: (String) -> Unit = {},
+) {
+    private val pending = StringBuilder()
+    private val values = MutableList<String?>(VehicleInformationProbe.ids.size) { null }
+
+    fun feed(chunk: String) {
+        if (stopped()) return
+        pending.append(chunk)
+        check(pending.length <= 32768) { "Invalid bridge output" }
+        while (pending.indexOf("\n") >= 0) {
+            val end = pending.indexOf("\n")
+            val line = pending.substring(0, end).trim()
+            pending.delete(0, end + 1)
+            if (stopped()) return
+            onLine(line)
+            val parts = line.split(',', limit = 3)
+            val id = parts.getOrNull(1)?.toIntOrNull()
+            val index = VehicleInformationProbe.ids.indexOf(id)
+            if (parts[0] in listOf("VALUE", "UNAVAILABLE")) {
+                if (carPlay && id in P7CarPlayTelemetry.PROPERTY_IDS) {
+                    onField?.invoke(requireNotNull(id), if (parts[0] == "VALUE")
+                        parts.getOrNull(2)?.takeIf { it.toDoubleOrNull()?.isFinite() == true } else null)
+                }
+                if (index >= 0) {
+                    val value = if (parts[0] == "VALUE") parts.getOrNull(2)?.takeIf { text ->
+                        text.split(" / ").all { it.toDoubleOrNull()?.isFinite() == true }
+                    } else null
+                    if (!carPlay) onField?.invoke(VehicleInformationProbe.ids[index], value)
+                    if (values[index] != value) {
+                        values[index] = value
+                        onValues(values.toList())
+                    }
+                }
+            }
+            if (parts[0] == "READY") onReady?.invoke()
+        }
     }
 }

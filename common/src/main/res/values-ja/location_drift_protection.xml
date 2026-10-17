@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_location_drift_protection">位置ずれ防止</string>
-    <string name="settings_location_drift_protection_description">信頼できる GPS を優先し、急な位置の飛びを除外します。GPS が継続して利用できない場合のみネットワーク測位を使用し、不確かな位置は送信しません。オフでは標準の動作になります。次回の接続から適用されます。</string>
+    <string name="settings_location_drift_protection_description">信頼できる GPS を使用し、位置の飛びを除外します。GPS が失われた場合は無効な測位状態を iPhone に通知し、利用可能な車速の送信を続けます。測位方法は iOS が判断します。信頼できる GPS 更新を 3 回連続で受信すると再開します。オフでは標準の動作になります。次回の接続から適用されます。</string>
+    <string name="settings_location_gps_only">GPS の位置情報のみ送信</string>
+    <string name="settings_location_gps_only_description">ネットワーク測位と融合測位を使用しません。ドリフト防止は別のスイッチで制御します。オフにすると平滑化や固定を行わず GPS 座標を送信します。GPS が失われた場合や古い場合は測位無効を通知します。次回の接続から適用されます。</string>
 </resources>

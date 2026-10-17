@@ -1775,6 +1775,12 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                 getString(R.string.sends_precise_android_location_as_carplay_gps_data_when_th),
                 locationEnabled, save = ::onLocationReportingChanged)
             card.addView(label(getString(R.string.location_reporting_reconnects), 14, MUTED))
+            toggle(card, getString(R.string.settings_location_gps_only),
+                dependentDescription(R.string.settings_location_gps_only_description),
+                AirPlayPersistence.loadLocationGpsOnly(this), enabled = locationEnabled) {
+                AirPlayPersistence.saveLocationGpsOnly(this, it)
+                markReconnectNeeded()
+            }
             toggle(card, getString(R.string.settings_location_drift_protection),
                 dependentDescription(R.string.settings_location_drift_protection_description),
                 AirPlayPersistence.loadLocationDriftProtection(this), enabled = locationEnabled) {

@@ -16,6 +16,8 @@ public final class P7VehicleBridge {
     static boolean batteryProfile, motionProfile;
     static volatile Object car, manager, listener;
     static volatile int subscribed;
+    static volatile long lastSpeedValueAt;
+    static final long SPEED_REFRESH_MS = 250L;
     static volatile boolean watching, initialized;
     static final AtomicBoolean closing = new AtomicBoolean();
     static synchronized void emit(String line) {System.out.println(line);System.out.flush();}
@@ -115,6 +117,14 @@ public final class P7VehicleBridge {
                 readProperty(557847045);
                 h.postDelayed(this,1000);
             }},1000);
+            // E28 reports speed as ON_CHANGE (min/max rate 0). A 4 Hz subscription
+            // does not produce heartbeats at constant speed. Re-read the actual
+            // property when callbacks are quiet; never repeat a locally cached sample.
+            if(motionProfile)h.postDelayed(new Runnable(){public void run(){
+                if(closing.get())return;
+                if(SystemClock.elapsedRealtime()-lastSpeedValueAt>=SPEED_REFRESH_MS)readProperty(559944229);
+                h.postDelayed(this,SPEED_REFRESH_MS);
+            }},SPEED_REFRESH_MS);
         }
     }
     static void readProperty(int id) {try {
@@ -122,6 +132,7 @@ public final class P7VehicleBridge {
                 String getter=id==559944229?"getFloatProperty":"getIntProperty";
                 Object value=manager.getClass().getMethod(getter,int.class,int.class).invoke(manager,id,0);
                 String text=numeric(value);
+                if(id==559944229&&text!=null)lastSpeedValueAt=SystemClock.elapsedRealtime();
                 emit(text==null?"UNAVAILABLE,"+id:"VALUE,"+id+","+text);
             } else {
                 Object p=manager.getClass().getMethod("getProperty",int.class,int.class).invoke(manager,id,0);
@@ -138,6 +149,7 @@ public final class P7VehicleBridge {
         if(status!=0&&!carPlay)emit("INFO,status-"+id+":"+status);
         // This firmware sometimes returns nonstandard status codes; preserve numeric raw values.
         String text=numeric(value);
+        if(id==559944229&&text!=null)lastSpeedValueAt=SystemClock.elapsedRealtime();
         emit(text==null?"UNAVAILABLE,"+id:"VALUE,"+id+","+text);
     }
     static String numeric(Object value) {

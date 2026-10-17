@@ -11,6 +11,36 @@ import org.junit.Test
 import java.time.Instant
 
 class Iap2LocationClientTest {
+    @org.junit.Test fun unavailableFixHasVoidStatusEmptyCoordinatesAndValidChecksums() {
+        val sentences = NmeaLocationEncoder.encodeUnavailable().trim().split("\r\n")
+        org.junit.Assert.assertEquals(2, sentences.size)
+        val fields = sentences.map { it.substringBefore('*').removePrefix("$").split(',') }
+        org.junit.Assert.assertEquals("0", fields[0][6])
+        org.junit.Assert.assertEquals("00", fields[0][7])
+        org.junit.Assert.assertTrue(fields[0].subList(2, 6).all { it.isEmpty() })
+        org.junit.Assert.assertEquals("V", fields[1][2])
+        org.junit.Assert.assertTrue(fields[1].subList(3, 7).all { it.isEmpty() })
+        sentences.forEach { sentence ->
+            val body = sentence.substringBefore('*').removePrefix("$")
+            val expected = body.fold(0) { result, char -> result xor char.code }
+            org.junit.Assert.assertEquals("%02X".format(expected), sentence.substringAfter('*'))
+        }
+    }
+
+    @Test fun unknownMeasurementsStayEmptyAndReceiverMeasurementsArePreserved() {
+        fun fields(fix: CarPlayLocationFix) = NmeaLocationEncoder.encode(fix)
+            .lineSequence().first().substringBefore('*').split(',')
+        val base = CarPlayLocationFix(30.0, 120.0, accuracyMeters = 5.0)
+        val unknown = fields(base)
+        for (index in 7..12) assertEquals("field $index", "", unknown[index])
+        val measured = fields(base.copy(satellitesUsed = 12, horizontalDilution = 0.7,
+            altitudeMeters = -12.3, geoidSeparationMeters = 24.5))
+        assertEquals(listOf("12", "0.7", "-12.3", "M", "24.5", "M"), measured.subList(7, 13))
+        val rmc = NmeaLocationEncoder.encode(base).lineSequence().first { it.startsWith("$"+"GPRMC") }
+            .substringBefore('*').split(',')
+        assertEquals("", rmc[7]) // Unknown speed is not a measured stop.
+    }
+
     @Test
     fun locationInformationEncodesNulTerminatedNmeaSentence() {
         val frame = Iap2LocationMessages.locationInformation("\$GPGGA")

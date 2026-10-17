@@ -1,0 +1,17 @@
+{
+  "artifact": "XPlay-0.2.19-P7-20261016-release.apk",
+  "applicationId": "com.laiqidong.xplay",
+  "versionName": "0.2.19",
+  "versionCode": 38,
+  "builtAt": "2026-10-16T18:59:28.990469+08:00",
+  "sizeBytes": 18522205,
+  "sha256": "0e4cf4de247f22720968b1f6f774f3a5cc612464a652cebb3a955c7ac354367e",
+  "signerCertificateSha256": "5f32ef088269ddfb0aa49600f7439e07b1b49a8c3f88595239fbb8685ae540fe",
+  "gitHead": "be3376a13d5e779facae449c56aecca61f90d8f7",
+  "includesUncommittedChanges": true,
+  "sourceContentSha256": "485bcbd8dbef2542b4740e604054901720d4b734b6c3c697ab6f20a8d685225b",
+  "standaloneAuthenticationPresent": true,
+  "releaseSignatureVerified": true,
+  "releaseLintPassed": true,
+  "installedToVehicle": false
+}

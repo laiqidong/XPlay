@@ -15,6 +15,7 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.Switch
 import android.widget.TextView
+import com.shilapi.xcertplay.settings.SettingsWidgets
 import com.shilapi.xcertplay.host.R
 import com.shilapi.xcertplay.orchestration.WirelessHotspotMode
 import com.shilapi.xcertplay.orchestration.CarPlayController
@@ -313,10 +314,15 @@ class AdaptiveSettingsUiTest {
             .filter { it !is Switch && (it.parent as? LinearLayout)?.orientation == LinearLayout.VERTICAL }
             .toList()
 
-        assertTrue(buttons.size >= 4)
+        assertTrue(buttons.any { it.text.startsWith(screen.getString(R.string.settings_app_appearance)) })
         buttons.forEach { button ->
             val lp = button.layoutParams as LinearLayout.LayoutParams
-            assertEquals(button.text.toString(), dp(60), lp.height)
+            if (button.text.contains(" · ")) {
+                assertEquals(button.text.toString(), ViewGroup.LayoutParams.WRAP_CONTENT, lp.height)
+                assertEquals(button.text.toString(), dp(SettingsWidgets.CARD_ROW_MIN_HEIGHT_DP), button.minimumHeight)
+            } else {
+                assertEquals(button.text.toString(), dp(60), lp.height)
+            }
             assertEquals(button.text.toString(), 0, lp.topMargin)
             assertTrue(button.text.toString(), lp.bottomMargin in setOf(0, dp(6), dp(12)))
         }

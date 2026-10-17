@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_location_drift_protection">定位防漂移</string>
-    <string name="settings_location_drift_protection_description">优先使用可靠 GPS，过滤异常跳点，GPS 持续不可用时才使用网络定位。不转发不可靠的位置。关闭时使用默认定位逻辑。下次连接生效。</string>
+    <string name="settings_location_drift_protection_description">使用可靠 GPS 并过滤跳点。GPS 失效时向 iPhone 报告无有效定位，继续提供可用车速，由 iOS 决定定位方式；连续收到 3 个可靠 GPS 位置后恢复。关闭时使用默认逻辑。下次连接生效。</string>
+    <string name="settings_location_gps_only">仅传送 GPS 定位</string>
+    <string name="settings_location_gps_only_description">不使用网络或融合定位。防漂移由原开关独立控制；关闭防漂移可发送未经平滑或锁定的 GPS 坐标。GPS 丢失或过期时报告无有效定位。下次连接生效。</string>
 </resources>

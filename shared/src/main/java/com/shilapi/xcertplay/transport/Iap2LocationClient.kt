@@ -8,18 +8,21 @@ import java.util.GregorianCalendar
 import java.util.Locale
 import java.util.TimeZone
 import kotlin.math.abs
-import kotlin.math.max
 import kotlin.math.min
 
 /** One Android location sample converted into the fields carried by the NMEA pair. */
 data class CarPlayLocationFix(
     val latitudeDegrees: Double,
     val longitudeDegrees: Double,
+    /** Mean sea level altitude, never Android WGS84 ellipsoid altitude. */
     val altitudeMeters: Double? = null,
     val bearingDegrees: Double? = null,
     val speedMetersPerSecond: Double? = null,
     val accuracyMeters: Double? = null,
     val timestampMillis: Long? = null,
+    val satellitesUsed: Int? = null,
+    val horizontalDilution: Double? = null,
+    val geoidSeparationMeters: Double? = null,
 ) {
     init {
         require(latitudeDegrees.isFinite() && latitudeDegrees in -90.0..90.0) {
@@ -53,6 +56,13 @@ interface Iap2LocationProvider : AutoCloseable {
 
 /** LIVI-compatible $GPGGA + $GPRMC encoding used by iAP2 0xFFFB. */
 object NmeaLocationEncoder {
+    /** Explicit no-fix status, with empty coordinates so no stale/zero position is implied. */
+    fun encodeUnavailable(): String {
+        val gga = "GPGGA,,,,,,0,00,,,,,,,"
+        val rmc = "GPRMC,,V,,,,,,,,,"
+        return "$"+gga+"*"+checksum(gga)+"\r\n$"+rmc+"*"+checksum(rmc)+"\r\n"
+    }
+
     fun encode(fix: CarPlayLocationFix): String {
         val timestamp = fix.timestampMillis
             ?.takeIf { it > 0 }
@@ -68,22 +78,22 @@ object NmeaLocationEncoder {
 
         val latitude = degreesToNmea(fix.latitudeDegrees, latitude = true)
         val longitude = degreesToNmea(fix.longitudeDegrees, latitude = false)
-        val hdop = fix.accuracyMeters
-            ?.takeIf { it.isFinite() && it > 0 }
-            ?.let { min(50.0, max(0.5, it / 5.0)) }
-            ?: 1.0
-        val altitude = fix.altitudeMeters
-            ?.takeIf { it.isFinite() }
-            ?.let { format("%.1f", it) }
-            ?: "0.0"
+        val satellites = fix.satellitesUsed?.takeIf { it in 0..99 }
+            ?.let { format("%02d", it) }.orEmpty()
+        val hdop = fix.horizontalDilution?.takeIf { it.isFinite() && it > 0 }
+            ?.let { format("%.1f", it) }.orEmpty()
+        val altitude = fix.altitudeMeters?.takeIf { it.isFinite() }
+            ?.let { format("%.1f", it) }.orEmpty()
+        val geoid = fix.geoidSeparationMeters?.takeIf { it.isFinite() }
+            ?.let { format("%.1f", it) }.orEmpty()
 
         val ggaBody = "GPGGA,$time,${latitude.value},${latitude.hemisphere}," +
-            "${longitude.value},${longitude.hemisphere},1,08,${format("%.1f", hdop)}," +
-            "$altitude,M,0.0,M,,"
+            "${longitude.value},${longitude.hemisphere},1,$satellites,$hdop," +
+            "$altitude,${if (altitude.isEmpty()) "" else "M"},$geoid,${if (geoid.isEmpty()) "" else "M"},,"
         val speedKnots = fix.speedMetersPerSecond
             ?.takeIf { it.isFinite() && it >= 0 }
             ?.let { format("%.2f", it * KNOTS_PER_METER_PER_SECOND) }
-            ?: "0.00"
+            .orEmpty()
         // Without a GPS direction (for example while parked) the course stays empty: 0.00 would say north.
         val course = fix.bearingDegrees
             ?.takeIf { it.isFinite() }

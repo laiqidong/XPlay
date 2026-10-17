@@ -5144,11 +5144,11 @@ class CarPlayHostActivity : ComponentActivity() {
             when {
                 !config.locationReportingEnabled -> null
                 config.identification.vehicleSpeedEnabled -> VehicleSpeedLocationProvider(
-                    AndroidCarPlayLocationProvider(this, driftProtectionEnabled = AirPlayPersistence.loadLocationDriftProtection(this)),
+                    AndroidCarPlayLocationProvider(this, driftProtectionEnabled = AirPlayPersistence.loadLocationDriftProtection(this), gpsOnlyEnabled = AirPlayPersistence.loadLocationGpsOnly(this)),
                     if (P7CarPlaySettings.motion(this)) P7CarPlayData else
                         com.shilapi.xcertplay.hud.BydNavigationOutputs.wheelSpeed(applicationContext),
                 )
-                else -> AndroidCarPlayLocationProvider(this, driftProtectionEnabled = AirPlayPersistence.loadLocationDriftProtection(this))
+                else -> AndroidCarPlayLocationProvider(this, driftProtectionEnabled = AirPlayPersistence.loadLocationDriftProtection(this), gpsOnlyEnabled = AirPlayPersistence.loadLocationGpsOnly(this))
             }
         appendLog(
             "Starting CarPlay controller at ${size.width}x${size.height} -> " +
