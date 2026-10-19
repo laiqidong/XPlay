@@ -42,9 +42,9 @@ class P7SettingsUiTest {
         CarPlayBackgroundSession.clear()
     }
 
-    @Test fun overviewLinksToExactlySevenP7Categories() {
+    @Test fun overviewLinksToAllP7Categories() {
         val categories = SettingsInformationArchitecture.categories(true)
-        assertEquals(7, categories.size)
+        assertEquals(9, categories.size)
         val destinationTitles = SettingsCategory.entries.map { category ->
             screen.getString(R.string.settings_open_category, title(category))
         }
@@ -57,29 +57,25 @@ class P7SettingsUiTest {
     }
 
     @Test fun settingsLiveWhereDriversLookForThem() {
+        open(SettingsCategory.CONTROLS)
+        assertPresent(R.string.wheel_siri_key, R.string.settings_gesture_fingers_hint, R.string.car_button_in_carplay)
+        assertAbsent(R.string.report_location_to_iphone, R.string.settings_p7_battery)
+        open(SettingsCategory.NAVIGATION)
+        assertPresent(R.string.report_location_to_iphone, R.string.settings_p7_motion, R.string.settings_direction_output)
+        assertAbsent(R.string.settings_p7_battery, R.string.carplay_map_on_instrument_cluster_experimental)
         open(SettingsCategory.VEHICLE)
-        assertPresent(R.string.wheel_siri_key, R.string.report_location_to_iphone,
-            R.string.settings_gesture_fingers_hint, R.string.car_button_in_carplay, R.string.settings_p7_motion)
-        assertAbsent(R.string.right_hand_drive, R.string.settings_p7_carplay_title, R.string.wheel_joystick)
-
-        open(SettingsCategory.ADVANCED)
-        assertPresent(R.string.settings_p7_carplay_title, R.string.efficient_video,
-            R.string.call_echo_cancellation, R.string.settings_diagnostic_tools)
-        assertChoice(R.string.mfi_certificate_signing_target, true)
-        assertAbsent(R.string.report_location_to_iphone, R.string.settings_vehicle_probe_title,
-            R.string.carplay_map_on_instrument_cluster_experimental, R.string.settings_ambient_title,
-            R.string.settings_harman_fullscreen_experimental, R.string.settings_p7_motion, R.string.settings_p7_location_link)
-
-        open(SettingsCategory.CONNECTION)
-        assertPresent(R.string.connect_when_iphone_bluetooth_connects, R.string.connect_when_diplay_opens)
-        assertChoice(R.string.mfi_certificate_signing_target, false)
-        assertChoice(R.string.settings_usb_charging, false)
-        assertAbsent(R.string.usb_auto_confirm_title)
-
+        assertPresent(R.string.settings_p7_battery)
+        assertAbsent(R.string.settings_direction_output, R.string.settings_ambient_title)
+        open(SettingsCategory.DISPLAY)
+        assertPresent(R.string.efficient_video, R.string.side_panel)
+        assertAbsent(R.string.settings_harman_fullscreen_experimental)
         open(SettingsCategory.AUDIO)
+        assertPresent(R.string.call_echo_cancellation)
         assertChoice(R.string.music_buffer, true)
         assertAbsent(R.string.efficient_video)
-
+        open(SettingsCategory.CONNECTION)
+        assertChoice(R.string.mfi_certificate_signing_target, true)
+        assertChoice(R.string.settings_usb_charging, false)
         open(SettingsCategory.ABOUT)
         assertChoice(R.string.language_app_language, true)
         assertPresent(R.string.backup_open)
@@ -96,26 +92,12 @@ class P7SettingsUiTest {
         assertAbsent(R.string.usb_auto_confirm_title)
     }
 
-    @Test fun diagnosticsOpenBelowAdvancedAndBackReturnsToAdvanced() {
-        open(SettingsCategory.ADVANCED)
-        views().filterIsInstance<TextView>().single { it.text == screen.getString(R.string.settings_diagnostic_tools) }.performClick()
-        assertEquals(SettingsCategory.DIAGNOSTICS, category())
+    @Test fun diagnosticsIsIndependentAndBackReturnsToOverview() {
+        open(SettingsCategory.DIAGNOSTICS)
         assertPresent(R.string.save_diagnostic_report, R.string.settings_vehicle_probe_title)
         assertAbsent(R.string.efficient_video)
         ReflectionHelpers.callInstanceMethod<Unit>(screen, "navigateBack")
-        assertEquals(SettingsCategory.ADVANCED, category())
-        assertPresent(R.string.settings_diagnostic_tools)
-    }
-
-    @Test fun movedCategoriesAndVehicleLocationRemainReachable() {
-        open(SettingsCategory.LANGUAGE)
-        assertEquals(SettingsCategory.ABOUT, category())
-        assertChoice(R.string.language_app_language, true)
-        open(SettingsCategory.EXPERIMENTS)
-        assertEquals(SettingsCategory.ADVANCED, category())
-        open(SettingsCategory.NAVIGATION)
-        assertEquals(SettingsCategory.VEHICLE, category())
-        assertPresent(R.string.report_location_to_iphone, R.string.settings_p7_motion)
+        assertEquals(SettingsCategory.OVERVIEW, category())
     }
 
     @Test fun menuChangesPreserveSavedConnectionAndAudioPreferences() {

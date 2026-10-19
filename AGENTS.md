@@ -91,5 +91,8 @@ Spacing, size and shape in the Settings screen MUST come from one place.
    Corner radius MUST follow the control height. A new button MUST NOT set its own radius.
 4. Every `SettingsCategory` except Overview MUST have a link on Overview.
    `AdaptiveSettingsUiTest.overviewLinksToEveryOtherCategory` checks this.
-5. A layout change MUST include compact and full screenshots with a large font scale.
-   Add an Arabic (right-to-left) screenshot when the change touches row alignment.
+5. UI and layout changes are visually checked by the user. Agents MUST NOT capture,
+   open, inspect or review screenshots/images for UI validation, or start an emulator
+   solely for visual checks, unless the user explicitly requests it.
+   Verify compilation/build only by default and report that visual inspection is left
+   to the user. This replaces the previous compact/full/Arabic screenshot requirement.

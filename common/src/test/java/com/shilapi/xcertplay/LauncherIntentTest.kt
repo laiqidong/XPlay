@@ -63,7 +63,7 @@ class LauncherIntentTest {
         controller = Robolectric.buildActivity(DiPlayActivity::class.java,
             Intent().putExtra("page", "settings")).create()
         val activity = controller!!.get()
-        ReflectionHelpers.setField(activity, "connectionSettingsReturnCategory", SettingsCategory.ADVANCED)
+        ReflectionHelpers.setField(activity, "connectionSettingsReturnCategory", SettingsCategory.NAVIGATION)
         ReflectionHelpers.callInstanceMethod<Unit>(activity, "onNewIntent",
             ReflectionHelpers.ClassParameter(Intent::class.java, launcher()))
         assertEquals("settings", ReflectionHelpers.getField<String>(activity, "page"))

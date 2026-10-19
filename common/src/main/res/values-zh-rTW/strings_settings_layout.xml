@@ -4,9 +4,9 @@
     <string name="settings_overview_subtitle">舒適、可靠駕駛的基本設定。</string>
     <string name="settings_your_setup">你的設定</string>
     <string name="settings_quick_settings">快速設定</string>
-    <string name="settings_display">顯示</string>
-    <string name="settings_navigation">導航</string>
-    <string name="settings_vehicle">車輛</string>
+    <string name="settings_display">顯示與外觀</string>
+    <string name="settings_navigation">導航與定位</string>
+    <string name="settings_vehicle">車輛功能</string>
     <string name="settings_advanced">進階</string>
     <string name="settings_more">更多</string>
     <string name="settings_swipe_advanced">進階（實驗性）</string>
@@ -19,7 +19,7 @@
     <string name="settings_display_summary">外觀、全螢幕、解析度和影格率</string>
     <string name="settings_audio_summary">聲音輸出與音樂緩衝</string>
     <string name="settings_navigation_summary">位置回報及支援的儀表板導航提示</string>
-    <string name="settings_vehicle_summary">駕駛側、方向盤按鍵、車輛按鈕和 CarPlay 手勢</string>
+    <string name="settings_vehicle_summary">設定車輛與 CarPlay 的功能連動。</string>
     <string name="settings_advanced_media">影片與音訊</string>
     <string name="settings_wheel_keys">方向盤按鍵</string>
     <string name="settings_experimental_display">顯示（實驗性）</string>

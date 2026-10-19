@@ -80,7 +80,7 @@
     <string name="home_public_preview">公开预览\u0020·\u0020%1$s</string>
     <string name="choose_iphone_prefix">选择 iPhone ·\u0020</string>
     <string name="audio_saved_value">已保存：%1$d</string>
-    <string name="about_public_preview_prefix">公开预览\u0020·\u0020%1$s</string>
+    <string name="about_public_preview_prefix">XPlay · %1$s</string>
     <string name="msg_car_hotspot_connect">XPlay 通过车机热点“%1$s”连接。请在车机设置中开启热点后连接。</string>
     <string name="edit_saved_hotspot_prefix">编辑已保存的热点 ·\u0020</string>
     <string name="cluster_adb_multi_device">如果 ADB 列出多个设备，请使用 adb -s &lt;car-device-ID&gt; shell appops set %1$s GET_USAGE_STATS allow。用 adb devices 查询 ID。</string>
@@ -92,7 +92,7 @@
     <string name="settings_mfi_address_hint">地址必须以 http:// 或 https:// 开头。令牌为可选项，将作为 Authorization bearer token 发送。</string>
     <string name="a_familiar_drive">熟悉的驾乘体验。</string>
     <string name="a_previous_wi_fi_direct_connection_is_still_running_reset">之前的 Wi-Fi Direct 连接仍在运行。请重置后再连接。</string>
-    <string name="about">关于</string>
+    <string name="about">关于与备份</string>
     <string name="about_diplay">关于 XPlay</string>
     <string name="active">已启用</string>
     <string name="advanced_audio_channel_mapping">高级音频通道映射</string>
@@ -103,13 +103,13 @@
     <string name="allow_nearby_devices_so_diplay_can_connect_to_your_paired">请允许 XPlay 访问附近的设备，以连接已配对的 iPhone。</string>
     <string name="allow_precise_location_for_diplay_in_the_head_unit_s_app_p">请在车机应用权限中允许 XPlay 使用精确位置信息。</string>
     <string name="allow_the_connection_permission_to_continue">请授予连接权限以继续</string>
-    <string name="an_independent_carplay_receiver_for_android_head_units_wir">面向 Android 车机的独立 CarPlay 接收器。有线和无线连接均在车机上运行，并使用本地认证。普通 iPhone 无需越狱、Mac、转接器或登录即可连接。\n\n此预览版使用实验性配件身份，仍在测试与不同 iPhone 和车机的兼容性。本产品未经 Apple 认证。</string>
+    <string name="an_independent_carplay_receiver_for_android_head_units_wir">XPlay 让 Android 车机支持 CarPlay，提供有线与无线连接，在车机上使用导航、音乐、通话和 Siri。\n\n可按使用习惯调整画面、声音与车辆操作。功能可用性因车机和 iPhone 而异。</string>
     <string name="android_9_compatibility">Android 9 兼容性</string>
     <string name="app_name">XPlay</string>
     <string name="app_permissions">应用权限</string>
     <string name="app_settings">应用设置</string>
     <string name="apply_and_reconnect">应用并重新连接</string>
-    <string name="audio">音频</string>
+    <string name="audio">声音与通话</string>
     <string name="audio_routing">音频路由</string>
     <string name="auto">自动</string>
     <string name="auto_start_on_boot">开机后自动启动</string>
@@ -170,7 +170,7 @@
     <string name="connecting_bluetooth">正在连接蓝牙</string>
     <string name="connecting_iap2_control">正在连接 iAP2 控制通道</string>
     <string name="connecting_to_your_iphone">正在连接 iPhone…</string>
-    <string name="connection">连接</string>
+    <string name="connection">连接与启动</string>
     <string name="connection_interrupted_retrying">连接中断，正在重试…</string>
     <string name="connection_setup">连接设置</string>
     <string name="copied_to_the_car_clipboard_run_the_command_on_your_comput">已复制到车机剪贴板。在电脑上运行该命令。</string>
@@ -187,7 +187,7 @@
     <string name="default_icon">默认图标</string>
     <string name="default_placeholder_icon">默认占位图标</string>
     <string name="diagnostic_report_saved">诊断报告已保存</string>
-    <string name="diagnostics">诊断</string>
+    <string name="diagnostics">诊断与排查</string>
     <string name="diplay">XPlay</string>
     <string name="discard_changes_and_exit_settings">放弃更改并退出设置</string>
     <string name="disconnect">断开连接</string>
@@ -890,4 +890,7 @@
     <string name="settings_test_car_hotspot">测试开启热点</string>
     <string name="settings_test_car_hotspot_already_on">热点已经开启。要测试从关闭状态恢复，请先在车机设置中关闭热点，再点击此按钮。测试不会主动关闭热点。</string>
     <string name="settings_test_car_hotspot_running">正在测试开启热点…如出现调试授权，请允许。</string>
+    <string name="settings_controls_category">按键与操作</string>
+    <string name="settings_controls_summary">设置方向盘按键、手势和 CarPlay 车标按钮。</string>
+    <string name="settings_vehicle_carplay_data">CarPlay 车辆数据（实验性）</string>
 </resources>

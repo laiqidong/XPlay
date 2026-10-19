@@ -80,7 +80,7 @@
     <string name="home_public_preview">PUBLIC PREVIEW\u0020·\u0020%1$s</string>
     <string name="choose_iphone_prefix">Choose iPhone ·\u0020</string>
     <string name="audio_saved_value">Saved: %1$d</string>
-    <string name="about_public_preview_prefix">Public preview\u0020·\u0020%1$s</string>
+    <string name="about_public_preview_prefix">XPlay · %1$s</string>
     <string name="msg_car_hotspot_connect">XPlay connects through the car hotspot “%1$s”. Turn it on in the car settings, then connect.</string>
     <string name="edit_saved_hotspot_prefix">Edit saved hotspot ·\u0020</string>
     <string name="cluster_adb_multi_device">If ADB lists several devices, use adb -s &lt;car-device-ID&gt; shell appops set %1$s GET_USAGE_STATS allow. Find the ID with adb devices.</string>
@@ -100,7 +100,7 @@
     <string name="common_cancel">Cancel</string>
     <string name="a_familiar_drive">A familiar drive.</string>
     <string name="a_previous_wi_fi_direct_connection_is_still_running_reset">A previous Wi-Fi Direct connection is still running. Reset it to connect.</string>
-    <string name="about">About</string>
+    <string name="about">About &amp; backup</string>
     <string name="about_diplay">About XPlay</string>
     <string name="active">Active</string>
     <string name="advanced_audio_channel_mapping">Advanced audio channel mapping</string>
@@ -111,12 +111,12 @@
     <string name="allow_nearby_devices_so_diplay_can_connect_to_your_paired">Allow Nearby devices so XPlay can connect to your paired iPhone.</string>
     <string name="allow_precise_location_for_diplay_in_the_head_unit_s_app_p">Allow precise Location for XPlay in the head unit’s app permissions.</string>
     <string name="allow_the_connection_permission_to_continue">Allow the connection permission to continue</string>
-    <string name="an_independent_carplay_receiver_for_android_head_units_wir">An independent CarPlay receiver for Android head units. Wired and wireless connections run on the head unit, with local authentication. A standard iPhone can connect without a jailbreak, Mac, dongle or sign-in.\n\nThis preview uses an experimental accessory identity. Compatibility with every iPhone and head unit is still being tested. It is not an Apple-certified product.</string>
+    <string name="an_independent_carplay_receiver_for_android_head_units_wir">XPlay brings CarPlay to your Android head unit, with wired and wireless connections, navigation, music, calls and Siri.\n\nCustomize the display, audio and vehicle controls to suit your car. Feature availability depends on your head unit and iPhone.</string>
     <string name="android_9_compatibility">Android 9 compatibility</string>
     <string name="app_permissions">App permissions</string>
     <string name="app_settings">App settings</string>
     <string name="apply_and_reconnect">Apply and reconnect</string>
-    <string name="audio">Audio</string>
+    <string name="audio">Sound &amp; calls</string>
     <string name="audio_routing">Audio routing</string>
     <string name="auto">Auto</string>
     <string name="auto_start_on_boot">Auto-start on boot</string>
@@ -176,7 +176,7 @@
     <string name="connecting_bluetooth">Connecting Bluetooth</string>
     <string name="connecting_iap2_control">Connecting iAP2 control</string>
     <string name="connecting_to_your_iphone">Connecting to your iPhone…</string>
-    <string name="connection">Connection</string>
+    <string name="connection">Connection &amp; startup</string>
     <string name="connection_interrupted_retrying">Connection interrupted. Retrying…</string>
     <string name="connection_setup">Connection setup</string>
     <string name="copied_to_the_car_clipboard_run_the_command_on_your_comput">Copied to the car clipboard. Run the command on your computer.</string>
@@ -193,7 +193,7 @@
     <string name="default_icon">Default icon</string>
     <string name="default_placeholder_icon">Default placeholder icon</string>
     <string name="diagnostic_report_saved">Diagnostic report saved</string>
-    <string name="diagnostics">Diagnostics</string>
+    <string name="diagnostics">Diagnostics &amp; troubleshooting</string>
     <string name="diplay">XPlay</string>
     <string name="discard_changes_and_exit_settings">Discard changes and exit settings</string>
     <string name="disconnect">Disconnect</string>
@@ -367,9 +367,9 @@
     <string name="settings_overview_subtitle">The essentials for a comfortable, reliable drive.</string>
     <string name="settings_your_setup">Your setup</string>
     <string name="settings_quick_settings">Quick settings</string>
-    <string name="settings_display">Display</string>
-    <string name="settings_navigation">Navigation</string>
-    <string name="settings_vehicle">Vehicle</string>
+    <string name="settings_display">Display &amp; appearance</string>
+    <string name="settings_navigation">Navigation &amp; location</string>
+    <string name="settings_vehicle">Vehicle features</string>
     <string name="settings_advanced">Advanced</string>
     <string name="settings_more">More</string>
     <string name="settings_swipe_advanced">Advanced (experimental)</string>
@@ -388,7 +388,7 @@
     <string name="settings_display_summary">Appearance, full screen, resolution and frame rate</string>
     <string name="settings_audio_summary">Speaker routing and music buffering</string>
     <string name="settings_navigation_summary">Location reporting and supported dashboard guidance</string>
-    <string name="settings_vehicle_summary">Driving side, wheel keys, car button and CarPlay gestures</string>
+    <string name="settings_vehicle_summary">Connect vehicle features with CarPlay.</string>
     <string name="settings_reconnect_pending">Saved. Some changes apply when CarPlay reconnects.</string>
     <string name="settings_reconnect_now">Reconnect now</string>
     <string name="settings_byd_navigation_unavailable">BYD dashboard and HUD guidance is not available on this head unit.</string>
@@ -930,4 +930,7 @@
     <string name="settings_test_car_hotspot">Test turning on hotspot</string>
     <string name="settings_test_car_hotspot_already_on">Hotspot is already on. To test startup, turn it off in car settings, then press this button. This test never turns the hotspot off.</string>
     <string name="settings_test_car_hotspot_running">Testing hotspot startup… Allow the debugging prompt if shown.</string>
+    <string name="settings_controls_category">Controls &amp; gestures</string>
+    <string name="settings_controls_summary">Configure steering wheel buttons, gestures and the CarPlay car button.</string>
+    <string name="settings_vehicle_carplay_data">CarPlay vehicle data (experimental)</string>
 </resources>

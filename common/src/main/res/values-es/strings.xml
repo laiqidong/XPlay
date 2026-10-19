@@ -80,7 +80,7 @@
     <string name="home_public_preview">VISTA PREVIA PÚBLICA\u0020·\u0020%1$s</string>
     <string name="choose_iphone_prefix">Elegir iPhone ·\u0020</string>
     <string name="audio_saved_value">Guardado: %1$d</string>
-    <string name="about_public_preview_prefix">Vista previa\u0020·\u0020%1$s</string>
+    <string name="about_public_preview_prefix">XPlay · %1$s</string>
     <string name="msg_car_hotspot_connect">XPlay se conecta a través del punto de acceso del coche «%1$s». Actívalo en la configuración del coche y luego conéctate.</string>
     <string name="edit_saved_hotspot_prefix">Editar punto de acceso guardado ·\u0020</string>
     <string name="cluster_adb_multi_device">Si ADB lista varios dispositivos, usa adb -s &lt;car-device-ID&gt; shell appops set %1$s GET_USAGE_STATS allow. Encuentra el ID con adb devices.</string>
@@ -98,7 +98,7 @@
     <string name="common_cancel">Cancelar</string>
     <string name="a_familiar_drive">Un trayecto familiar.</string>
     <string name="a_previous_wi_fi_direct_connection_is_still_running_reset">Hay una conexión Wi-Fi Direct anterior todavía en ejecución. Restablécela para conectarte.</string>
-    <string name="about">Acerca de</string>
+    <string name="about">Información y copias</string>
     <string name="about_diplay">Acerca de XPlay</string>
     <string name="active">Activo</string>
     <string name="advanced_audio_channel_mapping">Asignación avanzada de canales de audio</string>
@@ -109,12 +109,12 @@
     <string name="allow_nearby_devices_so_diplay_can_connect_to_your_paired">Permite «Dispositivos cercanos» para que XPlay pueda conectarse a tu iPhone emparejado.</string>
     <string name="allow_precise_location_for_diplay_in_the_head_unit_s_app_p">Permite «Ubicación precisa» para XPlay en los permisos de la aplicación de la unidad principal.</string>
     <string name="allow_the_connection_permission_to_continue">Permite el permiso de conexión para continuar</string>
-    <string name="an_independent_carplay_receiver_for_android_head_units_wir">Un receptor de CarPlay independiente para unidades principales Android. Las conexiones con cable e inalámbricas se ejecutan en la unidad principal, con autenticación local. Un iPhone estándar puede conectarse sin jailbreak, Mac, dongle ni inicio de sesión.\n\nEsta versión preliminar usa una identidad de accesorio experimental. La compatibilidad con cada iPhone y cada unidad principal sigue en pruebas. No es un producto certificado por Apple.</string>
+    <string name="an_independent_carplay_receiver_for_android_head_units_wir">XPlay lleva CarPlay a tu unidad Android mediante conexión por cable o inalámbrica, con navegación, música, llamadas y Siri.\n\nPersonaliza la imagen, el sonido y los controles. Las funciones disponibles dependen de la unidad y del iPhone.</string>
     <string name="android_9_compatibility">Compatibilidad con Android 9</string>
     <string name="app_permissions">Permisos de la aplicación</string>
     <string name="app_settings">Ajustes de la aplicación</string>
     <string name="apply_and_reconnect">Aplicar y reconectar</string>
-    <string name="audio">Audio</string>
+    <string name="audio">Sonido y llamadas</string>
     <string name="audio_routing">Enrutamiento de audio</string>
     <string name="auto">Auto</string>
     <string name="auto_start_on_boot">Inicio automático al arrancar</string>
@@ -170,7 +170,7 @@
     <string name="connecting_bluetooth">Conectando Bluetooth</string>
     <string name="connecting_iap2_control">Conectando el control iAP2</string>
     <string name="connecting_to_your_iphone">Conectando con tu iPhone…</string>
-    <string name="connection">Conexión</string>
+    <string name="connection">Conexión e inicio</string>
     <string name="connection_interrupted_retrying">Conexión interrumpida. Reintentando…</string>
     <string name="connection_setup">Configuración de conexión</string>
     <string name="copied_to_the_car_clipboard_run_the_command_on_your_comput">Copiado al portapapeles del coche. Ejecuta el comando en tu ordenador.</string>
@@ -187,7 +187,7 @@
     <string name="default_icon">Icono predeterminado</string>
     <string name="default_placeholder_icon">Icono de marcador de posición predeterminado</string>
     <string name="diagnostic_report_saved">Informe de diagnóstico guardado</string>
-    <string name="diagnostics">Diagnóstico</string>
+    <string name="diagnostics">Diagnóstico y ayuda</string>
     <string name="discard_changes_and_exit_settings">Descartar cambios y salir de los ajustes</string>
     <string name="disconnect">Desconectar</string>
     <string name="discovering_iphone">Buscando iPhone</string>
@@ -830,4 +830,7 @@
     <string name="settings_test_car_hotspot">Probar encendido del punto de acceso</string>
     <string name="settings_test_car_hotspot_already_on">El punto de acceso ya está encendido. Para probar el inicio, apágalo en los ajustes del coche y pulsa este botón. La prueba nunca lo apaga.</string>
     <string name="settings_test_car_hotspot_running">Probando el inicio… Autoriza la depuración si se solicita.</string>
+    <string name="settings_controls_category">Botones y gestos</string>
+    <string name="settings_controls_summary">Configura los botones del volante, los gestos y el botón del coche de CarPlay.</string>
+    <string name="settings_vehicle_carplay_data">Datos del vehículo CarPlay (experimental)</string>
 </resources>

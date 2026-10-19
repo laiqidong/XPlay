@@ -85,7 +85,7 @@
     <string name="home_public_preview">公開プレビュー\u0020·\u0020%1$s</string>
     <string name="choose_iphone_prefix">iPhoneを選択 ·\u0020</string>
     <string name="audio_saved_value">保存済み：%1$d</string>
-    <string name="about_public_preview_prefix">公開プレビュー\u0020·\u0020%1$s</string>
+    <string name="about_public_preview_prefix">XPlay · %1$s</string>
     <string name="msg_car_hotspot_connect">XPlayは車載ホットスポット「%1$s」を使って接続します。車の設定でオンにしてから接続してください。</string>
     <string name="edit_saved_hotspot_prefix">保存済みのホットスポットを編集 ·\u0020</string>
     <string name="cluster_adb_multi_device">ADBに複数の端末が表示される場合は、adb -s &lt;car-device-ID&gt; shell appops set %1$s GET_USAGE_STATS allow を実行してください。端末IDは adb devices で確認できます。</string>
@@ -98,7 +98,7 @@
     <string name="settings_mfi_address_hint">アドレスはhttp://またはhttps://で始めてください。トークンは任意で、AuthorizationのBearerトークンとして送信されます。</string>
     <string name="a_familiar_drive">いつもの操作を車でも。</string>
     <string name="a_previous_wi_fi_direct_connection_is_still_running_reset">以前のWi-Fi Direct接続が残っています。接続するにはリセットしてください。</string>
-    <string name="about">アプリ情報</string>
+    <string name="about">情報とバックアップ</string>
     <string name="about_diplay">XPlayについて</string>
     <string name="active">有効</string>
     <string name="advanced_audio_channel_mapping">高度な音声チャンネル設定</string>
@@ -109,12 +109,12 @@
     <string name="allow_nearby_devices_so_diplay_can_connect_to_your_paired">ペアリングしたiPhoneへ接続するため、「付近のデバイス」を許可してください。</string>
     <string name="allow_precise_location_for_diplay_in_the_head_unit_s_app_p">車載端末のアプリ権限で、XPlayに正確な位置情報を許可してください。</string>
     <string name="allow_the_connection_permission_to_continue">続行するには接続権限を許可してください</string>
-    <string name="an_independent_carplay_receiver_for_android_head_units_wir">Android車載端末向けの独立したCarPlayレシーバーです。有線・無線接続と認証は車載端末上で処理します。通常のiPhoneを脱獄せずに接続でき、Mac、ドングル、サインインは不要です。\n\nこのプレビュー版では試験的なアクセサリー識別情報を使用しています。すべてのiPhoneと車載端末との互換性は現在も検証中です。Apple認証製品ではありません。</string>
+    <string name="an_independent_carplay_receiver_for_android_head_units_wir">XPlayはAndroid車載端末で有線・無線CarPlayを利用できるアプリです。ナビ、音楽、通話、Siriを車載画面で使えます。\n\n画面、音声、車両操作をカスタマイズできます。利用できる機能は車載端末とiPhoneによって異なります。</string>
     <string name="android_9_compatibility">Android 9との互換性</string>
     <string name="app_permissions">アプリの権限</string>
     <string name="app_settings">アプリの設定</string>
     <string name="apply_and_reconnect">適用して再接続</string>
-    <string name="audio">音声</string>
+    <string name="audio">サウンドと通話</string>
     <string name="audio_routing">音声出力先</string>
     <string name="auto">自動</string>
     <string name="auto_start_on_boot">起動時に自動開始</string>
@@ -174,7 +174,7 @@
     <string name="connecting_bluetooth">Bluetooth接続中</string>
     <string name="connecting_iap2_control">iAP2制御に接続中</string>
     <string name="connecting_to_your_iphone">iPhoneに接続しています…</string>
-    <string name="connection">接続</string>
+    <string name="connection">接続と起動</string>
     <string name="connection_interrupted_retrying">接続が中断されました。再試行しています…</string>
     <string name="connection_setup">接続設定</string>
     <string name="copied_to_the_car_clipboard_run_the_command_on_your_comput">車載端末のクリップボードにコピーしました。パソコンでコマンドを実行してください。</string>
@@ -191,7 +191,7 @@
     <string name="default_icon">標準アイコン</string>
     <string name="default_placeholder_icon">標準の仮アイコン</string>
     <string name="diagnostic_report_saved">診断レポートを保存しました</string>
-    <string name="diagnostics">診断</string>
+    <string name="diagnostics">診断と問題解決</string>
     <string name="diplay">XPlay</string>
     <string name="discard_changes_and_exit_settings">変更を破棄して設定を終了</string>
     <string name="disconnect">切断</string>
@@ -365,9 +365,9 @@
     <string name="settings_overview_subtitle">快適で安定した接続に必要な基本設定です。</string>
     <string name="settings_your_setup">現在の設定</string>
     <string name="settings_quick_settings">クイック設定</string>
-    <string name="settings_display">画面表示</string>
-    <string name="settings_navigation">ナビゲーション</string>
-    <string name="settings_vehicle">車両</string>
+    <string name="settings_display">表示と外観</string>
+    <string name="settings_navigation">ナビと位置情報</string>
+    <string name="settings_vehicle">車両機能</string>
     <string name="settings_advanced">詳細設定</string>
     <string name="settings_more">その他</string>
     <string name="settings_swipe_advanced">詳細設定（実験的機能）</string>
@@ -386,7 +386,7 @@
     <string name="settings_display_summary">外観・全画面・解像度・フレームレート</string>
     <string name="settings_audio_summary">スピーカー出力と音楽のバッファ</string>
     <string name="settings_navigation_summary">位置情報の送信と対応メーターへの案内表示</string>
-    <string name="settings_vehicle_summary">運転席側・ステアリングスイッチ・車両ボタン・CarPlayのジェスチャー</string>
+    <string name="settings_vehicle_summary">車両とCarPlayの機能連携を設定します。</string>
     <string name="settings_reconnect_pending">保存しました。一部の変更はCarPlayの再接続後に有効になります。</string>
     <string name="settings_reconnect_now">今すぐ再接続</string>
     <string name="settings_byd_navigation_unavailable">この車載端末ではBYDメーターとHUDへの案内表示を利用できません。</string>
@@ -929,4 +929,7 @@
     <string name="settings_test_car_hotspot">ホットスポット起動をテスト</string>
     <string name="settings_test_car_hotspot_already_on">ホットスポットはオンです。起動をテストするには車の設定でオフにしてから、このボタンを押してください。テストはホットスポットをオフにしません。</string>
     <string name="settings_test_car_hotspot_running">起動をテスト中…デバッグの確認が出たら許可してください。</string>
+    <string name="settings_controls_category">ボタンと操作</string>
+    <string name="settings_controls_summary">ステアリングボタン、ジェスチャー、CarPlayの車両ボタンを設定します。</string>
+    <string name="settings_vehicle_carplay_data">CarPlay車両データ（実験的機能）</string>
 </resources>

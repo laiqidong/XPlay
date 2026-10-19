@@ -80,7 +80,7 @@
     <string name="home_public_preview">معاينة عامة\u0020·\u0020%1$s</string>
     <string name="choose_iphone_prefix">اختر iPhone ·\u0020</string>
     <string name="audio_saved_value">تم الحفظ: %1$d</string>
-    <string name="about_public_preview_prefix">معاينة عامة\u0020·\u0020%1$s</string>
+    <string name="about_public_preview_prefix">XPlay · %1$s</string>
     <string name="msg_car_hotspot_connect">يتصل XPlay عبر نقطة اتصال السيارة «%1$s». شغّلها في إعدادات السيارة ثم اتصل.</string>
     <string name="edit_saved_hotspot_prefix">تعديل نقطة الاتصال المحفوظة ·\u0020</string>
     <string name="cluster_adb_multi_device">إذا عرض ADB عدة أجهزة، استخدم adb -s &lt;car-device-ID&gt; shell appops set %1$s GET_USAGE_STATS allow. اعثر على المعرّف عبر adb devices.</string>
@@ -98,7 +98,7 @@
     <string name="common_cancel">إلغاء</string>
     <string name="a_familiar_drive">رحلة مألوفة.</string>
     <string name="a_previous_wi_fi_direct_connection_is_still_running_reset">ما زال اتصال Wi-Fi Direct السابق قيد التشغيل. أعد ضبطه للاتصال.</string>
-    <string name="about">حول</string>
+    <string name="about">حول والنسخ الاحتياطي</string>
     <string name="about_diplay">حول XPlay</string>
     <string name="active">نشط</string>
     <string name="advanced_audio_channel_mapping">تعيين متقدم لقنوات الصوت</string>
@@ -109,12 +109,12 @@
     <string name="allow_nearby_devices_so_diplay_can_connect_to_your_paired">اسمح بـ «الأجهزة القريبة» ليتمكن XPlay من الاتصال بـ iPhone المقترن.</string>
     <string name="allow_precise_location_for_diplay_in_the_head_unit_s_app_p">اسمح بـ«الموقع الدقيق» لـ XPlay في أذونات تطبيق وحدة القيادة.</string>
     <string name="allow_the_connection_permission_to_continue">اسمح بإذن الاتصال للمتابعة</string>
-    <string name="an_independent_carplay_receiver_for_android_head_units_wir">مستقبل CarPlay مستقل لوحدات قيادة Android. تعمل الاتصالات السلكية واللاسلكية على وحدة القيادة مع مصادقة محلية. يمكن لأي iPhone عادي الاتصال دون جيلبريك أو Mac أو جهاز إضافي أو تسجيل دخول.\n\nتستخدم هذه المعاينة هوية ملحق تجريبية. لا تزال التوافقية مع كل iPhone وكل وحدة قيادة قيد الاختبار. هذا المنتج غير معتمد من Apple.</string>
+    <string name="an_independent_carplay_receiver_for_android_head_units_wir">يوفر XPlay تجربة CarPlay على وحدة السيارة بنظام Android عبر اتصال سلكي أو لاسلكي، مع الملاحة والموسيقى والمكالمات وSiri.\n\nخصص العرض والصوت وعناصر التحكم. يعتمد توفر الميزات على وحدة السيارة وiPhone.</string>
     <string name="android_9_compatibility">توافق Android 9</string>
     <string name="app_permissions">أذونات التطبيق</string>
     <string name="app_settings">إعدادات التطبيق</string>
     <string name="apply_and_reconnect">تطبيق وإعادة الاتصال</string>
-    <string name="audio">الصوت</string>
+    <string name="audio">الصوت والمكالمات</string>
     <string name="audio_routing">توجيه الصوت</string>
     <string name="auto">تلقائي</string>
     <string name="auto_start_on_boot">التشغيل التلقائي عند الإقلاع</string>
@@ -170,7 +170,7 @@
     <string name="connecting_bluetooth">جارٍ الاتصال بالبلوتوث</string>
     <string name="connecting_iap2_control">جارٍ الاتصال بتحكم iAP2</string>
     <string name="connecting_to_your_iphone">جارٍ الاتصال بـ iPhone…</string>
-    <string name="connection">الاتصال</string>
+    <string name="connection">الاتصال وبدء التشغيل</string>
     <string name="connection_interrupted_retrying">انقطع الاتصال. إعادة المحاولة…</string>
     <string name="connection_setup">إعداد الاتصال</string>
     <string name="copied_to_the_car_clipboard_run_the_command_on_your_comput">تم النسخ إلى حافظة السيارة. نفّذ الأمر على حاسوبك.</string>
@@ -187,7 +187,7 @@
     <string name="default_icon">الأيقونة الافتراضية</string>
     <string name="default_placeholder_icon">أيقونة بديلة افتراضية</string>
     <string name="diagnostic_report_saved">تم حفظ تقرير التشخيص</string>
-    <string name="diagnostics">التشخيص</string>
+    <string name="diagnostics">التشخيص وحل المشكلات</string>
     <string name="discard_changes_and_exit_settings">تجاهل التغييرات والخروج من الإعدادات</string>
     <string name="disconnect">قطع الاتصال</string>
     <string name="discovering_iphone">جارٍ اكتشاف iPhone</string>
@@ -879,4 +879,7 @@
     <string name="settings_test_car_hotspot">اختبار تشغيل نقطة الاتصال</string>
     <string name="settings_test_car_hotspot_already_on">نقطة الاتصال تعمل بالفعل. لاختبار بدء التشغيل، أوقفها في إعدادات السيارة ثم اضغط هذا الزر. الاختبار لا يوقف نقطة الاتصال.</string>
     <string name="settings_test_car_hotspot_running">جارٍ اختبار التشغيل… وافق على طلب تصحيح الأخطاء إن ظهر.</string>
+    <string name="settings_controls_category">الأزرار والإيماءات</string>
+    <string name="settings_controls_summary">اضبط أزرار المقود والإيماءات وزر السيارة في CarPlay.</string>
+    <string name="settings_vehicle_carplay_data">بيانات السيارة في CarPlay (تجريبي)</string>
 </resources>

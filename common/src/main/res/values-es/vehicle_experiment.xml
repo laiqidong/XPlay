@@ -40,6 +40,6 @@
     <string name="settings_p7_battery">Batería, autonomía y carga al iPhone</string>
     <string name="settings_p7_battery_description">Envía batería, autonomía WLTP y datos disponibles de carga y capacidad mediante ADB autorizado. Omite valores desconocidos. Se aplica en la próxima conexión.</string>
     <string name="settings_p7_motion">Velocidad y marcha al iPhone (experimental)</string>
-    <string name="settings_p7_motion_description">Envía la velocidad real y la marcha; convierte km/h y omite lecturas antiguas. Requiere compartir la ubicación precisa en Vehículo y controles. Se aplica en la próxima conexión.</string>
+    <string name="settings_p7_motion_description">Envía la velocidad real y la marcha; convierte km/h y omite lecturas antiguas. Requiere compartir la ubicación precisa en Navegación y ubicación. Se aplica en la próxima conexión.</string>
     <string name="settings_p7_location_link">Abrir ajustes de ubicación</string>
 </resources>

@@ -40,6 +40,6 @@
     <string name="settings_p7_battery">Vehicle battery, range and charging to iPhone</string>
     <string name="settings_p7_battery_description">Sends battery, WLTP range and available charging and capacity data through authorized ADB. Unknown values are omitted. Applies at the next connection.</string>
     <string name="settings_p7_motion">Wheel speed and gear to iPhone (experimental)</string>
-    <string name="settings_p7_motion_description">Sends actual vehicle speed and gear; converts km/h and omits stale readings. Requires precise location sharing in Vehicle &amp; controls. Applies at the next connection.</string>
+    <string name="settings_p7_motion_description">Sends actual vehicle speed and gear; converts km/h and omits stale readings. Requires precise location sharing in Navigation &amp; location. Applies at the next connection.</string>
     <string name="settings_p7_location_link">Open location sharing settings</string>
 </resources>

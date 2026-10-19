@@ -88,13 +88,14 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 internal enum class SettingsCategory {
-    OVERVIEW, CONNECTION, DISPLAY, AUDIO, NAVIGATION, VEHICLE, LANGUAGE, DIAGNOSTICS, ADVANCED, EXPERIMENTS, ABOUT,
+    OVERVIEW, CONNECTION, DISPLAY, AUDIO, NAVIGATION, CONTROLS, VEHICLE, DIAGNOSTICS, ABOUT,
 }
 
 /** A settings card. Every entry needs one category in [SettingsInformationArchitecture]; see AGENTS.md. */
 internal enum class SettingsSection {
     VEHICLE_EXPERIMENT,
     P7_CARPLAY_DATA,
+    P7_DIRECTION,
     CARPLAY_CONTROLS,
     WHEEL_KEYS,
     CONNECTION_SETUP,
@@ -123,63 +124,32 @@ internal enum class SettingsSection {
 internal object SettingsInformationArchitecture {
     val sectionsByCategory: Map<SettingsCategory, Set<SettingsSection>> = mapOf(
         SettingsCategory.OVERVIEW to emptySet(),
-        SettingsCategory.EXPERIMENTS to setOf(SettingsSection.VEHICLE_EXPERIMENT, SettingsSection.P7_CARPLAY_DATA),
-        SettingsCategory.LANGUAGE to setOf(SettingsSection.LANGUAGE),
-        SettingsCategory.ABOUT to emptySet(),
-        SettingsCategory.CONNECTION to setOf(
-            SettingsSection.CONNECTION_SETUP,
-            SettingsSection.AUTHENTICATION,
-            SettingsSection.AUTOMATIC_CONNECTION,
-            SettingsSection.USB_CONNECTION,
-            SettingsSection.BYD_ADB,
-            SettingsSection.PERMISSIONS_AND_HELP,
-        ),
-        SettingsCategory.DISPLAY to setOf(SettingsSection.DISPLAY_APPEARANCE,
-            SettingsSection.DISPLAY_AND_PERFORMANCE, SettingsSection.DISPLAY_SCREEN),
-        SettingsCategory.AUDIO to setOf(SettingsSection.AUDIO_ROUTING),
-        SettingsCategory.NAVIGATION to setOf(SettingsSection.LOCATION, SettingsSection.BYD_NAVIGATION),
-        SettingsCategory.VEHICLE to setOf(
-            SettingsSection.CARPLAY_CONTROLS,
-            SettingsSection.WHEEL_KEYS,
-            SettingsSection.CAR_BUTTON,
-        ),
-        SettingsCategory.DIAGNOSTICS to setOf(SettingsSection.DIAGNOSTICS),
-        SettingsCategory.ADVANCED to setOf(
-            SettingsSection.CLUSTER_MAP,
-            SettingsSection.EXPERIMENTAL_DISPLAY,
-            SettingsSection.ADVANCED_MEDIA,
-            SettingsSection.ADVANCED_VIDEO,
-            SettingsSection.NAVIGATION_WHEEL,
-            SettingsSection.AMBIENT_LIGHTING,
-        ),
+        SettingsCategory.CONNECTION to setOf(SettingsSection.CONNECTION_SETUP, SettingsSection.AUTHENTICATION,
+            SettingsSection.AUTOMATIC_CONNECTION, SettingsSection.USB_CONNECTION, SettingsSection.BYD_ADB,
+            SettingsSection.PERMISSIONS_AND_HELP),
+        SettingsCategory.DISPLAY to setOf(SettingsSection.DISPLAY_APPEARANCE, SettingsSection.DISPLAY_AND_PERFORMANCE,
+            SettingsSection.DISPLAY_SCREEN, SettingsSection.EXPERIMENTAL_DISPLAY, SettingsSection.ADVANCED_VIDEO),
+        SettingsCategory.AUDIO to setOf(SettingsSection.AUDIO_ROUTING, SettingsSection.ADVANCED_MEDIA,
+            SettingsSection.NAVIGATION_WHEEL),
+        SettingsCategory.NAVIGATION to setOf(SettingsSection.LOCATION, SettingsSection.BYD_NAVIGATION,
+            SettingsSection.CLUSTER_MAP, SettingsSection.P7_DIRECTION),
+        SettingsCategory.CONTROLS to setOf(SettingsSection.CARPLAY_CONTROLS, SettingsSection.WHEEL_KEYS,
+            SettingsSection.CAR_BUTTON),
+        SettingsCategory.VEHICLE to setOf(SettingsSection.P7_CARPLAY_DATA, SettingsSection.AMBIENT_LIGHTING),
+        SettingsCategory.DIAGNOSTICS to setOf(SettingsSection.DIAGNOSTICS, SettingsSection.VEHICLE_EXPERIMENT),
+        SettingsCategory.ABOUT to setOf(SettingsSection.LANGUAGE),
     )
 
-    private val p7Categories = listOf(SettingsCategory.OVERVIEW, SettingsCategory.CONNECTION,
-        SettingsCategory.DISPLAY, SettingsCategory.AUDIO, SettingsCategory.VEHICLE,
-        SettingsCategory.ADVANCED, SettingsCategory.ABOUT)
+    fun categories(p7: Boolean): List<SettingsCategory> = SettingsCategory.entries
 
-    fun categories(p7: Boolean): List<SettingsCategory> = if (p7) p7Categories else SettingsCategory.entries
+    fun category(category: SettingsCategory, p7: Boolean): SettingsCategory = category
 
-    fun category(category: SettingsCategory, p7: Boolean): SettingsCategory = if (!p7) category else when (category) {
-        SettingsCategory.NAVIGATION -> SettingsCategory.VEHICLE
-        SettingsCategory.LANGUAGE -> SettingsCategory.ABOUT
-        SettingsCategory.DIAGNOSTICS, SettingsCategory.EXPERIMENTS -> SettingsCategory.ADVANCED
-        else -> category
-    }
-
-    fun sections(category: SettingsCategory, p7: Boolean): Set<SettingsSection> {
-        if (!p7) return sectionsByCategory.getValue(category)
-        return when (this.category(category, true)) {
-            SettingsCategory.CONNECTION -> sectionsByCategory.getValue(SettingsCategory.CONNECTION) - SettingsSection.AUTHENTICATION
-            SettingsCategory.VEHICLE -> sectionsByCategory.getValue(SettingsCategory.VEHICLE) + SettingsSection.LOCATION
-            SettingsCategory.ADVANCED -> (sectionsByCategory.getValue(SettingsCategory.ADVANCED) -
-                setOf(SettingsSection.CLUSTER_MAP, SettingsSection.AMBIENT_LIGHTING)) +
-                setOf(SettingsSection.AUTHENTICATION, SettingsSection.P7_CARPLAY_DATA,
-                    SettingsSection.DIAGNOSTICS, SettingsSection.VEHICLE_EXPERIMENT)
-            SettingsCategory.ABOUT -> setOf(SettingsSection.LANGUAGE)
-            else -> sectionsByCategory.getValue(category)
+    fun sections(category: SettingsCategory, p7: Boolean): Set<SettingsSection> =
+        sectionsByCategory.getValue(category).let { sections ->
+            if (p7) sections - setOf(SettingsSection.CLUSTER_MAP, SettingsSection.AMBIENT_LIGHTING)
+            else sections
         }
-    }
+
 }
 
 /** DiAuto's visual language, with a connection flow for an independent CarPlay receiver. */
@@ -187,7 +157,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     private val p7Settings: Boolean get() = com.shilapi.xcertplay.adb.LocalAdbDevicePolicy.isXpengP7()
     private val settingsCategories: List<SettingsCategory> get() = SettingsInformationArchitecture.categories(p7Settings)
     private fun categorySections(category: SettingsCategory) = SettingsInformationArchitecture.sections(category, p7Settings)
-    private fun vehicleMonitorPage() = settingsCategory == if (p7Settings) SettingsCategory.DIAGNOSTICS else SettingsCategory.EXPERIMENTS
+    private fun vehicleMonitorPage() = settingsCategory == SettingsCategory.DIAGNOSTICS
     private val handler = Handler(Looper.getMainLooper())
     private var overviewBackPending = false
     private val overviewSingleBack = Runnable {
@@ -846,9 +816,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                 settingsCategory = returnCategory
                 connectionSettingsReturnCategory = null
             }
-            page == "settings" && p7Settings && settingsCategory == SettingsCategory.DIAGNOSTICS -> {
-                settingsCategory = SettingsCategory.ADVANCED
-            }
             page == "settings" && settingsCategory != SettingsCategory.OVERVIEW -> {
                 settingsCategory = SettingsCategory.OVERVIEW
             }
@@ -1015,9 +982,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         SettingsCategory.NAVIGATION -> R.drawable.ic_dp_navigation
         SettingsCategory.VEHICLE -> R.drawable.ic_dp_car
         SettingsCategory.DIAGNOSTICS -> R.drawable.ic_dp_diagnostics
-        SettingsCategory.EXPERIMENTS -> R.drawable.ic_dp_advanced
-        SettingsCategory.ADVANCED -> R.drawable.ic_dp_advanced
-        SettingsCategory.LANGUAGE -> R.drawable.ic_dp_language
+        SettingsCategory.CONTROLS -> R.drawable.ic_dp_controls
         SettingsCategory.ABOUT -> R.drawable.ic_dp_about
     }
 
@@ -1027,11 +992,9 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         SettingsCategory.DISPLAY -> R.string.settings_display
         SettingsCategory.AUDIO -> R.string.audio
         SettingsCategory.NAVIGATION -> R.string.settings_navigation
-        SettingsCategory.VEHICLE -> if (p7Settings) R.string.settings_p7_vehicle else R.string.settings_vehicle
+        SettingsCategory.VEHICLE -> R.string.settings_vehicle
         SettingsCategory.DIAGNOSTICS -> R.string.diagnostics
-        SettingsCategory.EXPERIMENTS -> R.string.settings_experiments
-        SettingsCategory.ADVANCED -> R.string.settings_advanced
-        SettingsCategory.LANGUAGE -> R.string.language_section_title
+        SettingsCategory.CONTROLS -> R.string.settings_controls_category
         SettingsCategory.ABOUT -> R.string.about
     })
 
@@ -1044,14 +1007,9 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             SettingsCategory.NAVIGATION -> navigationSettings(content)
             SettingsCategory.VEHICLE -> vehicleSettings(content)
             SettingsCategory.DIAGNOSTICS -> diagnosticsSettings(content)
-            SettingsCategory.EXPERIMENTS -> {
-                settingsPageTitle(content, getString(R.string.settings_experiments), getString(R.string.settings_vehicle_probe_description))
-                renderSections(content, categorySections(SettingsCategory.EXPERIMENTS))
-            }
-            SettingsCategory.ADVANCED -> advancedSettings(content)
-            SettingsCategory.LANGUAGE -> {
-                settingsPageTitle(content, getString(R.string.language_section_title), getString(R.string.settings_language_summary))
-                renderSections(content, categorySections(SettingsCategory.LANGUAGE))
+            SettingsCategory.CONTROLS -> {
+                settingsPageTitle(content, getString(R.string.settings_controls_category), getString(R.string.settings_controls_summary))
+                renderSections(content, categorySections(SettingsCategory.CONTROLS))
             }
             SettingsCategory.ABOUT -> about(content)
         }
@@ -1083,9 +1041,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         }
         content.addView(modules, LinearLayout.LayoutParams(-1, -2))
         if (!expanded) {
-            val destinations = if (p7Settings) settingsCategories - SettingsCategory.OVERVIEW else listOf(SettingsCategory.CONNECTION, SettingsCategory.DISPLAY, SettingsCategory.AUDIO,
-                SettingsCategory.NAVIGATION, SettingsCategory.VEHICLE, SettingsCategory.LANGUAGE,
-                SettingsCategory.ABOUT, SettingsCategory.DIAGNOSTICS, SettingsCategory.ADVANCED, SettingsCategory.EXPERIMENTS)
+            val destinations = settingsCategories - SettingsCategory.OVERVIEW
             val twoDestinations = availableWidth >= OVERVIEW_DESTINATIONS_MIN_WIDTH_DP * config.fontScale.coerceAtLeast(1f)
             destinations.chunked(if (twoDestinations) 2 else 1).forEach { categories ->
                 val links = row()
@@ -1155,7 +1111,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     }
 
     private fun settingsSummaryCard(category: SettingsCategory, summary: String): LinearLayout = card().apply {
-        val warning = category == SettingsCategory.ADVANCED
         setPadding(dp(24), dp(10), dp(24), dp(10))
         isClickable = true
         isFocusable = true
@@ -1167,11 +1122,11 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             gravity = Gravity.CENTER_VERTICAL
             addView(ImageView(this@DiPlayActivity).apply {
                 setImageResource(settingsCategoryIcon(category))
-                imageTintList = ColorStateList.valueOf(if (warning) WARNING else ACCENT)
+                imageTintList = ColorStateList.valueOf(ACCENT)
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             }, LinearLayout.LayoutParams(dp(24), dp(24)).apply { marginEnd = dp(20) })
             addView(column().apply {
-                addView(label(settingsCategoryTitle(category), 17, if (warning) WARNING else TEXT, true))
+                addView(label(settingsCategoryTitle(category), 17, TEXT, true))
                 if (summary.isNotBlank()) addView(label(summary, 13, MUTED).apply { setPadding(0, dp(3), 0, 0) })
             }, LinearLayout.LayoutParams(0, -2, 1f))
         })
@@ -1223,21 +1178,14 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     }
 
     private fun vehicleSettings(content: LinearLayout) {
-        settingsPageTitle(content, settingsCategoryTitle(SettingsCategory.VEHICLE), getString(if (p7Settings) R.string.settings_p7_vehicle_summary else R.string.settings_vehicle_summary))
+        settingsPageTitle(content, getString(R.string.settings_vehicle), getString(R.string.settings_vehicle_summary))
         renderSections(content, categorySections(SettingsCategory.VEHICLE))
-        if (!p7Settings) section(content, getString(R.string.settings_advanced), R.drawable.ic_dp_advanced) { card ->
-            card.addView(label(getString(R.string.settings_vehicle_description), 16, MUTED))
-            card.addView(button(getString(R.string.settings_open_advanced), false) {
-                settingsCategory = SettingsCategory.ADVANCED
-                render()
-            }, matchButton(14, 56))
-        }
+        if (BydOutputSettings.available(this)) advancedVehicleDataSettings(content)
     }
 
     private fun diagnosticsSettings(content: LinearLayout) {
         settingsPageTitle(content, getString(R.string.diagnostics), getString(R.string.settings_diagnostics_summary))
-        renderSections(content, if (p7Settings) setOf(SettingsSection.DIAGNOSTICS, SettingsSection.VEHICLE_EXPERIMENT)
-            else categorySections(SettingsCategory.DIAGNOSTICS))
+        renderSections(content, categorySections(SettingsCategory.DIAGNOSTICS))
     }
 
     private fun descendants(view: View): Sequence<View> = sequence {
@@ -1245,28 +1193,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         if (view is ViewGroup) for (index in 0 until view.childCount) {
             yieldAll(descendants(view.getChildAt(index)))
         }
-    }
-
-    private fun advancedSettings(content: LinearLayout) {
-        settingsPageTitle(content, getString(R.string.settings_advanced), getString(if (p7Settings)
-            R.string.settings_p7_advanced_summary else R.string.settings_advanced_subtitle))
-        val caution = card().apply {
-            addView(label(getString(R.string.settings_advanced_caution_title), 18, WARNING, true))
-            addView(label(getString(R.string.settings_advanced_caution_description), 14, MUTED).apply {
-                setPadding(0, dp(6), 0, 0)
-            })
-        }
-        content.addView(caution, LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = dp(SETTINGS_BLOCK_GAP_DP) })
-        renderSections(content, if (p7Settings) categorySections(SettingsCategory.ADVANCED) -
-            setOf(SettingsSection.DIAGNOSTICS, SettingsSection.VEHICLE_EXPERIMENT)
-            else categorySections(SettingsCategory.ADVANCED))
-        if (p7Settings) section(content, getString(R.string.diagnostics), R.drawable.ic_dp_diagnostics) { card ->
-            card.addView(button(getString(R.string.settings_diagnostic_tools), false) {
-                settingsCategory = SettingsCategory.DIAGNOSTICS
-                render()
-            }, matchButton(0, SETTINGS_RAIL_ROW_HEIGHT_DP))
-        }
-        if (BydOutputSettings.available(this)) advancedVehicleDataSettings(content)
     }
 
     private fun advancedVehicleDataSettings(content: LinearLayout) {
@@ -1288,9 +1214,11 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         sections: Set<SettingsSection>,
     ) {
         val previous = settingsSectionFilter
-        settingsSectionFilter = sections
         try {
-            allSettingsSections(content)
+            for (section in sections) {
+                settingsSectionFilter = setOf(section)
+                allSettingsSections(content)
+            }
         } finally {
             settingsSectionFilter = previous
         }
@@ -1414,12 +1342,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     private fun allSettingsSections(content: LinearLayout) {
         if (com.shilapi.xcertplay.adb.LocalAdbDevicePolicy.isXpengP7()) {
             filteredSection(content, SettingsSection.P7_CARPLAY_DATA,
-                getString(R.string.settings_p7_carplay_title), R.drawable.ic_dp_car) { card ->
-                toggle(card, getString(R.string.settings_direction_output), getString(R.string.settings_direction_output_hint),
-                    P7CarPlaySettings.direction(this)) {
-                    P7CarPlaySettings.saveDirection(this, it)
-                    markReconnectNeeded()
-                }
+                getString(R.string.settings_vehicle_carplay_data), R.drawable.ic_dp_car) { card ->
                 toggle(card, getString(R.string.settings_p7_battery), getString(R.string.settings_p7_battery_description),
                     P7CarPlaySettings.battery(this)) {
                     P7CarPlaySettings.saveBattery(this, it)
@@ -1427,6 +1350,15 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                 }
 
             }
+        }
+
+        if (p7Settings) filteredSection(content, SettingsSection.P7_DIRECTION,
+            getString(R.string.settings_direction_output), R.drawable.ic_dp_navigation) { card ->
+                toggle(card, getString(R.string.settings_direction_output), getString(R.string.settings_direction_output_hint),
+                    P7CarPlaySettings.direction(this)) {
+                    P7CarPlaySettings.saveDirection(this, it)
+                    markReconnectNeeded()
+                }
         }
 
         filteredSection(content, SettingsSection.VEHICLE_EXPERIMENT,
@@ -2208,7 +2140,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
 
     private fun about(content: LinearLayout) {
         settingsPageTitle(content, getString(R.string.about_diplay), getString(R.string.carplay_at_home_in_your_car))
-        if (p7Settings) renderSections(content, categorySections(SettingsCategory.ABOUT))
+        renderSections(content, categorySections(SettingsCategory.ABOUT))
         section(content, getString(R.string.about_public_preview_prefix, version())) { card ->
             card.addView(label(getString(R.string.an_independent_carplay_receiver_for_android_head_units_wir), 17, TEXT))
         }

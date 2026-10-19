@@ -81,7 +81,7 @@
     <string name="home_public_preview">ПУБЛІЧНЕ ПРЕВ’Ю\u0020·\u0020%1$s</string>
     <string name="choose_iphone_prefix">Вибрати iPhone ·\u0020</string>
     <string name="audio_saved_value">Збережено: %1$d</string>
-    <string name="about_public_preview_prefix">Попередня версія\u0020·\u0020%1$s</string>
+    <string name="about_public_preview_prefix">XPlay · %1$s</string>
     <string name="msg_car_hotspot_connect">XPlay підключається через точку доступу автомобіля «%1$s». Увімкніть її в налаштуваннях автомобіля, а потім підключіться.</string>
     <string name="edit_saved_hotspot_prefix">Змінити збережену точку доступу ·\u0020</string>
     <string name="cluster_adb_multi_device">Якщо ADB показує кілька пристроїв, виконайте adb -s &lt;car-device-ID&gt; shell appops set %1$s GET_USAGE_STATS allow. Ідентифікатор можна знайти командою adb devices.</string>
@@ -101,7 +101,7 @@
     <string name="common_cancel">Скасувати</string>
     <string name="a_familiar_drive">Знайома подорож.</string>
     <string name="a_previous_wi_fi_direct_connection_is_still_running_reset">Попереднє з’єднання Wi-Fi Direct ще активне. Скиньте його, щоб підключитися.</string>
-    <string name="about">Про застосунок</string>
+    <string name="about">Про застосунок і копії</string>
     <string name="about_diplay">Про XPlay</string>
     <string name="active">Активно</string>
     <string name="advanced_audio_channel_mapping">Розширене налаштування аудіоканалів</string>
@@ -112,12 +112,12 @@
     <string name="allow_nearby_devices_so_diplay_can_connect_to_your_paired">Надайте дозвіл «Пристрої поблизу», щоб XPlay міг підключитися до спареного iPhone.</string>
     <string name="allow_precise_location_for_diplay_in_the_head_unit_s_app_p">Дозвольте XPlay доступ до точного місцезнаходження в налаштуваннях дозволів застосунку на головному пристрої.</string>
     <string name="allow_the_connection_permission_to_continue">Надайте дозвіл на підключення, щоб продовжити</string>
-    <string name="an_independent_carplay_receiver_for_android_head_units_wir">Незалежний приймач CarPlay для головних пристроїв Android. Дротове й бездротове підключення працюють на головному пристрої з локальною автентифікацією. Звичайний iPhone може підключитися без джейлбрейка, Mac, адаптера чи входу в обліковий запис.\n\nУ цій попередній версії використовується експериментальна ідентичність аксесуара. Сумісність з усіма iPhone та головними пристроями ще перевіряється. Цей продукт не сертифіковано Apple.</string>
+    <string name="an_independent_carplay_receiver_for_android_head_units_wir">XPlay додає CarPlay на головний пристрій Android: дротове й бездротове підключення, навігацію, музику, дзвінки та Siri.\n\nНалаштуйте зображення, звук і керування. Доступність функцій залежить від головного пристрою та iPhone.</string>
     <string name="android_9_compatibility">Сумісність з Android 9</string>
     <string name="app_permissions">Дозволи застосунку</string>
     <string name="app_settings">Налаштування застосунку</string>
     <string name="apply_and_reconnect">Застосувати й перепідключитися</string>
-    <string name="audio">Аудіо</string>
+    <string name="audio">Звук і дзвінки</string>
     <string name="audio_routing">Спрямування аудіо</string>
     <string name="auto">Авто</string>
     <string name="auto_start_on_boot">Автозапуск після завантаження</string>
@@ -174,7 +174,7 @@
     <string name="connecting_bluetooth">Підключення Bluetooth</string>
     <string name="connecting_iap2_control">Підключення керування iAP2</string>
     <string name="connecting_to_your_iphone">Підключення до iPhone…</string>
-    <string name="connection">Підключення</string>
+    <string name="connection">Підключення й запуск</string>
     <string name="connection_interrupted_retrying">З’єднання перервано. Повторна спроба…</string>
     <string name="connection_setup">Налаштування підключення</string>
     <string name="copied_to_the_car_clipboard_run_the_command_on_your_comput">Скопійовано до буфера обміну автомобіля. Виконайте команду на комп’ютері.</string>
@@ -191,7 +191,7 @@
     <string name="default_icon">Типовий значок</string>
     <string name="default_placeholder_icon">Типовий значок-заповнювач</string>
     <string name="diagnostic_report_saved">Діагностичний звіт збережено</string>
-    <string name="diagnostics">Діагностика</string>
+    <string name="diagnostics">Діагностика й допомога</string>
     <string name="diplay">XPlay</string>
     <string name="discard_changes_and_exit_settings">Скасувати зміни й вийти з налаштувань</string>
     <string name="disconnect">Відключити</string>
@@ -842,4 +842,7 @@
     <string name="settings_test_car_hotspot">Перевірити запуск точки доступу</string>
     <string name="settings_test_car_hotspot_already_on">Точку доступу вже ввімкнено. Для перевірки запуску вимкніть її в налаштуваннях авто та натисніть цю кнопку. Перевірка не вимикає точку доступу.</string>
     <string name="settings_test_car_hotspot_running">Перевірка запуску… Дозвольте налагодження, якщо з’явиться запит.</string>
+    <string name="settings_controls_category">Кнопки й жести</string>
+    <string name="settings_controls_summary">Налаштуйте кнопки керма, жести й кнопку автомобіля в CarPlay.</string>
+    <string name="settings_vehicle_carplay_data">Дані автомобіля CarPlay (експериментально)</string>
 </resources>
