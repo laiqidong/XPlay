@@ -1,0 +1,15 @@
+<resources>
+    <string name="settings_direction_title">Direction comparison (experimental)</string>
+    <string name="settings_direction_hint">Read-only comparison with the original navigation compass. Does not change CarPlay. Ages measure receipt time; values older than 3 seconds are stale. GPS direction can be unreliable when stopped.</string>
+    <string name="settings_direction_start">Start comparison</string>
+    <string name="settings_direction_stop">Stop comparison</string>
+    <string name="settings_direction_idle">Stopped</string>
+    <string name="settings_direction_unavailable">Navigation service unavailable. Stop and retry.</string>
+    <string name="settings_direction_connected">Subscribed to original navigation</string>
+    <string name="settings_direction_waiting">Connecting…</string>
+    <string name="settings_direction_no_sample">No data</string>
+    <string name="settings_direction_sample">%1$.1f° · %2$d s ago</string>
+    <string name="settings_direction_values">Navigation DR: %1$s\nGPS: %2$s</string>
+    <string name="settings_direction_output">Use DR vehicle heading (experimental)</string>
+    <string name="settings_direction_output_hint">Replaces the GPS direction sent to CarPlay with original navigation DR heading, including in reverse. Requires location sharing. Missing DR leaves direction empty. Applies after reconnecting; reconnect manually to compare.</string>
+</resources>

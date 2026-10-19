@@ -10,6 +10,8 @@ import java.util.TimeZone
 import kotlin.math.abs
 import kotlin.math.min
 
+enum class LocationFixSource { GPS, FUSED, NETWORK, DR }
+
 /** One Android location sample converted into the fields carried by the NMEA pair. */
 data class CarPlayLocationFix(
     val latitudeDegrees: Double,
@@ -23,6 +25,7 @@ data class CarPlayLocationFix(
     val satellitesUsed: Int? = null,
     val horizontalDilution: Double? = null,
     val geoidSeparationMeters: Double? = null,
+    val source: LocationFixSource = LocationFixSource.GPS,
 ) {
     init {
         require(latitudeDegrees.isFinite() && latitudeDegrees in -90.0..90.0) {
@@ -78,9 +81,10 @@ object NmeaLocationEncoder {
 
         val latitude = degreesToNmea(fix.latitudeDegrees, latitude = true)
         val longitude = degreesToNmea(fix.longitudeDegrees, latitude = false)
-        val satellites = fix.satellitesUsed?.takeIf { it in 0..99 }
+        val satelliteFix = fix.source == LocationFixSource.GPS
+        val satellites = fix.satellitesUsed.takeIf { satelliteFix }?.takeIf { it in 0..99 }
             ?.let { format("%02d", it) }.orEmpty()
-        val hdop = fix.horizontalDilution?.takeIf { it.isFinite() && it > 0 }
+        val hdop = fix.horizontalDilution.takeIf { satelliteFix }?.takeIf { it.isFinite() && it > 0 }
             ?.let { format("%.1f", it) }.orEmpty()
         val altitude = fix.altitudeMeters?.takeIf { it.isFinite() }
             ?.let { format("%.1f", it) }.orEmpty()
@@ -88,7 +92,7 @@ object NmeaLocationEncoder {
             ?.let { format("%.1f", it) }.orEmpty()
 
         val ggaBody = "GPGGA,$time,${latitude.value},${latitude.hemisphere}," +
-            "${longitude.value},${longitude.hemisphere},1,$satellites,$hdop," +
+            "${longitude.value},${longitude.hemisphere},${if (satelliteFix) 1 else 6},$satellites,$hdop," +
             "$altitude,${if (altitude.isEmpty()) "" else "M"},$geoid,${if (geoid.isEmpty()) "" else "M"},,"
         val speedKnots = fix.speedMetersPerSecond
             ?.takeIf { it.isFinite() && it >= 0 }
@@ -100,7 +104,8 @@ object NmeaLocationEncoder {
             ?.let { format("%.2f", it) }
             .orEmpty()
         val rmcBody = "GPRMC,$time,A,${latitude.value},${latitude.hemisphere}," +
-            "${longitude.value},${longitude.hemisphere},$speedKnots,$course,$date,,"
+            "${longitude.value},${longitude.hemisphere},$speedKnots,$course,$date,," +
+            if (satelliteFix) "" else ",E"
 
         return "$${ggaBody}*${checksum(ggaBody)}\r\n$${rmcBody}*${checksum(rmcBody)}\r\n"
     }

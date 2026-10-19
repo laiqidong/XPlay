@@ -1,0 +1,12 @@
+<resources>
+    <string name="settings_location_source_gps">GPS</string>
+    <string name="settings_location_source_fused">融合測位</string>
+    <string name="settings_location_source_network">ネットワーク</string>
+    <string name="settings_location_state_selected">選択中</string>
+    <string name="settings_location_state_accuracy">精度不足</string>
+    <string name="settings_location_state_jump">位置の飛び</string>
+    <string name="settings_location_state_stale">古い値・時刻異常</string>
+    <string name="settings_location_state_stopped">未受信</string>
+    <string name="settings_location_state_waiting">信頼できる位置を待機</string>
+    <string name="settings_location_diagnostic_values">測位：%1$s · 精度：%2$s · 経過：%3$s\n状態：%4$s\n直近の除外理由：%5$s</string>
+</resources>

@@ -1,0 +1,12 @@
+<resources>
+    <string name="settings_location_source_gps">GPS</string>
+    <string name="settings_location_source_fused">Объединённая</string>
+    <string name="settings_location_source_network">Сетевая</string>
+    <string name="settings_location_state_selected">Выбрана</string>
+    <string name="settings_location_state_accuracy">Низкая точность</string>
+    <string name="settings_location_state_jump">Скачок позиции</string>
+    <string name="settings_location_state_stale">Устаревшие данные / неверное время</string>
+    <string name="settings_location_state_stopped">Нет подписки</string>
+    <string name="settings_location_state_waiting">Ожидание надёжной позиции</string>
+    <string name="settings_location_diagnostic_values">Позиция: %1$s · Точность: %2$s · Возраст: %3$s\nСостояние: %4$s\nПоследний отказ: %5$s</string>
+</resources>

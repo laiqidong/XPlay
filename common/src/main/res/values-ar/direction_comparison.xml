@@ -1,0 +1,15 @@
+<resources>
+    <string name="settings_direction_title">مقارنة الاتجاه (تجريبي)</string>
+    <string name="settings_direction_hint">مقارنة للقراءة فقط مع بوصلة الملاحة الأصلية دون تغيير CarPlay. العمر منذ الاستلام؛ تصبح البيانات قديمة بعد 3 ثوانٍ. قد يكون اتجاه GPS غير دقيق عند التوقف.</string>
+    <string name="settings_direction_start">بدء المقارنة</string>
+    <string name="settings_direction_stop">إيقاف المقارنة</string>
+    <string name="settings_direction_idle">متوقف</string>
+    <string name="settings_direction_unavailable">خدمة الملاحة غير متاحة. أوقف المقارنة وأعد المحاولة.</string>
+    <string name="settings_direction_connected">تم الاشتراك في الملاحة الأصلية</string>
+    <string name="settings_direction_waiting">جارٍ الاتصال…</string>
+    <string name="settings_direction_no_sample">لا توجد بيانات</string>
+    <string name="settings_direction_sample">%1$.1f° · منذ %2$d ث</string>
+    <string name="settings_direction_values">الملاحة DR: %1$s\nGPS: %2$s</string>
+    <string name="settings_direction_output">استخدام اتجاه السيارة DR (تجريبي)</string>
+    <string name="settings_direction_output_hint">يستبدل اتجاه GPS المرسل إلى CarPlay باتجاه السيارة DR من الملاحة الأصلية حتى عند الرجوع للخلف. يتطلب مشاركة الموقع. عند غياب DR يترك الاتجاه فارغًا. يسري بعد إعادة الاتصال؛ أعد الاتصال يدويًا للمقارنة.</string>
+</resources>

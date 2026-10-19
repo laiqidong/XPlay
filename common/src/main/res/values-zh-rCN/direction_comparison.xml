@@ -1,0 +1,15 @@
+<resources>
+    <string name="settings_direction_title">方向对比（实验性）</string>
+    <string name="settings_direction_hint">只读对比原车导航指南针，不改变 CarPlay。更新时间按本机收到数据计算，超过 3 秒视为过期。停车时 GPS 方向可能不准。</string>
+    <string name="settings_direction_start">开始对比</string>
+    <string name="settings_direction_stop">停止对比</string>
+    <string name="settings_direction_idle">已停止</string>
+    <string name="settings_direction_unavailable">原车导航服务不可用，请停止后重试。</string>
+    <string name="settings_direction_connected">已订阅原车导航</string>
+    <string name="settings_direction_waiting">正在连接…</string>
+    <string name="settings_direction_no_sample">暂无数据</string>
+    <string name="settings_direction_sample">%1$.1f° · %2$d 秒前</string>
+    <string name="settings_direction_values">导航 DR：%1$s\nGPS：%2$s</string>
+    <string name="settings_direction_output">使用 DR 车头方向（实验性）</string>
+    <string name="settings_direction_output_hint">用原车导航 DR 车头方向替换发送给 CarPlay 的 GPS 方向，倒车也保持车头方向。需开启定位共享，DR 不可用时方向留空。下次连接生效，可手动重连进行对比。</string>
+</resources>

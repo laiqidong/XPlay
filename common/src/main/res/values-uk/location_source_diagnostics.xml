@@ -1,0 +1,12 @@
+<resources>
+    <string name="settings_location_source_gps">GPS</string>
+    <string name="settings_location_source_fused">Комбінована</string>
+    <string name="settings_location_source_network">Мережева</string>
+    <string name="settings_location_state_selected">Вибрано</string>
+    <string name="settings_location_state_accuracy">Низька точність</string>
+    <string name="settings_location_state_jump">Стрибок позиції</string>
+    <string name="settings_location_state_stale">Застарілі дані / хибний час</string>
+    <string name="settings_location_state_stopped">Немає підписки</string>
+    <string name="settings_location_state_waiting">Очікування надійної позиції</string>
+    <string name="settings_location_diagnostic_values">Позиція: %1$s · Точність: %2$s · Вік: %3$s\nСтан: %4$s\nОстання відмова: %5$s</string>
+</resources>

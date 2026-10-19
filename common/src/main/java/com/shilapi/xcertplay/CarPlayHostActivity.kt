@@ -327,9 +327,11 @@ class CarPlayHostActivity : ComponentActivity() {
             mainHandler.postDelayed(this, 50L)
         }
     }
-    // Asks the iPhone for a picture again while the new surface has shown none.
+    private var pictureRefreshBaseline = -1L
+    // Recovery must also work without a captured last-picture overlay (including TextureView).
     private val pictureRetry = Runnable {
-        if (pictureHold?.visibility == View.VISIBLE) {
+        if (isActivityStarted && currentSurface?.isValid == true && sink != null &&
+            (sink?.liveVideoCounters()?.rendered ?: -1L) == pictureRefreshBaseline) {
             appendLog("No frame yet after returning; asking for a keyframe again")
             sink?.refreshPicture(SCREEN_TYPE_MAIN)
         }
@@ -691,10 +693,6 @@ class CarPlayHostActivity : ComponentActivity() {
             showLastPicture()
             // A still CarPlay screen sends no frames, so ask for one instead of showing the parked gap, in every
             // SurfaceView output (smooth video, direct output), and again while none has come.
-            sink?.refreshPicture(SCREEN_TYPE_MAIN)
-            mainHandler.removeCallbacks(pictureRetry)
-            mainHandler.postDelayed(pictureRetry, 1_000L)
-            mainHandler.postDelayed(pictureRetry, 2_000L)
         }
 
         override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
@@ -1141,6 +1139,10 @@ class CarPlayHostActivity : ComponentActivity() {
         applyFullscreenMode()
         if (systemBarsChanged) refreshDisplaySizeAfterLayout()
         videoView?.post {
+            if (!hostAppearanceResumed || isDestroyed) return@post
+            // Returning from the car launcher may reuse the same surface, so no surface callback
+            // asks the iPhone to redraw a static screen. Never synthesize a touch to wake video.
+            if (currentSurface?.isValid == true) refreshForegroundPicture()
             val view = videoView ?: return@post
             if (view.width > 0 && view.height > 0) {
                 scheduleDisplaySize(view.width, view.height)
@@ -1607,6 +1609,7 @@ class CarPlayHostActivity : ComponentActivity() {
     }
 
     override fun onStop() {
+        mainHandler.removeCallbacks(pictureRetry)
         fpsCounter?.stop()
         closePicturePanel()
         // The controller, USB/iAP2 link, and VPN attachment intentionally outlive the UI.
@@ -5141,7 +5144,7 @@ class CarPlayHostActivity : ComponentActivity() {
             size
         }
         val airPlayConfig = createAirPlayConfig(effectiveSize)
-        val locationProvider: Iap2LocationProvider? =
+        val baseLocationProvider: Iap2LocationProvider? =
             when {
                 !config.locationReportingEnabled -> null
                 config.identification.vehicleSpeedEnabled -> VehicleSpeedLocationProvider(
@@ -5151,6 +5154,8 @@ class CarPlayHostActivity : ComponentActivity() {
                 )
                 else -> AndroidCarPlayLocationProvider(this, driftProtectionEnabled = AirPlayPersistence.loadLocationDriftProtection(this), gpsOnlyEnabled = AirPlayPersistence.loadLocationGpsOnly(this))
             }
+        val locationProvider = if (baseLocationProvider != null && P7CarPlaySettings.direction(this))
+            P7DirectionLocationProvider(applicationContext, baseLocationProvider) else baseLocationProvider
         appendLog(
             "Starting CarPlay controller at ${size.width}x${size.height} -> " +
                 "${airPlayConfig.main.widthPixels}x${airPlayConfig.main.heightPixels} " +
@@ -6018,6 +6023,17 @@ class CarPlayHostActivity : ComponentActivity() {
         } else {
             sink?.setSurface(SCREEN_TYPE_ALT, surface)
         }
+        refreshForegroundPicture()
+    }
+
+    private fun refreshForegroundPicture() {
+        mainHandler.removeCallbacks(pictureRetry)
+        if (sink == null || currentSurface?.isValid != true) return
+        pictureRefreshBaseline = sink?.liveVideoCounters()?.rendered ?: -1L
+        appendLog("Refreshing foreground CarPlay picture")
+        sink?.refreshPicture(SCREEN_TYPE_MAIN)
+        mainHandler.postDelayed(pictureRetry, 1_000L)
+        mainHandler.postDelayed(pictureRetry, 2_000L)
     }
 
     private fun onHostTouch(view: View, event: MotionEvent): Boolean {

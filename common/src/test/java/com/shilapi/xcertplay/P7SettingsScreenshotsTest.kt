@@ -1,5 +1,6 @@
 package com.shilapi.xcertplay
 
+import com.shilapi.xcertplay.host.R
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -70,6 +71,18 @@ class P7SettingsScreenshotsTest {
                 requireNotNull(output.parentFile).mkdirs()
                 output.outputStream().use { bitmap.compress(Bitmap.CompressFormat.PNG, 100, it) }
                 bitmap.recycle()
+                if (category == SettingsCategory.DIAGNOSTICS) {
+                    val direction = descendants(root).filterIsInstance<TextView>().first {
+                        it.text.toString() == activity.getString(R.string.settings_direction_title)
+                    }
+                    val card = direction.parent as ViewGroup
+                    val detail = Bitmap.createBitmap(card.width, card.height, Bitmap.Config.ARGB_8888)
+                    card.draw(Canvas(detail))
+                    File("build/reports/p7-settings/$name-direction.png").outputStream().use {
+                        detail.compress(Bitmap.CompressFormat.PNG, 100, it)
+                    }
+                    detail.recycle()
+                }
             }
         } finally {
             controller.pause().stop().destroy()

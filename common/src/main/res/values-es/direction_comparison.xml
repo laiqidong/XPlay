@@ -1,0 +1,15 @@
+<resources>
+    <string name="settings_direction_title">Comparación de rumbo (experimental)</string>
+    <string name="settings_direction_hint">Compara la brújula del navegador sin modificar CarPlay. La edad indica la recepción; tras 3 segundos el dato está obsoleto. El rumbo GPS puede fallar al detenerse.</string>
+    <string name="settings_direction_start">Iniciar comparación</string>
+    <string name="settings_direction_stop">Detener comparación</string>
+    <string name="settings_direction_idle">Detenido</string>
+    <string name="settings_direction_unavailable">Navegador no disponible. Detén y vuelve a intentar.</string>
+    <string name="settings_direction_connected">Suscrito al navegador</string>
+    <string name="settings_direction_waiting">Conectando…</string>
+    <string name="settings_direction_no_sample">Sin datos</string>
+    <string name="settings_direction_sample">%1$.1f° · hace %2$d s</string>
+    <string name="settings_direction_values">Navegación DR: %1$s\nGPS: %2$s</string>
+    <string name="settings_direction_output">Usar rumbo DR del vehículo (experimental)</string>
+    <string name="settings_direction_output_hint">Sustituye el rumbo GPS enviado a CarPlay por el rumbo DR del navegador, también marcha atrás. Requiere compartir ubicación. Sin DR, el rumbo queda vacío. Se aplica al reconectar; reconecta manualmente para comparar.</string>
+</resources>

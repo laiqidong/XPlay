@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_location_drift_protection">Location drift protection</string>
-    <string name="settings_location_drift_protection_description">Uses reliable GPS and filters jumps. If GPS is lost, reports no valid fix to iPhone and keeps sending available vehicle speed; iOS decides how to locate. Resumes after three reliable GPS updates. Off uses the default behavior. Applies at the next connection.</string>
+    <string name="settings_location_drift_protection_description">Allows GPS, fused and network location in automatic mode. Filters jumps, confirms recovery with 3 samples and suppresses parking jitter using fresh vehicle speed. GPS-only still excludes other sources. Next connection.</string>
     <string name="settings_location_gps_only">GPS location only</string>
     <string name="settings_location_gps_only_description">Excludes network and fused location. Drift protection remains controlled separately; turn it off to send unfiltered GPS positions. Reports no fix when GPS is lost or stale. Applies at the next connection.</string>
 </resources>

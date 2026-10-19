@@ -382,6 +382,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         // Retire work queued by older builds; XPlay updates are maintained in our own repository.
         runCatching { BackgroundUpdateScheduler.disable(applicationContext) }
             .onFailure { Log.w("XPlay-Update", "Could not retire old update work", it) }
+        if (page != "settings" || settingsCategory != SettingsCategory.DIAGNOSTICS) stopDirectionMonitor()
         enforceInterfaceSize()
         refreshAppearance()
         rememberLaunchAppearance()
@@ -519,6 +520,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     }
 
     override fun onStop() {
+        stopDirectionMonitor()
         stopVehicleMonitor()
         routeOnNextStart = true
         window.decorView.visibility = View.INVISIBLE
@@ -656,6 +658,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
 
     private fun render(appearanceOnly: Boolean, preferredFocusTag: Any? = null) {
         if (page != "settings" || !vehicleMonitorPage()) stopVehicleMonitor()
+        if (page != "settings" || settingsCategory != SettingsCategory.DIAGNOSTICS) stopDirectionMonitor()
         enforceInterfaceSize()
         refreshAppearance()
         applyWindowAppearance()
@@ -1293,6 +1296,60 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         }
     }
 
+    private var directionMonitor: P7DirectionMonitor? = null
+    private var directionLabel: TextView? = null
+    private val directionTick = object : Runnable {
+        override fun run() {
+            updateDirectionLabel()
+            if (page == "settings" && settingsCategory == SettingsCategory.DIAGNOSTICS) handler.postDelayed(this, 1000)
+        }
+    }
+    private fun stopDirectionMonitor() {
+        directionMonitor?.stop()
+        directionMonitor = null
+        handler.removeCallbacks(directionTick)
+        directionLabel = null
+    }
+    private fun updateDirectionLabel() {
+        val monitor = directionMonitor
+        val state = getString(when {
+            monitor == null -> R.string.settings_direction_idle
+            monitor.failed -> R.string.settings_direction_unavailable
+            monitor.connected -> R.string.settings_direction_connected
+            else -> R.string.settings_direction_waiting
+        })
+        fun sample(value: P7DirectionMonitor.Sample?): String {
+            if (value == null) return getString(R.string.settings_direction_no_sample)
+            val age = ((android.os.SystemClock.elapsedRealtime() - value.receivedAt) / 1000).coerceAtLeast(0)
+            return getString(R.string.settings_direction_sample, value.degrees, age)
+        }
+        val location = com.shilapi.xcertplay.location.LocationSourceDiagnostics.snapshot
+        fun status(code: String?) = getString(when (code) {
+            "selected" -> R.string.settings_location_state_selected
+            "poor_accuracy" -> R.string.settings_location_state_accuracy
+            "jump" -> R.string.settings_location_state_jump
+            "stale_or_future" -> R.string.settings_location_state_stale
+            "stopped" -> R.string.settings_location_state_stopped
+            null -> R.string.settings_direction_no_sample
+            else -> R.string.settings_location_state_waiting
+        })
+        val source = getString(when (location.source) {
+            "GPS" -> R.string.settings_location_source_gps
+            "FUSED" -> R.string.settings_location_source_fused
+            "NETWORK" -> R.string.settings_location_source_network
+            else -> R.string.settings_direction_no_sample
+        })
+        val age = location.measuredAt?.let {
+            "%.1f s".format(Locale.US, (android.os.SystemClock.elapsedRealtime() - it).coerceAtLeast(0) / 1000.0)
+        } ?: getString(R.string.settings_direction_no_sample)
+        val accuracy = location.accuracy?.let { "%.1f m".format(Locale.US, it) }
+            ?: getString(R.string.settings_direction_no_sample)
+        directionLabel?.text = state + "\n" + getString(R.string.settings_direction_values,
+            sample(monitor?.dr), sample(monitor?.gps)) + "\n" +
+            getString(R.string.settings_location_diagnostic_values, source, accuracy, age,
+                status(location.reason), status(location.rejection))
+    }
+
     private var vehicleMonitor: VehicleInformationMonitor? = null
     private var vehicleProbeLabel: TextView? = null
     private var vehicleReader: VehicleInformationReader? = null
@@ -1358,6 +1415,11 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         if (com.shilapi.xcertplay.adb.LocalAdbDevicePolicy.isXpengP7()) {
             filteredSection(content, SettingsSection.P7_CARPLAY_DATA,
                 getString(R.string.settings_p7_carplay_title), R.drawable.ic_dp_car) { card ->
+                toggle(card, getString(R.string.settings_direction_output), getString(R.string.settings_direction_output_hint),
+                    P7CarPlaySettings.direction(this)) {
+                    P7CarPlaySettings.saveDirection(this, it)
+                    markReconnectNeeded()
+                }
                 toggle(card, getString(R.string.settings_p7_battery), getString(R.string.settings_p7_battery_description),
                     P7CarPlaySettings.battery(this)) {
                     P7CarPlaySettings.saveBattery(this, it)
@@ -1428,6 +1490,23 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         }
         filteredSection(content, SettingsSection.DIAGNOSTICS,
             getString(R.string.diagnostics), R.drawable.ic_dp_diagnostics) { card ->
+            if (p7Settings) {
+                card.addView(label(getString(R.string.settings_direction_title), 18, TEXT, true))
+                card.addView(label(getString(R.string.settings_direction_hint), 14, MUTED))
+                card.addView(button(getString(if (directionMonitor == null) R.string.settings_direction_start
+                    else R.string.settings_direction_stop), false) {
+                    if (directionMonitor != null) stopDirectionMonitor() else {
+                        directionMonitor = P7DirectionMonitor(this, ::updateDirectionLabel)
+                        directionMonitor?.start()
+                        handler.post(directionTick)
+                    }
+                    render()
+                }, matchButton(SETTINGS_BLOCK_GAP_DP, SETTINGS_RAIL_ROW_HEIGHT_DP))
+                card.addView(label("", 18, TEXT).apply { directionLabel = this })
+                updateDirectionLabel()
+                handler.removeCallbacks(directionTick)
+                handler.postDelayed(directionTick, 1000)
+            }
             exportButton = button(if (exportInProgress) getString(R.string.saving_report) else getString(R.string.save_diagnostic_report), false) {
                 saveReportToDownloads()
             }.apply { isEnabled = !exportInProgress }
@@ -5030,6 +5109,8 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         appendLine("--- Standalone HUD compatibility ---")
         appendLine(BydOutputSettings.standaloneHudDiagnosticReport(appContext))
         appendLine()
+        appendLine("--- Location source (no coordinates) ---")
+        appendLine(com.shilapi.xcertplay.location.LocationSourceDiagnostics.snapshot.toString())
         appendLine("--- BYD vehicle-data probe ---")
         appendLine(
             "mode=${if (BydOutputSettings.legacyVehicleProbe(appContext)) "legacy-probe" else "default"} " +

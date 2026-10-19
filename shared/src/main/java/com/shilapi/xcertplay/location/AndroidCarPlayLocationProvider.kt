@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
+import com.shilapi.xcertplay.transport.LocationFixSource
 import com.shilapi.xcertplay.transport.CarPlayLocationFix
 import com.shilapi.xcertplay.transport.Iap2LocationProvider
 import com.shilapi.xcertplay.transport.NmeaLocationEncoder
@@ -20,8 +21,8 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * Foreground Android location source for iAP2 LocationInformation.
  *
- * Defaults to the freshest GPS/fused/network fix. Optional protection uses explicit sources
- * and explicitly reports no fix when GPS is unavailable; iOS controls location fusion.
+ * Automatic mode quality-gates GPS/fused/network independently. GPS-only is a separate opt-in.
+ * Non-satellite fixes carry estimated provenance; protection adds continuity and parking filters.
  */
 class AndroidCarPlayLocationProvider(
     context: Context,
@@ -34,13 +35,12 @@ class AndroidCarPlayLocationProvider(
     private val stateLock = Any()
     private val preferredProviders = buildList {
         add(LocationManager.GPS_PROVIDER)
-        if (!driftProtectionEnabled && !gpsOnlyEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            add(LocationManager.FUSED_PROVIDER)
-        }
-        if (!driftProtectionEnabled && !gpsOnlyEnabled) add(LocationManager.NETWORK_PROVIDER)
+        if (!gpsOnlyEnabled) add("fused")
+        if (!gpsOnlyEnabled) add(LocationManager.NETWORK_PROVIDER)
     }.filter { it in locationManager.allProviders }
     private val latestFixes = ConcurrentHashMap<String, Location>()
     private var stableSelector = StableLocationSelector(SystemClock.elapsedRealtime())
+    private var autoSelector = AutoLocationSelector(driftProtectionEnabled)
     private var gpsAvailable: Boolean? = null
     private var nmeaRegistered = false
     private var gpsMetadata: GpsNmeaMetadata? = null
@@ -49,7 +49,8 @@ class AndroidCarPlayLocationProvider(
         if (metadata != null) synchronized(stateLock) {
             gpsMetadata = metadata
             if (!metadata.valid) {
-                if (driftProtectionEnabled) stableSelector.invalidateGps()
+                if (driftProtectionEnabled && gpsOnlyEnabled) stableSelector.invalidateGps()
+                autoSelector.invalidate(AutoLocationSelector.Source.GPS)
                 if (gpsOnlyEnabled) latestFixes.remove(LocationManager.GPS_PROVIDER)
             }
         }
@@ -61,13 +62,14 @@ class AndroidCarPlayLocationProvider(
             val provider = location.provider ?: return
             if (provider in preferredProviders) {
                 latestFixes[provider] = location
-                if (driftProtectionEnabled) synchronized(stateLock) { offerStable(location) }
+                synchronized(stateLock) { if (gpsOnlyEnabled) { if (driftProtectionEnabled) offerStable(location) } else offerAuto(location) }
             }
         }
 
         override fun onProviderEnabled(provider: String) = Unit
         override fun onProviderDisabled(provider: String) {
-            if (gpsOnlyEnabled) latestFixes.remove(provider)
+            latestFixes.remove(provider)
+            synchronized(stateLock) { autoSource(provider)?.let(autoSelector::invalidate) }
             if (driftProtectionEnabled && provider == LocationManager.GPS_PROVIDER) {
                 synchronized(stateLock) { stableSelector.invalidateGps() }
             }
@@ -85,6 +87,8 @@ class AndroidCarPlayLocationProvider(
             true
         } else {
             gpsMetadata = null
+            autoSelector = AutoLocationSelector(driftProtectionEnabled)
+            latestFixes.clear()
             if (gpsOnlyEnabled) latestFixes.clear()
             if (driftProtectionEnabled) {
                 stableSelector = StableLocationSelector(SystemClock.elapsedRealtime())
@@ -132,7 +136,7 @@ class AndroidCarPlayLocationProvider(
                 null
             } ?: continue
             latestFixes[provider] = location
-            if (driftProtectionEnabled) offerStable(location)
+            if (gpsOnlyEnabled) { if (driftProtectionEnabled) offerStable(location) } else offerAuto(location)
             Log.i(
                 TAG,
                 "Seeded $provider location ageMs=${(System.currentTimeMillis() - location.time).coerceAtLeast(0)}",
@@ -150,17 +154,34 @@ class AndroidCarPlayLocationProvider(
         runCatching { locationManager.removeUpdates(listener) }
         if (nmeaRegistered) runCatching { locationManager.removeNmeaListener(nmeaListener) }
         nmeaRegistered = false
-        synchronized(stateLock) { gpsMetadata = null }
+        synchronized(stateLock) { gpsMetadata = null; latestFixes.clear(); vehicleSpeed = null
+            autoSelector = AutoLocationSelector(driftProtectionEnabled)
+            LocationSourceDiagnostics.snapshot = LocationSourceDiagnostics.Snapshot(null, null, null, "stopped") }
     }
 
     override fun latestNmea(): String? {
         val requested = requestedComponents
         if (requested != null && requested.none { it == 1 || it == 2 }) return null
         return try {
-            val encoded = if (driftProtectionEnabled) synchronized(stateLock) {
+            val encoded = if (!gpsOnlyEnabled) synchronized(stateLock) {
+                val now = SystemClock.elapsedRealtime()
+                val fix = autoSelector.latest(now, vehicleSpeed?.takeIf { now - it.first in 0..1500L }?.second)
+                val selected = autoSelector.selectedSample()
+                LocationSourceDiagnostics.snapshot = LocationSourceDiagnostics.Snapshot(selected?.source?.name,
+                    selected?.elapsedMillis, selected?.fix?.accuracyMeters, autoSelector.reason, autoSelector.rejection)
+                when {
+                    fix != null -> NmeaLocationEncoder.encode(fix)
+                    !autoSelector.available() -> NmeaLocationEncoder.encodeUnavailable()
+                    else -> null
+                }
+            } else if (driftProtectionEnabled) synchronized(stateLock) {
                 val now = SystemClock.elapsedRealtime()
                 val fix = stableSelector.latest(now, vehicleSpeed?.takeIf { now - it.first in 0..1_500L }?.second)
                 val available = stableSelector.hasValidGps(now)
+                val gps = latestFixes[LocationManager.GPS_PROVIDER]?.takeIf { available }
+                LocationSourceDiagnostics.snapshot = LocationSourceDiagnostics.Snapshot(if (available) "GPS" else null,
+                    gps?.elapsedRealtimeNanos?.div(1_000_000L), gps?.accuracy?.toDouble(),
+                    if (available) "selected" else "no_reliable_fix")
                 if (available != gpsAvailable) {
                     gpsAvailable = available
                     Log.i(TAG, if (available) "GPS reliable; reporting valid position" else
@@ -173,11 +194,15 @@ class AndroidCarPlayLocationProvider(
                 }
             } else if (gpsOnlyEnabled) {
                 val now = SystemClock.elapsedRealtime()
-                latestFixes[LocationManager.GPS_PROVIDER]?.takeIf {
-                    now - it.elapsedRealtimeNanos / 1_000_000L in 0..3_000L
-                }?.let(::toCarPlayFix)?.let(NmeaLocationEncoder::encode)
-                    ?: NmeaLocationEncoder.encodeUnavailable()
-            } else latestFix()?.let(::toCarPlayFix)?.let(NmeaLocationEncoder::encode)
+                val gps = latestFixes[LocationManager.GPS_PROVIDER]?.takeIf {
+                    now - it.elapsedRealtimeNanos / 1_000_000L in 0..3_000L &&
+                        gpsMetadata?.let { metadata -> !metadata.valid && now - metadata.receivedAtMillis in 0..3000L } != true
+                }
+                LocationSourceDiagnostics.snapshot = LocationSourceDiagnostics.Snapshot(if (gps != null) "GPS" else null,
+                    gps?.elapsedRealtimeNanos?.div(1_000_000L), gps?.accuracy?.toDouble(),
+                    if (gps != null) "selected" else "no_reliable_fix")
+                gps?.let(::toCarPlayFix)?.let(NmeaLocationEncoder::encode) ?: NmeaLocationEncoder.encodeUnavailable()
+            } else null
             encoded?.let { encoded ->
                 if (requested == null) encoded else encoded.split("\r\n").filter {
                     (it.startsWith("\$GPGGA,") && 1 in requested) ||
@@ -197,8 +222,36 @@ class AndroidCarPlayLocationProvider(
         vehicleSpeed = sample?.let { it.elapsedMillis to it.metersPerSecond }
     }
 
+    private fun autoSource(provider: String?) = when (provider) {
+        LocationManager.GPS_PROVIDER -> AutoLocationSelector.Source.GPS
+        "fused" -> AutoLocationSelector.Source.FUSED
+        LocationManager.NETWORK_PROVIDER -> AutoLocationSelector.Source.NETWORK
+        else -> null
+    }
+
+    private fun offerAuto(location: Location) {
+        val source = autoSource(location.provider) ?: return
+        val now = SystemClock.elapsedRealtime()
+        if (source == AutoLocationSelector.Source.GPS && gpsMetadata?.let {
+                !it.valid && now - it.receivedAtMillis in 0..3000L
+            } == true) {
+            autoSelector.invalidate(source)
+            return
+        }
+        runCatching {
+            autoSelector.offer(AutoLocationSelector.Sample(source,
+                location.elapsedRealtimeNanos / 1_000_000L, toCarPlayFix(location)), SystemClock.elapsedRealtime())
+            val prior = LocationSourceDiagnostics.snapshot
+            LocationSourceDiagnostics.snapshot = prior.copy(reason = autoSelector.reason, rejection = autoSelector.rejection)
+        }.onFailure { Log.w(TAG, "Rejected invalid $source location", it) }
+    }
+
     private fun offerStable(location: Location) {
-        // Only satellite-derived GPS is represented as a valid GNSS fix in protection mode.
+        if (gpsMetadata?.let { !it.valid && SystemClock.elapsedRealtime() - it.receivedAtMillis in 0..3000L } == true) {
+            stableSelector.invalidateGps()
+            return
+        }
+        // GPS-only protection never promotes another source into a satellite fix.
         val source = when (location.provider) {
             LocationManager.GPS_PROVIDER -> StableLocationSelector.Source.GPS
             LocationManager.NETWORK_PROVIDER -> StableLocationSelector.Source.NETWORK
@@ -227,15 +280,12 @@ class AndroidCarPlayLocationProvider(
             satellitesUsed = metadata?.satellitesUsed,
             horizontalDilution = metadata?.hdop,
             geoidSeparationMeters = metadata?.geoidSeparationMeters,
+            source = when (fix.provider) {
+                LocationManager.GPS_PROVIDER -> LocationFixSource.GPS
+                LocationManager.NETWORK_PROVIDER -> LocationFixSource.NETWORK
+                else -> LocationFixSource.FUSED
+            },
         )
-    }
-
-    private fun latestFix(): Location? {
-        val now = System.currentTimeMillis()
-        return preferredProviders.asSequence()
-            .mapNotNull(latestFixes::get)
-            .filter { now - it.time <= preferredLocationAgeMillis }
-            .maxByOrNull { it.time }
     }
 
     companion object {

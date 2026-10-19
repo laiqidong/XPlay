@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_location_drift_protection">Protección contra la deriva de ubicación</string>
-    <string name="settings_location_drift_protection_description">Usa GPS fiable y filtra saltos. Si se pierde el GPS, informa al iPhone de que no hay posición válida y sigue enviando la velocidad disponible; iOS decide cómo localizar. Se reanuda tras tres posiciones GPS fiables. Desactivado usa el comportamiento predeterminado. Se aplica en la próxima conexión.</string>
+    <string name="settings_location_drift_protection_description">El modo automático permite GPS, ubicación combinada y de red. Filtra saltos, confirma la recuperación con 3 muestras y reduce vibraciones al aparcar con velocidad reciente. Solo GPS excluye otras fuentes. Próxima conexión.</string>
     <string name="settings_location_gps_only">Solo ubicación GPS</string>
     <string name="settings_location_gps_only_description">Excluye la ubicación de red y fusionada. La protección contra deriva se controla por separado; desactívala para enviar coordenadas GPS sin filtrar. Si el GPS se pierde o caduca, informa que no hay posición válida. Se aplica en la próxima conexión.</string>
 </resources>

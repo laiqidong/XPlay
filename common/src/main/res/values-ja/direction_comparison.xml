@@ -1,0 +1,15 @@
+<resources>
+    <string name="settings_direction_title">方位比較（実験的機能）</string>
+    <string name="settings_direction_hint">純正ナビのコンパスと読み取り専用で比較します。CarPlay は変更しません。受信から3秒を超えた値は古い値です。停車中の GPS 方位は不正確な場合があります。</string>
+    <string name="settings_direction_start">比較を開始</string>
+    <string name="settings_direction_stop">比較を停止</string>
+    <string name="settings_direction_idle">停止中</string>
+    <string name="settings_direction_unavailable">純正ナビを利用できません。停止して再試行してください。</string>
+    <string name="settings_direction_connected">純正ナビを受信中</string>
+    <string name="settings_direction_waiting">接続中…</string>
+    <string name="settings_direction_no_sample">データなし</string>
+    <string name="settings_direction_sample">%1$.1f° · %2$d 秒前</string>
+    <string name="settings_direction_values">ナビ DR：%1$s\nGPS：%2$s</string>
+    <string name="settings_direction_output">DR 車頭方位を使用（実験的機能）</string>
+    <string name="settings_direction_output_hint">CarPlay に送る GPS 方位を純正ナビの DR 車頭方位で置き換えます。後退時も同じです。位置共有が必要です。DR が無効なら方位は空欄です。次回接続時に適用されます。比較するには手動で再接続してください。</string>
+</resources>

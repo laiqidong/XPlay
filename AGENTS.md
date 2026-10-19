@@ -4,15 +4,26 @@ Instructions for coding agents that work on DiPlay.
 
 ## Checks
 
-Run the CI command from `.github/workflows/android.yml` before you report a change as done:
+For local changes, packaging and deployments, verify compilation/build only by default.
+Do not run CI, unit tests, instrumentation tests or Lint unless the user explicitly requests them.
+This replaces the previous requirement to run the Android CI command before reporting completion.
+
+Build the affected application; for the main XPlay app use:
 
 ```sh
-./gradlew :shared:testDebugUnitTest :common:testDebugUnitTest :home:testDebugUnitTest \
-  :mobile:lintDebug :home:lintDebug :maphost:lintDebug \
-  :mobile:assembleDebug :home:assembleDebug :maphost:assembleDebug
+./gradlew :mobile:assembleDebug
 ```
 
+For a standalone car build, use `:mobile:assembleStandaloneDebug` or
+`:mobile:assembleStandaloneRelease` with the required local authentication/signing inputs.
+Release builds must exclude the automatic `:mobile:lintVitalRelease` task unless Lint was explicitly requested:
+`./gradlew :mobile:assembleStandaloneRelease -x :mobile:lintVitalRelease`.
+Build other application modules only when affected by the change.
+A documentation-only change does not require a build.
+
 Set `ANDROID_HOME` or `local.properties` if Gradle cannot find the SDK.
+The workflow in `.github/workflows/android.yml` remains available when explicitly requested;
+this local policy does not disable GitHub-hosted workflow triggers.
 
 ## Adding or moving a setting
 

@@ -11,6 +11,8 @@ internal object P7CarPlaySettings {
     private fun prefs(context: Context) = context.getSharedPreferences("xplay_p7_carplay", Context.MODE_PRIVATE)
     fun battery(context: Context) = LocalAdbDevicePolicy.isXpengP7() && prefs(context).getBoolean("battery", false)
     fun motion(context: Context) = LocalAdbDevicePolicy.isXpengP7() && prefs(context).getBoolean("motion", false)
+    fun direction(context: Context) = LocalAdbDevicePolicy.isXpengP7() && prefs(context).getBoolean("direction", false)
+    fun saveDirection(context: Context, enabled: Boolean) { prefs(context).edit().putBoolean("direction", enabled).apply() }
     fun saveBattery(context: Context, enabled: Boolean) { prefs(context).edit().putBoolean("battery", enabled).apply() }
     fun saveMotion(context: Context, enabled: Boolean) { prefs(context).edit().putBoolean("motion", enabled).apply() }
 }

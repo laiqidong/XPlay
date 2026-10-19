@@ -1,0 +1,15 @@
+<resources>
+    <string name="settings_direction_title">方向對比（實驗性）</string>
+    <string name="settings_direction_hint">唯讀對比原車導航指南針，不改變 CarPlay。更新時間按本機收到資料計算，超過 3 秒視為過期。停車時 GPS 方向可能不準。</string>
+    <string name="settings_direction_start">開始對比</string>
+    <string name="settings_direction_stop">停止對比</string>
+    <string name="settings_direction_idle">已停止</string>
+    <string name="settings_direction_unavailable">原車導航服務無法使用，請停止後重試。</string>
+    <string name="settings_direction_connected">已訂閱原車導航</string>
+    <string name="settings_direction_waiting">正在連線…</string>
+    <string name="settings_direction_no_sample">暫無資料</string>
+    <string name="settings_direction_sample">%1$.1f° · %2$d 秒前</string>
+    <string name="settings_direction_values">導航 DR：%1$s\nGPS：%2$s</string>
+    <string name="settings_direction_output">使用 DR 車頭方向（實驗性）</string>
+    <string name="settings_direction_output_hint">以原車導航 DR 車頭方向取代傳送給 CarPlay 的 GPS 方向，倒車也保持車頭方向。需開啟定位共享，DR 無法使用時方向留空。下次連線生效，可手動重新連線比較。</string>
+</resources>

@@ -1,0 +1,12 @@
+<resources>
+    <string name="settings_location_source_gps">GPS</string>
+    <string name="settings_location_source_fused">الموقع المدمج</string>
+    <string name="settings_location_source_network">الشبكة</string>
+    <string name="settings_location_state_selected">تم الاختيار</string>
+    <string name="settings_location_state_accuracy">دقة ضعيفة</string>
+    <string name="settings_location_state_jump">قفزة في الموقع</string>
+    <string name="settings_location_state_stale">بيانات قديمة أو وقت غير صالح</string>
+    <string name="settings_location_state_stopped">لا يوجد اشتراك</string>
+    <string name="settings_location_state_waiting">انتظار موقع موثوق</string>
+    <string name="settings_location_diagnostic_values">الموقع: %1$s · الدقة: %2$s · العمر: %3$s\nالحالة: %4$s\nآخر سبب للرفض: %5$s</string>
+</resources>

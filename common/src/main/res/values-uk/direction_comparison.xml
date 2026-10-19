@@ -1,0 +1,15 @@
+<resources>
+    <string name="settings_direction_title">Порівняння напрямку (експериментально)</string>
+    <string name="settings_direction_hint">Читання компаса штатної навігації без зміни CarPlay. Вік рахується від отримання; через 3 секунди дані застарівають. На стоянці курс GPS може бути неточним.</string>
+    <string name="settings_direction_start">Почати порівняння</string>
+    <string name="settings_direction_stop">Зупинити порівняння</string>
+    <string name="settings_direction_idle">Зупинено</string>
+    <string name="settings_direction_unavailable">Навігація недоступна. Зупиніть і повторіть.</string>
+    <string name="settings_direction_connected">Підписка на штатну навігацію</string>
+    <string name="settings_direction_waiting">Підключення…</string>
+    <string name="settings_direction_no_sample">Немає даних</string>
+    <string name="settings_direction_sample">%1$.1f° · %2$d с тому</string>
+    <string name="settings_direction_values">Навігація DR: %1$s\nGPS: %2$s</string>
+    <string name="settings_direction_output">Напрямок автомобіля DR (експериментально)</string>
+    <string name="settings_direction_output_hint">Замінює курс GPS для CarPlay напрямком автомобіля DR штатної навігації, зокрема під час руху назад. Потрібна передача геопозиції. Без DR напрямок порожній. Діє після повторного підключення; підключіться вручну для порівняння.</string>
+</resources>

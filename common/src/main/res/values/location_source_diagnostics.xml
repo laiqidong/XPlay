@@ -1,0 +1,12 @@
+<resources>
+    <string name="settings_location_source_gps">GPS</string>
+    <string name="settings_location_source_fused">Fused</string>
+    <string name="settings_location_source_network">Network</string>
+    <string name="settings_location_state_selected">Selected</string>
+    <string name="settings_location_state_accuracy">Poor accuracy</string>
+    <string name="settings_location_state_jump">Position jump</string>
+    <string name="settings_location_state_stale">Stale / future time</string>
+    <string name="settings_location_state_stopped">Not subscribed</string>
+    <string name="settings_location_state_waiting">Waiting for reliable position</string>
+    <string name="settings_location_diagnostic_values">Position: %1$s · Accuracy: %2$s · Age: %3$s\nState: %4$s\nLast rejection: %5$s</string>
+</resources>

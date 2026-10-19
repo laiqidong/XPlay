@@ -1,0 +1,12 @@
+<resources>
+    <string name="settings_location_source_gps">GPS</string>
+    <string name="settings_location_source_fused">融合定位</string>
+    <string name="settings_location_source_network">网络定位</string>
+    <string name="settings_location_state_selected">已选用</string>
+    <string name="settings_location_state_accuracy">精度不足</string>
+    <string name="settings_location_state_jump">位置跳变</string>
+    <string name="settings_location_state_stale">数据过期或时间异常</string>
+    <string name="settings_location_state_stopped">未订阅定位</string>
+    <string name="settings_location_state_waiting">等待可靠位置</string>
+    <string name="settings_location_diagnostic_values">定位：%1$s · 精度：%2$s · 数据年龄：%3$s\n状态：%4$s\n最近拒绝原因：%5$s</string>
+</resources>

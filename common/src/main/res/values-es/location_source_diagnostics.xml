@@ -1,0 +1,12 @@
+<resources>
+    <string name="settings_location_source_gps">GPS</string>
+    <string name="settings_location_source_fused">Combinada</string>
+    <string name="settings_location_source_network">Red</string>
+    <string name="settings_location_state_selected">Seleccionada</string>
+    <string name="settings_location_state_accuracy">Precisión insuficiente</string>
+    <string name="settings_location_state_jump">Salto de posición</string>
+    <string name="settings_location_state_stale">Dato antiguo / tiempo inválido</string>
+    <string name="settings_location_state_stopped">Sin suscripción</string>
+    <string name="settings_location_state_waiting">Esperando posición fiable</string>
+    <string name="settings_location_diagnostic_values">Posición: %1$s · Precisión: %2$s · Edad: %3$s\nEstado: %4$s\nÚltimo rechazo: %5$s</string>
+</resources>

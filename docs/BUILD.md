@@ -96,15 +96,18 @@ Select the APK from the `mobile` output directory.
 
 ## Check the source build
 
-Run the unit tests, lint checks, and main debug build:
+For local changes, packaging and deployments, compilation/build is the default validation.
+Do not run CI, unit tests, instrumentation tests or Lint unless the user explicitly requests them.
+For the main application, run:
 
 ```sh
-./gradlew :shared:testDebugUnitTest :common:testDebugUnitTest :mobile:lintDebug :mobile:assembleDebug
+./gradlew :mobile:assembleDebug
 ```
 
-Check that Gradle reports `BUILD SUCCESSFUL`.
-For the complete CI procedure, see [the Android workflow](../.github/workflows/android.yml).
-That workflow also checks and builds the `home` and `maphost` applications.
+Check that Gradle reports `BUILD SUCCESSFUL`. Build other application modules only when affected.
+Documentation-only changes do not require a build.
+The [Android workflow](../.github/workflows/android.yml) remains available for explicitly requested
+CI checks. This local policy does not disable GitHub-hosted workflow triggers.
 
 ## Build a standalone car-test APK
 
@@ -153,10 +156,10 @@ Set these environment variables locally:
 | `ANDROID_KEY_PASSWORD` | Signing key password |
 
 Keep the keystore and passwords outside Git.
-Run the release checks and build:
+Build the release (run tests or Lint only when explicitly requested):
 
 ```sh
-./gradlew :shared:testDebugUnitTest :common:testDebugUnitTest :mobile:lintRelease :mobile:assembleStandaloneRelease
+./gradlew :mobile:assembleStandaloneRelease -x :mobile:lintVitalRelease
 ```
 
 The output is `mobile/build/outputs/apk/release/mobile-release.apk`.
