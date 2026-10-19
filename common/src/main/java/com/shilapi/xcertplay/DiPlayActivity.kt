@@ -4905,7 +4905,13 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             bluetoothPermission.launch(Manifest.permission.BLUETOOTH_CONNECT); return
         }
         val adapter = getSystemService(BluetoothManager::class.java)?.adapter ?: BluetoothAdapter.getDefaultAdapter()
-        if (adapter == null || !adapter.isEnabled) {
+        if (adapter == null) {
+            pendingWireless = false
+            appDialogBuilder().setTitle(getString(R.string.wireless_carplay_2))
+                .setMessage(getString(R.string.bluetooth_cannot_open_connections))
+                .setPositiveButton(getString(R.string.got_it), null).show(); return
+        }
+        if (!adapter.isEnabled) {
             appDialogBuilder().setTitle(getString(R.string.turn_on_bluetooth))
                 .setMessage(getString(R.string.settings_car_bluetooth_help))
                 .setPositiveButton(getString(R.string.got_it), null)
@@ -5095,6 +5101,8 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         appendLine("Session: ${if (CarPlayBackgroundSession.active) "active" else if (CarPlayBackgroundSession.hasSession()) "connecting" else "stopped"}")
         appendLine(PhoneWakeDiagnostics.report(appContext))
         appendLine("Head-unit board: ${Build.BOARD}; hardware: ${Build.HARDWARE}; build: ${Build.DISPLAY}")
+        appendLine()
+        appendLine(BluetoothDiagnosticSnapshot.report(appContext))
         appendLine()
         appendLine("--- Current cluster display diagnostics (even when disabled) ---")
         appendLine(ClusterMapPresentation.diagnosticReport(appContext))

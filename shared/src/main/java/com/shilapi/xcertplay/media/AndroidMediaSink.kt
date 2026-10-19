@@ -1719,6 +1719,10 @@ private class AudioRenderer(
     private val navigationPlaybackToken = NavigationPlayback.open()
     private var actualLegacyStreamType: Int? = null
     private val queue = LinkedBlockingQueue<AudioPacket>(MAX_QUEUED_PACKETS)
+    /** Music with sustained decoder backpressure must not keep playing minutes-old packets. */
+    private val mediaLagGuard = if (format.audioType == "media") MediaPacketLagGuard(format.rtpClockRate) else null
+    @Volatile private var newestRtpSample = 0
+    private var lagRecoveryReports = 0
     @Volatile private var running = true
     @Volatile private var started = false
     private var codec: MediaCodec? = null
@@ -1760,8 +1764,12 @@ private class AudioRenderer(
     private var bytesPerSecond = 0
     private val bufferProgress = AudioBufferProgress(if (format.channels >= 2) 4 else 2)
     private var underrunsAtPlaybackStart = 0
+    private var clockTrim: MediaClockTrim? = null
     private var lastPcmWriteNs = 0L
     private var rebufferCount = 0
+    private var rebufferPauseReportCount = 0
+    private var rebufferRecoverReportCount = 0
+    private var queueFullReportCount = 0
     private var diagnosticStage = "starting"
     private var lastDecoderOutputMetadata: String? = null
     private var decoderOutputReports = 0
@@ -1779,13 +1787,28 @@ private class AudioRenderer(
             val now = System.nanoTime()
             val previous = lastArrivalNs.getAndSet(now)
             if (previous != 0L) maxArrivalGapMs.accumulateAndGet((now - previous) / 1_000_000L, ::maxOf)
+            newestRtpSample = sample
+            // Hold short Wi-Fi bursts intact. If compressed audio remains >1.5s behind for
+            // another 1.5s, skip only stale undecoded packets to catch up to the live song.
+            val removed = mediaLagGuard?.recover(queue, sample, AudioPacket::sample, now) ?: 0
+            if (removed > 0) {
+                packetsDropped.addAndGet(removed)
+                if (lagRecoveryReports < MAX_REBUFFER_REPORTS) {
+                    lagRecoveryReports++
+                    report("Audio: stale media packet backlog recovered audioType=${format.audioType} " +
+                        "packetsDiscarded=$removed remaining=${queue.size}")
+                }
+            }
         }
         if (!started || !queue.offer(AudioPacket(rtp, sample))) {
             if (started) packetsDropped.incrementAndGet()
             if (started && !droppedPacketsLogged) {
                 droppedPacketsLogged = true
                 Log.w(TAG, "audio queue full; dropping newest packets to bound latency")
-                report("Audio: queue full audioType=${format.audioType}")
+                if (queueFullReportCount < MAX_QUEUE_FULL_REPORTS) {
+                    queueFullReportCount++
+                    report("Audio: queue full audioType=${format.audioType} count=$queueFullReportCount")
+                }
             }
         }
     }
@@ -1798,6 +1821,7 @@ private class AudioRenderer(
     }
 
     private fun run() {
+        runCatching { android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_AUDIO) }
         try {
             runCatching { report("Audio: starting api=${Build.VERSION.SDK_INT} " +
                 "audioType=${format.audioType} codec=${format.codec} rate=${format.sampleRate} channels=${format.channels} " +
@@ -1954,6 +1978,8 @@ private class AudioRenderer(
         diagnosticStage = "track-capacity"
         val capacityBytes = built.bufferSizeInFrames * frameBytes
         startThresholdBytes = MediaAudioBuffer.startBytesFor(plan.startBytes, capacityBytes, PREBUFFER_WRITE_CHUNK_BYTES)
+        // Only music plays long enough for the clocks to drift apart; calls keep their echo reference exact.
+        clockTrim = if (mappedChannel == AudioChannel.MEDIA) MediaClockTrim(format.sampleRate, (startThresholdBytes / frameBytes).toLong()) else null
         val trackMetadata = runCatching {
             "api=${Build.VERSION.SDK_INT} trackState=${built.state} trackRate=${built.sampleRate} " +
                 "usage=${trackAttributes?.usage} contentType=${trackAttributes?.contentType} " +
@@ -2121,6 +2147,9 @@ private class AudioRenderer(
             .array()
 
     private fun handle(packet: AudioPacket) {
+        if (queue.isEmpty()) {
+            droppedPacketsLogged = false
+        }
         val rtp = packet.rtp
         val timestampUs = sampleTimestampUs(packet.sample)
         when (format.codec) {
@@ -2314,6 +2343,7 @@ private class AudioRenderer(
             bufferProgress.written(count)
             lastPcmWriteNs = System.nanoTime()
             if (playbackStarted) reportNavigationPlayback(track)
+            if (playbackStarted) trimClock(track)
             if (!playbackStarted) {
                 prebufferBytes += count
                 if (prebufferBytes >= startThresholdBytes) {
@@ -2338,6 +2368,10 @@ private class AudioRenderer(
         track.play()
         playbackStarted = true
         reportNavigationPlayback(track)
+        if (rebufferCount > 0 && rebufferRecoverReportCount < MAX_REBUFFER_REPORTS) {
+            rebufferRecoverReportCount++
+            report("Audio: rebuffer recovered audioType=${format.audioType} rebufferCount=$rebufferCount")
+        }
     }
 
     private fun reportNavigationPlayback(track: AudioTrack) {
@@ -2349,6 +2383,24 @@ private class AudioRenderer(
             val pendingFrames = bufferProgress.queuedBytes(track.playbackHeadPosition) / frameBytes
             val bufferedMillis = (pendingFrames * 1000L + format.sampleRate - 1L) / format.sampleRate
             NavigationPlayback.played(navigationPlaybackToken, actualLegacyStreamType, bufferedMillis, priorityVoice)
+        }
+    }
+
+    private fun trimClock(track: AudioTrack) {
+        val trim = clockTrim ?: return
+        val now = System.nanoTime()
+        val compressedRtpFrames = mediaLagGuard?.pendingFrames(queue, newestRtpSample, AudioPacket::sample)
+            ?: 0L
+        val compressedPcmFrames = compressedRtpFrames * format.sampleRate /
+            format.rtpClockRate.coerceAtLeast(1)
+        trim.sample(bufferProgress.queuedBytes(track.playbackHeadPosition) / frameBytes,
+            now, compressedPcmFrames)
+        val rate = trim.rateDue(now) ?: return
+        val result = runCatching { track.setPlaybackRate(rate) }.getOrDefault(AudioTrack.ERROR)
+        if (result != AudioTrack.SUCCESS) {
+            // The track keeps its rate; music then plays as it did before the trim.
+            clockTrim = null
+            report("Audio: clock trim off audioType=${format.audioType} rate=$rate result=$result")
         }
     }
 
@@ -2367,6 +2419,11 @@ private class AudioRenderer(
                 .coerceAtMost(startThresholdBytes.toLong()).toInt()
             lastPcmWriteNs = System.nanoTime()
             rebufferCount++
+            if (rebufferPauseReportCount < MAX_REBUFFER_REPORTS) {
+                rebufferPauseReportCount++
+                val retainedMs = if (bytesPerSecond > 0) prebufferBytes * 1000L / bytesPerSecond else 0L
+                report("Audio: rebuffer paused audioType=${format.audioType} rebufferCount=$rebufferCount retainedMs=$retainedMs")
+            }
         }
         // A short final burst may never reach the start threshold. Play it after a bounded wait.
         if (!playbackStarted && prebufferBytes > 0 && queue.isEmpty() &&
@@ -2408,7 +2465,8 @@ private class AudioRenderer(
             "estimatedQueuedFrames=${queuedFrames ?: -1} writeErrors=$writeErrorsThisWindow " +
             "lastWriteError=${lastWriteErrorCode ?: "none"} zeroWrites=$zeroWritesThisWindow " +
             "partialWrites=$partialWritesThisWindow " +
-            "decoderDroppedTotal=$inputDropped outputBuffersTotal=$outputBuffers rebuffers=$rebufferCount ended=$force"
+            "decoderDroppedTotal=$inputDropped outputBuffersTotal=$outputBuffers rebuffers=$rebufferCount " +
+            "playbackRate=${clockTrim?.rate ?: -1} ended=$force"
         Log.i(STATS_TAG, line)
         report(line)
         if (format.codec != AudioCodecKind.LPCM) {
@@ -2513,5 +2571,7 @@ private class AudioRenderer(
         const val STATS_TAG = "DiPlay-AudioStats"
         const val STATS_WINDOW_NS = 5_000_000_000L
         const val DECODED_BUFFER_LOG_INTERVAL = 50
+        const val MAX_REBUFFER_REPORTS = 5
+        const val MAX_QUEUE_FULL_REPORTS = 5
     }
 }

@@ -16,6 +16,7 @@ import android.hardware.usb.UsbManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.RenderEffect
 import android.graphics.Shader
@@ -220,9 +221,12 @@ class CarPlayHostActivity : ComponentActivity() {
                 if (wirelessPermissionsReady) {
                     "Wireless startup permissions granted"
                 } else {
-                    "Wireless startup permissions denied"
+                    "Wireless startup permissions denied missing=" +
+                        missingWirelessPermissions().joinToString(",") { it.substringAfterLast('.') }
                 },
             )
+            wirelessPermissionsRefused = !wirelessPermissionsReady
+            showMissingWirelessPermission()
             updateHotspotStatusBlock()
             maybeStartCarPlay()
         }
@@ -366,6 +370,10 @@ class CarPlayHostActivity : ComponentActivity() {
     // The staged menu settings as they stood when it opened, so leaving can tell whether any
     // edit is pending. A hash, not the values: one of them is the hotspot passphrase.
     private var menuSettingsSignature: Int? = null
+    // The same for the Wi-Fi details that Save checks, so details the menu left alone are not checked.
+    private var menuWirelessNetworkSignature: Int? = null
+    // Opens the menu page that holds a view; set by the menu that is showing.
+    private var revealInSettingsMenu: (View) -> Unit = {}
     private var locationReportingSwitch: Switch? = null
     private var statusView: TextView? = null
     private var statusScrollView: ScrollView? = null
@@ -486,6 +494,7 @@ class CarPlayHostActivity : ComponentActivity() {
     private var awaitingVpnConsent = false
     private var vpnAdbConsentTried = false
     private var awaitingWirelessPermissions = false
+    private var wirelessPermissionsRefused = false
     private var awaitingWiredPermissions = false
     private var wiredPermissionsResolved = false
     private var awaitingLocationPermission = false
@@ -534,6 +543,11 @@ class CarPlayHostActivity : ComponentActivity() {
     private var startAfterHandshakeReset = false
     private var restartGeneration = 0
     private var reconnectScheduled = false
+    // How often the current controller reached its control loop, and whether a loss came after the
+    // last time. A retry scheduled before the count went up leaves the attempt alone only while it is
+    // still running when the retry fires (#873).
+    private var controlRunningCount = 0
+    private var lossSinceControlRunning = false
     private var requestedSmallWindowForStream: Boolean? = null
     @Volatile private var adbNaviMode: com.shilapi.xcertplay.hud.BydClusterNaviMode? = null
     private var sessionLog: SessionLogFile? = null
@@ -1001,6 +1015,23 @@ class CarPlayHostActivity : ComponentActivity() {
             checkSelfPermission(it) == PackageManager.PERMISSION_GRANTED
         }
 
+    private fun missingWirelessPermissions(): List<String> =
+        requiredWirelessPermissions().filter { checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED }
+
+    /**
+     * Once the wireless start permissions were refused, by the driver or silently by Android (#290), the
+     * screen names the access to allow instead of waiting for the iPhone. Allowing it in the app permissions
+     * brings the driver back here, where the start goes on.
+     */
+    private fun showMissingWirelessPermission() {
+        if (wirelessPermissionsReady || !wirelessEnabled) {
+            wirelessPermissionsRefused = false
+            return
+        }
+        if (!wirelessPermissionsRefused) return
+        setConnectionStage(WirelessPermissions.refusalMessage(missingWirelessPermissions()))
+    }
+
     private fun requiredWirelessPermissions(): List<String> =
         WirelessPermissions.required(wirelessHotspotMode, Build.VERSION.SDK_INT)
 
@@ -1097,6 +1128,7 @@ class CarPlayHostActivity : ComponentActivity() {
             requestLocationPermission()
         }
         wirelessPermissionsReady = !wirelessEnabled || hasRequiredWirelessPermissions()
+        showMissingWirelessPermission()
         advancedAudioChannelMapping =
             advancedAudioChannelMappingSupported &&
                 AirPlayPersistence.loadAdvancedAudioChannelMapping(this)
@@ -3005,6 +3037,10 @@ class CarPlayHostActivity : ComponentActivity() {
             scroll.scrollTo(0, 0)
             chips.requestLayout()
         }
+        revealInSettingsMenu = { view ->
+            pages.entries.firstOrNull { (_, page) -> generateSequence(view.parent) { it.parent }.any { it === page } }
+                ?.let { (key, _) -> selectCategory(key) }
+        }
         fun categoryButton(key: String, title: Int) = DiPlayButton(this).apply {
             text = getString(title)
             textSize = 16f
@@ -3179,6 +3215,24 @@ class CarPlayHostActivity : ComponentActivity() {
         AirPlayPersistence.saveHideBottomBar(this, hideBottomBar)
         AirPlayPersistence.saveSafeAreaDrawOutside(this, safeAreaDrawOutside)
         AirPlayPersistence.saveMainDisplayDisableSafeArea(this, mainDisplayDisableSafeArea)
+    }
+
+    /** The fields [validateManualHotspotSettings] checks, hashed like [menuSettingsSignature]. */
+    private fun wirelessNetworkSignature(): Int = listOf(
+        wirelessEnabled, wirelessHotspotMode, existingWifiSsid, existingWifiPassphrase, manualHotspotSsid, manualHotspotPassphrase,
+        manualHotspotBand, manualHotspotChannel, manualHotspotSecurity,
+    ).joinToString("|").hashCode()
+
+    /**
+     * Shows why Save and reconnect did not save. The message sits under the setting, often on another
+     * page or below the visible part of it, so without this the button seemed to do nothing (#848).
+     */
+    private fun showRejectedSetting(message: TextView?, what: String) {
+        // Not the message itself: it can name the SSID or password, and the log drops such lines.
+        appendLog("Settings not saved; $what rejected")
+        message ?: return
+        revealInSettingsMenu(message)
+        message.post { message.requestRectangleOnScreen(Rect(0, 0, message.width, message.height), true) }
     }
 
     /** Mirrors [persistMenuSettings]: a field staged there belongs here too. */
@@ -4993,6 +5047,12 @@ class CarPlayHostActivity : ComponentActivity() {
         controllerGeneration: Int,
     ): (CarPlayStatus) -> Unit = report@{ status ->
         if (controllerGeneration != restartGeneration) return@report
+        if (status is CarPlayStatus.RunningControl || status is CarPlayStatus.RunningWireless) {
+            controlRunningCount++
+            lossSinceControlRunning = false
+        } else if (status is CarPlayStatus.Failed || status is CarPlayStatus.ControlEnded) {
+            lossSinceControlRunning = true
+        }
         if (status is CarPlayStatus.Failed || status is CarPlayStatus.ControlEnded) {
             callPopupSessionReady = false
             updateCallPopupGuard()
@@ -5004,7 +5064,7 @@ class CarPlayHostActivity : ComponentActivity() {
         updateHotspotStatus(status)
         val description = status.describe()
         val englishDescription = status.describe(englishResources)
-        setConnectionStage(description, englishDescription)
+        if (!startupRetryStopped || status !is CarPlayStatus.Failed) setConnectionStage(description, englishDescription)
         // Typed transport events keep the visible step accurate; do not infer hotspot work from English keywords.
         when (status) {
             CarPlayStatus.StartingHotspot, is CarPlayStatus.HotspotReady,
@@ -5151,6 +5211,7 @@ class CarPlayHostActivity : ComponentActivity() {
                     AndroidCarPlayLocationProvider(this, driftProtectionEnabled = AirPlayPersistence.loadLocationDriftProtection(this), gpsOnlyEnabled = AirPlayPersistence.loadLocationGpsOnly(this)),
                     if (P7CarPlaySettings.motion(this)) P7CarPlayData else
                         com.shilapi.xcertplay.hud.BydNavigationOutputs.wheelSpeed(applicationContext),
+                    log = ::appendLog,
                 )
                 else -> AndroidCarPlayLocationProvider(this, driftProtectionEnabled = AirPlayPersistence.loadLocationDriftProtection(this), gpsOnlyEnabled = AirPlayPersistence.loadLocationGpsOnly(this))
             }
@@ -5559,6 +5620,8 @@ class CarPlayHostActivity : ComponentActivity() {
         englishReason: String = reason,
     ) {
         if (!CarPlayBackgroundSession.isOwner(this)) return
+        // Also when a retry is already pending and this loss is dropped: that retry must not skip.
+        lossSinceControlRunning = true
         if (menuOpen) recoveryPendingAfterMenu = true
         if (shuttingDown.get() || menuOpen || handshakeResetInProgress || startupRetryStopped) return
         if (reconnectScheduled) return
@@ -5567,7 +5630,11 @@ class CarPlayHostActivity : ComponentActivity() {
         if (startupFailure != null && startupDelay == null) {
             startupRetryStopped = true
             startupRetryButton?.visibility = View.VISIBLE
-            if (!startupFailure.retryable) {
+            if (startupFailure == WirelessStartupFailure.HOTSPOT_CONFIGURATION) {
+                // Its cause is in English, for the report; the help line below says what to check.
+                setConnectionStage("${getString(R.string.hotspot_network_not_ready)}\n" +
+                    getString(R.string.wireless_startup_retries_exhausted))
+            } else if (!startupFailure.retryable) {
                 setConnectionStage(reason, englishReason)
             } else {
                 setConnectionStage("$reason\n${getString(R.string.wireless_startup_retries_exhausted)}",
@@ -5589,6 +5656,7 @@ class CarPlayHostActivity : ComponentActivity() {
         }
         reconnectAttempts += 1
         appendLog("$reason; retrying in ${delayMillis}ms generation=$generation startupFailure=$startupFailure startupRetries=${startupRetryBudget.retries}")
+        val controlRunsAtFailure = controlRunningCount
         mainHandler.postDelayed(
             {
                 reconnectScheduled = false
@@ -5599,6 +5667,13 @@ class CarPlayHostActivity : ComponentActivity() {
                     handshakeResetInProgress || startupRetryStopped ||
                     generation != restartGeneration
                 ) {
+                    return@postDelayed
+                }
+                // A wired attempt can report a failure and still go on: a second CarPlay mode request
+                // failed while the iPhone was already switching, and the switch then completed (#873).
+                // Leave it alone only if it is still running; a loss after its recovery still restarts.
+                if (controlRunningCount != controlRunsAtFailure && !lossSinceControlRunning) {
+                    appendLog("Not reconnecting after $reason: the same attempt is running again")
                     return@postDelayed
                 }
                 restartCarPlay("Reconnecting after $reason")
@@ -5701,6 +5776,7 @@ class CarPlayHostActivity : ComponentActivity() {
         loadPersistedSettings()
         settingsBaseline = captureSettingsBaseline()
         menuSettingsSignature = menuSettingsSignature()
+        menuWirelessNetworkSignature = wirelessNetworkSignature()
         // Rebuild controls from saved values so a cancelled edit cannot reappear on reopening.
         settingsMenu?.let { previous ->
             val parent = previous.parent as ViewGroup
@@ -5752,8 +5828,17 @@ class CarPlayHostActivity : ComponentActivity() {
 
     private fun saveSettingsAndReconnect() {
         if (!menuOpen) return
-        if (!validateMfiSettings()) return
-        if (!validateManualHotspotSettings()) return
+        if (!validateMfiSettings()) {
+            showRejectedSetting(mfiErrorView, "MFi settings")
+            return
+        }
+        // Wi-Fi details the menu left alone are saved as they are. A driver on USB who never set up the
+        // car hotspot has an empty one, and checking it kept every other setting from saving (#848).
+        if (wirelessNetworkSignature() != menuWirelessNetworkSignature && !validateManualHotspotSettings()) {
+            showRejectedSetting(listOfNotNull(manualHotspotErrorView, existingWifiErrorView)
+                .firstOrNull { it.visibility == View.VISIBLE }, "Wi-Fi details")
+            return
+        }
         persistMenuSettings()
         settingsBaseline = null
         finishSettingsMenu("Settings saved", reconnect = true)
@@ -5796,6 +5881,7 @@ class CarPlayHostActivity : ComponentActivity() {
         menuOpen = false
         updateCallPopupGuard()
         menuSettingsSignature = null
+        menuWirelessNetworkSignature = null
         settingsMenu?.visibility = View.GONE
         gestureOverlay?.visibility = View.VISIBLE
         settingsGestureHint?.text = settingsGestureHintText()
@@ -6209,8 +6295,12 @@ class CarPlayHostActivity : ComponentActivity() {
     // The keywords are English; matching the English text keeps the result the same in every UI language.
     private fun friendlyStage(message: String, englishMessage: String = message): String = when {
         message == getString(R.string.vpn_authorization_unavailable) -> message
+        // It says where to look itself; its word "permissions" would turn it into the generic permission line.
+        message == getString(R.string.could_not_start_carplay_return_to_diplay_and_check_app_per) -> message
         message == getString(R.string.waiting_for_mfi_coprocessor) ||
             message == getString(R.string.requesting_mfi_usb_permission) -> message
+        message == getString(R.string.hotspot_network_not_ready) || message == getString(R.string.first_tcp_timeout) ||
+            message.endsWith(getString(R.string.wireless_startup_retries_exhausted)) -> message
         englishMessage.contains("CarPlay configuration request", true) -> getString(R.string.iphone_usb_mode_rejected)
         englishMessage.contains("Turn on Wi-Fi", true) -> getString(R.string.turn_on_wi_fi_in_the_head_unit_s_settings_to_connect)
         englishMessage.contains(BluetoothRadioCheck.RADIO_OFF_MARK, true) -> getString(R.string.turn_on_bluetooth_in_the_head_unit_s_settings_to_connect)
