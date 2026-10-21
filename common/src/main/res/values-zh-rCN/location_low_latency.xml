@@ -1,0 +1,4 @@
+<resources>
+    <string name="settings_location_low_latency">低延迟发送</string>
+    <string name="settings_location_low_latency_description">收到新定位后尽快发送，减少等待每秒发送周期。系统定位请求间隔为 200 毫秒，原车 DR 仍约每秒一次。不补算或重复旧坐标。下次连接生效。</string>
+</resources>

@@ -1,7 +1,3 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="settings_location_drift_protection">Защита от дрейфа координат</string>
-    <string name="settings_location_drift_protection_description">Автоматический режим допускает GPS, объединённую и сетевую геопозицию. Фильтрует скачки, подтверждает восстановление по 3 точкам и подавляет дрожание на стоянке по свежей скорости. Только GPS исключает другие источники. Со следующего подключения.</string>
-    <string name="settings_location_gps_only">Только местоположение GPS</string>
-    <string name="settings_location_gps_only_description">Исключает сетевое и комбинированное определение местоположения. Защита от дрейфа управляется отдельно; отключите её для передачи координат GPS без фильтрации. При потере или устаревании GPS сообщает об отсутствии позиции. Применяется при следующем подключении.</string>
 </resources>

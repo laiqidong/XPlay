@@ -95,7 +95,6 @@ internal enum class SettingsCategory {
 internal enum class SettingsSection {
     VEHICLE_EXPERIMENT,
     P7_CARPLAY_DATA,
-    P7_DIRECTION,
     CARPLAY_CONTROLS,
     WHEEL_KEYS,
     CONNECTION_SETUP,
@@ -132,7 +131,7 @@ internal object SettingsInformationArchitecture {
         SettingsCategory.AUDIO to setOf(SettingsSection.AUDIO_ROUTING, SettingsSection.ADVANCED_MEDIA,
             SettingsSection.NAVIGATION_WHEEL),
         SettingsCategory.NAVIGATION to setOf(SettingsSection.LOCATION, SettingsSection.BYD_NAVIGATION,
-            SettingsSection.CLUSTER_MAP, SettingsSection.P7_DIRECTION),
+            SettingsSection.CLUSTER_MAP),
         SettingsCategory.CONTROLS to setOf(SettingsSection.CARPLAY_CONTROLS, SettingsSection.WHEEL_KEYS,
             SettingsSection.CAR_BUTTON),
         SettingsCategory.VEHICLE to setOf(SettingsSection.P7_CARPLAY_DATA, SettingsSection.AMBIENT_LIGHTING),
@@ -1253,6 +1252,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         }
         val location = com.shilapi.xcertplay.location.LocationSourceDiagnostics.snapshot
         fun status(code: String?) = getString(when (code) {
+            "dr_reception_only" -> R.string.settings_location_state_dr_estimate
             "selected" -> R.string.settings_location_state_selected
             "poor_accuracy" -> R.string.settings_location_state_accuracy
             "jump" -> R.string.settings_location_state_jump
@@ -1262,6 +1262,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             else -> R.string.settings_location_state_waiting
         })
         val source = getString(when (location.source) {
+            "DR" -> R.string.settings_location_source_dr
             "GPS" -> R.string.settings_location_source_gps
             "FUSED" -> R.string.settings_location_source_fused
             "NETWORK" -> R.string.settings_location_source_network
@@ -1350,15 +1351,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                 }
 
             }
-        }
-
-        if (p7Settings) filteredSection(content, SettingsSection.P7_DIRECTION,
-            getString(R.string.settings_direction_output), R.drawable.ic_dp_navigation) { card ->
-                toggle(card, getString(R.string.settings_direction_output), getString(R.string.settings_direction_output_hint),
-                    P7CarPlaySettings.direction(this)) {
-                    P7CarPlaySettings.saveDirection(this, it)
-                    markReconnectNeeded()
-                }
         }
 
         filteredSection(content, SettingsSection.VEHICLE_EXPERIMENT,
@@ -1786,16 +1778,34 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                 getString(R.string.sends_precise_android_location_as_carplay_gps_data_when_th),
                 locationEnabled, save = ::onLocationReportingChanged)
             card.addView(label(getString(R.string.location_reporting_reconnects), 14, MUTED))
-            toggle(card, getString(R.string.settings_location_gps_only),
-                dependentDescription(R.string.settings_location_gps_only_description),
-                AirPlayPersistence.loadLocationGpsOnly(this), enabled = locationEnabled) {
-                AirPlayPersistence.saveLocationGpsOnly(this, it)
+            val locationModes = if (p7Settings) CarPlayLocationMode.entries.toList()
+                else listOf(CarPlayLocationMode.SYSTEM, CarPlayLocationMode.GPS_ONLY)
+            val modeLabels = locationModes.map { mode -> getString(when (mode) {
+                CarPlayLocationMode.SYSTEM -> R.string.settings_location_system
+                CarPlayLocationMode.GPS_FIRST -> R.string.settings_location_gps_first
+                CarPlayLocationMode.DR_FIRST -> R.string.settings_location_dr_first
+                CarPlayLocationMode.GPS_ONLY -> R.string.settings_location_only_gps
+                CarPlayLocationMode.DR_ONLY -> R.string.settings_location_only_dr
+            }) }
+            choice(card, getString(R.string.settings_location_source_mode), modeLabels,
+                locationModes.indexOf(AirPlayPersistence.loadLocationMode(this)).coerceAtLeast(0),
+                reconnects = false, enabled = locationEnabled) {
+                AirPlayPersistence.saveLocationMode(this, locationModes[it])
                 markReconnectNeeded()
+                render()
             }
-            toggle(card, getString(R.string.settings_location_drift_protection),
-                dependentDescription(R.string.settings_location_drift_protection_description),
-                AirPlayPersistence.loadLocationDriftProtection(this), enabled = locationEnabled) {
-                AirPlayPersistence.saveLocationDriftProtection(this, it)
+            fun modeDescription() = dependentDescription(when (AirPlayPersistence.loadLocationMode(this)) {
+                CarPlayLocationMode.SYSTEM -> R.string.settings_location_system_description
+                CarPlayLocationMode.GPS_FIRST -> R.string.settings_location_gps_first_description
+                CarPlayLocationMode.DR_FIRST -> R.string.settings_location_dr_first_description
+                CarPlayLocationMode.GPS_ONLY -> R.string.settings_location_only_gps_description
+                CarPlayLocationMode.DR_ONLY -> R.string.settings_location_only_dr_description
+            })
+            card.addView(label(modeDescription(), 14, MUTED))
+            toggle(card, getString(R.string.settings_location_low_latency),
+                dependentDescription(R.string.settings_location_low_latency_description),
+                AirPlayPersistence.loadLocationLowLatency(this), enabled = locationEnabled) {
+                AirPlayPersistence.saveLocationLowLatency(this, it)
                 markReconnectNeeded()
             }
             if (p7Settings) toggle(card, getString(R.string.settings_p7_motion),
@@ -4449,10 +4459,8 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         if (AirPlayPersistence.loadLocationReportingEnabled(this) == enabled) return
         AirPlayPersistence.saveLocationReportingEnabled(this, enabled)
         render()
-        // Location support is advertised during iAP2 identification, so both enabling and
-        // disabling it require a new session. The host also refreshes its location service type.
-        if (CarPlayBackgroundSession.hasSession()) connect(AirPlayPersistence.loadWirelessEnabled(this))
-        else toast(getString(R.string.saved_for_your_next_connection))
+        // Location capability changes apply to the next iAP2 identification.
+        markReconnectNeeded()
     }
 
     private fun applyWirelessLink(mode: WirelessHotspotMode) {
@@ -5051,6 +5059,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         appendLine()
         appendLine("--- Location source (no coordinates) ---")
         appendLine(com.shilapi.xcertplay.location.LocationSourceDiagnostics.snapshot.toString())
+        appendLine(com.shilapi.xcertplay.location.LocationLatencyDiagnostics.snapshot.toString())
         appendLine("--- BYD vehicle-data probe ---")
         appendLine(
             "mode=${if (BydOutputSettings.legacyVehicleProbe(appContext)) "legacy-probe" else "default"} " +

@@ -114,8 +114,6 @@ object AirPlayPersistence {
     private const val KEY_HIDE_BYD_CALL_POPUP = "hide_byd_call_popup"
     private const val KEY_BT_SUSPEND_DELAY = "bt_suspend_delay_seconds"
     private const val KEY_LOCATION_REPORTING_ENABLED = "location_reporting_enabled"
-    private const val KEY_LOCATION_GPS_ONLY = "location_gps_only"
-    private const val KEY_LOCATION_DRIFT_PROTECTION = "location_drift_protection"
     private const val KEY_EXTERNAL_CONTROLLER = "external_controller"
     private const val KEY_USB_CHARGING_CURRENT = "usb_charging_current"
     private const val KEY_MFI_TARGET = "mfi_target"
@@ -527,21 +525,27 @@ object AirPlayPersistence {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .getBoolean(KEY_LOCATION_REPORTING_ENABLED, false)
 
-    fun loadLocationGpsOnly(context: Context): Boolean =
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_LOCATION_GPS_ONLY, false)
+    fun loadLocationLowLatency(context: Context): Boolean =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean("location_low_latency", false)
 
-    fun saveLocationGpsOnly(context: Context, enabled: Boolean) {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-            .putBoolean(KEY_LOCATION_GPS_ONLY, enabled).apply()
+    fun saveLocationLowLatency(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean("location_low_latency", enabled).apply()
     }
 
-    fun loadLocationDriftProtection(context: Context): Boolean =
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-            .getBoolean(KEY_LOCATION_DRIFT_PROTECTION, false)
+    internal fun loadLocationMode(context: Context): CarPlayLocationMode {
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val saved = prefs.getString("location_source_mode", null)
+        return CarPlayLocationMode.entries.firstOrNull { it.name == saved }
+            ?: when {
+                P7CarPlaySettings.direction(context) -> CarPlayLocationMode.DR_FIRST
+                prefs.getBoolean("location_gps_only", false) -> CarPlayLocationMode.GPS_ONLY
+                else -> CarPlayLocationMode.SYSTEM
+            }
+    }
 
-    fun saveLocationDriftProtection(context: Context, enabled: Boolean) {
+    internal fun saveLocationMode(context: Context, mode: CarPlayLocationMode) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
-            .putBoolean(KEY_LOCATION_DRIFT_PROTECTION, enabled).apply()
+            .putString("location_source_mode", mode.name).apply()
     }
 
     fun saveLocationReportingEnabled(context: Context, enabled: Boolean) {

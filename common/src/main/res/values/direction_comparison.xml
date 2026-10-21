@@ -10,6 +10,6 @@
     <string name="settings_direction_no_sample">No data</string>
     <string name="settings_direction_sample">%1$.1f° · %2$d s ago</string>
     <string name="settings_direction_values">Navigation DR: %1$s\nGPS: %2$s</string>
-    <string name="settings_direction_output">Use DR vehicle heading (experimental)</string>
-    <string name="settings_direction_output_hint">Replaces the GPS direction sent to CarPlay with original navigation DR heading, including in reverse. Requires location sharing. Missing DR leaves direction empty. Applies after reconnecting; reconnect manually to compare.</string>
+    <string name="settings_direction_output">Use original DR location and heading (experimental)</string>
+    <string name="settings_direction_output_hint">Prefers original AMap matched position and vehicle heading, even without GPS. Assumes GCJ-02 and converts to WGS84 for trial; accuracy is unverified. Needs location sharing. After 1.5 s without callbacks, falls back to the normal source. Receipt freshness does not prove a new measurement. Next connection.</string>
 </resources>

@@ -1,0 +1,4 @@
+<resources>
+    <string name="settings_location_low_latency">Отправка с малой задержкой</string>
+    <string name="settings_location_low_latency_description">Отправляет новые позиции без ожидания секундного цикла. Запрос системной позиции каждые 200 мс; штатный DR остаётся примерно раз в секунду. Без экстраполяции и повторов старых координат. Со следующего подключения.</string>
+</resources>

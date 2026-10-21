@@ -9,4 +9,6 @@
     <string name="settings_location_state_stopped">Нет подписки</string>
     <string name="settings_location_state_waiting">Ожидание надёжной позиции</string>
     <string name="settings_location_diagnostic_values">Позиция: %1$s · Точность: %2$s · Возраст: %3$s\nСостояние: %4$s\nПоследний отказ: %5$s</string>
+    <string name="settings_location_source_dr">DR штатной навигации</string>
+    <string name="settings_location_state_dr_estimate">Оценка DR; возраст от приёма</string>
 </resources>

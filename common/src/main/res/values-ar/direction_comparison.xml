@@ -10,6 +10,6 @@
     <string name="settings_direction_no_sample">لا توجد بيانات</string>
     <string name="settings_direction_sample">%1$.1f° · منذ %2$d ث</string>
     <string name="settings_direction_values">الملاحة DR: %1$s\nGPS: %2$s</string>
-    <string name="settings_direction_output">استخدام اتجاه السيارة DR (تجريبي)</string>
-    <string name="settings_direction_output_hint">يستبدل اتجاه GPS المرسل إلى CarPlay باتجاه السيارة DR من الملاحة الأصلية حتى عند الرجوع للخلف. يتطلب مشاركة الموقع. عند غياب DR يترك الاتجاه فارغًا. يسري بعد إعادة الاتصال؛ أعد الاتصال يدويًا للمقارنة.</string>
+    <string name="settings_direction_output">استخدام موقع واتجاه DR الأصلي (تجريبي)</string>
+    <string name="settings_direction_output_hint">يفضل موقع AMap المطابق واتجاه السيارة حتى دون GPS. يفترض GCJ-02 ويحوّله إلى WGS84 للتجربة؛ الدقة غير مؤكدة. يتطلب مشاركة الموقع. يعود للمصدر العادي بعد 1.5 ثانية دون تحديث. حداثة الاستلام لا تثبت قياسًا جديدًا. يسري عند الاتصال التالي.</string>
 </resources>

@@ -39,7 +39,7 @@
     <string name="settings_p7_carplay_title">مشاركة بيانات P7 (تجريبي)</string>
     <string name="settings_p7_battery">إرسال البطارية والمدى والشحن إلى iPhone</string>
     <string name="settings_p7_battery_description">يرسل البطارية ومدى WLTP وبيانات الشحن والسعة المتاحة عبر ADB المصرح به. تُحذف القيم غير المعروفة. يسري عند الاتصال التالي.</string>
-    <string name="settings_p7_motion">إرسال سرعة العجلات والترس إلى iPhone (تجريبي)</string>
-    <string name="settings_p7_motion_description">يرسل سرعة السيارة الفعلية وناقل الحركة، ويحوّل km/h ويتجاهل القراءات القديمة. يتطلب مشاركة الموقع الدقيق في «الملاحة والموقع». يُطبّق عند الاتصال التالي.</string>
+    <string name="settings_p7_motion">إرسال سرعة السيارة والترس إضافيا (تجريبي)</string>
+    <string name="settings_p7_motion_description">قناة مستقلة لبيانات السيارة حسب طلب iPhone، منفصلة عن السرعة الموجودة في DR. تتطلب مشاركة الموقع. يسري عند الاتصال التالي.</string>
     <string name="settings_p7_location_link">فتح إعدادات مشاركة الموقع</string>
 </resources>

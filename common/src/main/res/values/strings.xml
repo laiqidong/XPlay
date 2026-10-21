@@ -312,7 +312,7 @@
     <string name="remote_server_address_must_start_with_http_or_https">Remote server address must start with http:// or https://</string>
     <string name="remote_token_contains_u_0000">Remote token contains U+0000</string>
     <string name="report_android_location_to_the_iphone">Report Android location to the iPhone</string>
-    <string name="report_location_to_iphone">Report location to iPhone</string>
+    <string name="report_location_to_iphone">Provide vehicle location to iPhone</string>
     <string name="report_saved_open_it_from_your_file_manager_to_share_it">Report saved. Open it from your file manager to share it.</string>
     <string name="reports_save_to_downloads_diplay">Reports save to Downloads/DiPlay.\u0020</string>
     <string name="requesting_iphone_usb_permission">Requesting iPhone USB permission</string>
@@ -358,7 +358,7 @@
     <string name="saving_report">Saving report…</string>
     <string name="security">Security</string>
     <string name="selecting_carplay_configuration">Selecting CarPlay configuration</string>
-    <string name="sends_precise_android_location_as_carplay_gps_data_when_th">Sends precise Android location as CarPlay GPS data when the iPhone requests it.</string>
+    <string name="sends_precise_android_location_as_carplay_gps_data_when_th">Provides position from the selected source when requested by iPhone. When disabled, iPhone determines its own location.</string>
     <string name="server_address">Server address</string>
     <string name="set">Set</string>
     <string name="set_up_once_your_details_stay_saved_for_the_next_drive_cha">Set up once. Your details stay saved for the next drive. Changes apply to your next connection.</string>
@@ -653,7 +653,7 @@
     <string name="hotspot_control_timeout">Timed out waiting for the car hotspot. Open the hotspot in car settings.</string>
     <string name="hotspot_control_failed">The car could not start its hotspot. Open the hotspot in car settings.</string>
     <string name="byd_adb_features">BYD features · needs ADB</string>
-    <string name="location_reporting_reconnects">Changing this setting reconnects an active CarPlay session.</string>
+    <string name="location_reporting_reconnects">Location settings apply after reconnecting. Save first, then choose when to reconnect.</string>
     <string name="diagnostic_report_saved_in_app">Your report was saved privately in XPlay because a public save location was unavailable. Share it or view it here. Nothing is sent automatically.</string>
     <string name="diagnostic_report_saved_to_path">Your report was saved to:\n%1$s\n\nYou can also share it or view it here. Nothing is sent automatically.</string>
     <string name="view_diagnostic_report">View report</string>

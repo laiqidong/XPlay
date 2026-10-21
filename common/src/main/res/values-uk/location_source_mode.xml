@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_location_source_mode">Джерело місцеположення</string>
+    <string name="settings_location_system">Автоматично системою (без DR)</string>
+    <string name="settings_location_gps_first">Пріоритет GPS (експериментально)</string>
+    <string name="settings_location_dr_first">Пріоритет DR (експериментально)</string>
+    <string name="settings_location_only_gps">Лише GPS</string>
+    <string name="settings_location_only_dr">Лише DR (експериментально)</string>
+    <string name="settings_location_system_description">Використовує достовірні системні GPS, об’єднані чи мережеві дані без DR штатної навігації. З наступного підключення.</string>
+    <string name="settings_location_gps_first_description">GPS: вік до 2 секунд, точність до 30 м. За втрати — DR, потім інші системні джерела. Поки DR дійсний, повернення до GPS потребує 5 нових достовірних вимірювань поспіль; недостовірне скидає лічильник. За втрати DR достатньо одного достовірного GPS. З наступного підключення.</string>
+    <string name="settings_location_dr_first_description">Пріоритет штатного DR: позиція, напрямок і швидкість. Якщо DR недійсний або не оновлюється 2 секунди, використовується система. З наступного підключення.</string>
+    <string name="settings_location_only_gps_description">Лише достовірний GPS. Немає позиції за недоступності, віку понад 3 секунди чи точності гіршої за 30 м. З наступного підключення.</string>
+    <string name="settings_location_only_dr_description">Лише позиція, напрямок і швидкість штатного DR. Немає позиції за недійсних даних чи відсутності оновлення 2 секунди. З наступного підключення.</string>
+</resources>

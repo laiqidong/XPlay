@@ -10,6 +10,6 @@
     <string name="settings_direction_no_sample">Немає даних</string>
     <string name="settings_direction_sample">%1$.1f° · %2$d с тому</string>
     <string name="settings_direction_values">Навігація DR: %1$s\nGPS: %2$s</string>
-    <string name="settings_direction_output">Напрямок автомобіля DR (експериментально)</string>
-    <string name="settings_direction_output_hint">Замінює курс GPS для CarPlay напрямком автомобіля DR штатної навігації, зокрема під час руху назад. Потрібна передача геопозиції. Без DR напрямок порожній. Діє після повторного підключення; підключіться вручну для порівняння.</string>
+    <string name="settings_direction_output">Штатна позиція та напрямок DR (експериментально)</string>
+    <string name="settings_direction_output_hint">Пріоритет позиції та напрямку AMap навіть без GPS. Пробне перетворення GCJ-02 у WGS84; точність не перевірена. Потрібна передача геопозиції. Через 1,5 с без подій повернення до звичайного джерела. Свіжий прийом не доводить нове вимірювання. З наступного підключення.</string>
 </resources>

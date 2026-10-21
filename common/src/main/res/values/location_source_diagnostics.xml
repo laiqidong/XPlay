@@ -9,4 +9,6 @@
     <string name="settings_location_state_stopped">Not subscribed</string>
     <string name="settings_location_state_waiting">Waiting for reliable position</string>
     <string name="settings_location_diagnostic_values">Position: %1$s · Accuracy: %2$s · Age: %3$s\nState: %4$s\nLast rejection: %5$s</string>
+    <string name="settings_location_source_dr">Original navigation DR</string>
+    <string name="settings_location_state_dr_estimate">Estimated DR; age is since receipt</string>
 </resources>

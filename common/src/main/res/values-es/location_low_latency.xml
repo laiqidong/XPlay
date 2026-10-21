@@ -1,0 +1,4 @@
+<resources>
+    <string name="settings_location_low_latency">Envío de baja latencia</string>
+    <string name="settings_location_low_latency_description">Envía nuevas posiciones sin esperar al ciclo de un segundo. Solicita posiciones del sistema cada 200 ms; DR original sigue aproximadamente a una por segundo. No extrapola ni repite coordenadas antiguas. Se aplica en la próxima conexión.</string>
+</resources>

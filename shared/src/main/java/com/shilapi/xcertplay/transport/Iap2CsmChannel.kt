@@ -90,6 +90,8 @@ class Iap2CsmChannel private constructor(
      * A single underlying control payload can decode into several frames; the remainder stays in a
      * bounded queue for later calls.
      */
+    fun wakeReceiver() = link.wakeControlReceiver()
+
     fun recv(timeoutMillis: Long): Iap2Frame? {
         requireTimeout(timeoutMillis)
         synchronized(receiveLock) {

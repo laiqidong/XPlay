@@ -56,6 +56,11 @@ class VehicleSpeedLocationProvider(
     private val log: (String) -> Unit = {},
     private val nowMillis: () -> Long = { System.nanoTime() / 1_000_000L },
 ) : Iap2LocationProvider {
+    override fun onNmeaSent() = position.onNmeaSent()
+    override val reliableGpsSampleTimeMillis: Long? get() = position.reliableGpsSampleTimeMillis
+    override val hasReliableGps: Boolean get() = position.hasReliableGps
+    override val lowLatencyEnabled: Boolean get() = position.lowLatencyEnabled
+    override fun setOnLocationChanged(listener: (() -> Unit)?) = position.setOnLocationChanged(listener)
     @Volatile private var speedRequested = false
     // A minute of what reached the iPhone. In a tunnel the speed went after about two minutes (#807), and
     // the report could not say whether the car's position or its wheel speed had stopped.

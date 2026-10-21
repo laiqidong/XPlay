@@ -310,7 +310,7 @@
     <string name="remote_server_address_must_start_with_http_or_https">サーバーアドレスはhttp://またはhttps://で始めてください</string>
     <string name="remote_token_contains_u_0000">リモートトークンにU+0000が含まれています</string>
     <string name="report_android_location_to_the_iphone">Androidの位置情報をiPhoneへ送信する</string>
-    <string name="report_location_to_iphone">iPhoneへ位置情報を送信</string>
+    <string name="report_location_to_iphone">車載機の位置を iPhone に提供</string>
     <string name="report_saved_open_it_from_your_file_manager_to_share_it">レポートを保存しました。ファイル管理アプリから開いて共有できます。</string>
     <string name="reports_save_to_downloads_diplay">レポートはDownloads/DiPlayに保存されます。\u0020</string>
     <string name="requesting_iphone_usb_permission">iPhoneのUSB接続権限を要求しています</string>
@@ -356,7 +356,7 @@
     <string name="saving_report">レポートを保存しています…</string>
     <string name="security">セキュリティ</string>
     <string name="selecting_carplay_configuration">CarPlayの構成を選択しています</string>
-    <string name="sends_precise_android_location_as_carplay_gps_data_when_th">iPhoneから要求されたときに、Androidの正確な位置情報をCarPlayのGPSデータとして送信します。</string>
+    <string name="sends_precise_android_location_as_carplay_gps_data_when_th">iPhone の要求時に選択したソースの位置を送信。オフでは iPhone が測位します。</string>
     <string name="server_address">サーバーアドレス</string>
     <string name="set">設定</string>
     <string name="set_up_once_your_details_stay_saved_for_the_next_drive_cha">一度設定すれば、次回の運転でも接続情報を使用できます。変更は次回接続時から有効です。</string>
@@ -651,7 +651,7 @@
     <string name="hotspot_control_timeout">ホットスポットの開始待ちがタイムアウトしました。車の設定から開いてください。</string>
     <string name="hotspot_control_failed">ホットスポットを起動できませんでした。車の設定から開いてください。</string>
     <string name="byd_adb_features">BYD機能 · ADBが必要</string>
-    <string name="location_reporting_reconnects">この設定を変更すると接続中のCarPlayが再接続します。</string>
+    <string name="location_reporting_reconnects">位置設定は再接続後に適用。保存後、再接続のタイミングを選べます。</string>
     <string name="diagnostic_report_saved_in_app">公開の保存先を使用できなかったため、レポートをXPlay内に非公開で保存しました。ここから表示または共有できます。自動送信はされません。</string>
     <string name="diagnostic_report_saved_to_path">レポートを保存しました。\n%1$s\n\nここから表示や共有もできます。自動送信はされません。</string>
     <string name="view_diagnostic_report">レポートを見る</string>

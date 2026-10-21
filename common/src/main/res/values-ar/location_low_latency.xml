@@ -1,0 +1,4 @@
+<resources>
+    <string name="settings_location_low_latency">إرسال منخفض التأخير</string>
+    <string name="settings_location_low_latency_description">يرسل المواقع الجديدة دون انتظار الدورة الثانية. يطلب موقع النظام كل 200 مللي ثانية؛ ويبقى DR الأصلي نحو مرة في الثانية. لا يستنتج أو يكرر إحداثيات قديمة. يسري عند الاتصال التالي.</string>
+</resources>

@@ -31,6 +31,14 @@ class Iap2LinkChannel private constructor(
     private var controlBytes = 0
     private val fileTransfers = Iap2FileTransferReceiver()
 
+    private var receiveWakePending = false
+
+    /** Wake the control consumer without injecting a frame or interrupting transport I/O. */
+    fun wakeControlReceiver() = synchronized(lock) {
+        receiveWakePending = true
+        lock.notifyAll()
+    }
+
     private var ready = false
     private var peerMaxControlPayloadBytes: Int? = null
     private var closing = false
@@ -98,7 +106,8 @@ class Iap2LinkChannel private constructor(
     fun recvControl(timeoutMillis: Long): ByteArray? {
         require(timeoutMillis >= 0) { "timeoutMillis must not be negative" }
         synchronized(lock) {
-            waitFor(timeoutMillis) { controls.isNotEmpty() || terminated }
+            waitFor(timeoutMillis) { controls.isNotEmpty() || terminated || receiveWakePending }
+            receiveWakePending = false
             throwTerminalFailureLocked()
             if (controls.isEmpty()) return null
             val bytes = controls.removeFirst()

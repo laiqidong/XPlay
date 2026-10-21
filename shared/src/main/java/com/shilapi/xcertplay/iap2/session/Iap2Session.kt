@@ -64,6 +64,8 @@ class Iap2Session private constructor(
         send(Iap2Messages.buildRaw(messageId, block), timeoutMillis)
     }
 
+    fun wakeReceiver() = channel.wakeReceiver()
+
     fun recv(timeoutMillis: Long): Iap2Frame? {
         return try {
             channel.recv(timeoutMillis)?.also { emitFrameTrace(Iap2TraceDirection.RX, it) }

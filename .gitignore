@@ -42,3 +42,7 @@ release-signing.properties
 
 # Local Git history backups (copy elsewhere for an independent backup).
 /.local-backups/
+
+# Local car release pointer (machine-specific build record).
+/artifacts/releases/latest-car-build.json
+/artifacts/releases/latest-car-build.json.tmp

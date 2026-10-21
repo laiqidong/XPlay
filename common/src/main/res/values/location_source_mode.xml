@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_location_source_mode">Location source</string>
+    <string name="settings_location_system">System automatic (without DR)</string>
+    <string name="settings_location_gps_first">GPS first (experimental)</string>
+    <string name="settings_location_dr_first">DR first (experimental)</string>
+    <string name="settings_location_only_gps">GPS only</string>
+    <string name="settings_location_only_dr">DR only (experimental)</string>
+    <string name="settings_location_system_description">Uses qualified system GPS, fused or network positions without original-navigation DR. Applies at the next connection.</string>
+    <string name="settings_location_gps_first_description">Uses GPS with accuracy within 30 m and age within 2 seconds. Falls back to DR when GPS fails, then other system sources. While DR is valid, requires 5 consecutive new qualified GPS samples to switch back; an invalid sample resets the count. If DR also fails, one qualified GPS sample restores location. Applies at the next connection.</string>
+    <string name="settings_location_dr_first_description">Uses original-navigation DR first, then qualified system location if DR is invalid or has no update for 2 seconds. DR includes position, heading and speed. Applies at the next connection.</string>
+    <string name="settings_location_only_gps_description">Uses only qualified GPS; reports no fix when GPS is unavailable, older than 3 seconds or less accurate than 30 m. Applies at the next connection.</string>
+    <string name="settings_location_only_dr_description">Uses only original-navigation DR position, heading and speed. Reports no fix when DR is invalid or has no update for 2 seconds. Applies at the next connection.</string>
+</resources>

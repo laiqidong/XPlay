@@ -9,4 +9,6 @@
     <string name="settings_location_state_stopped">未受信</string>
     <string name="settings_location_state_waiting">信頼できる位置を待機</string>
     <string name="settings_location_diagnostic_values">測位：%1$s · 精度：%2$s · 経過：%3$s\n状態：%4$s\n直近の除外理由：%5$s</string>
+    <string name="settings_location_source_dr">純正ナビ DR</string>
+    <string name="settings_location_state_dr_estimate">DR 推定・経過は受信から計算</string>
 </resources>

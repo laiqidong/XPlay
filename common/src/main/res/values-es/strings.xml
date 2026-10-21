@@ -303,7 +303,7 @@
     <string name="remote_server_address_must_start_with_http_or_https">La dirección del servidor remoto debe empezar por http:// o https://</string>
     <string name="remote_token_contains_u_0000">El token remoto contiene U+0000</string>
     <string name="report_android_location_to_the_iphone">Informar la ubicación de Android al iPhone</string>
-    <string name="report_location_to_iphone">Informar la ubicación al iPhone</string>
+    <string name="report_location_to_iphone">Proporcionar ubicación del vehículo al iPhone</string>
     <string name="report_saved_open_it_from_your_file_manager_to_share_it">Informe guardado. Ábrelo desde tu gestor de archivos para compartirlo.</string>
     <string name="reports_save_to_downloads_diplay">Los informes se guardan en Downloads/DiPlay.\u0020</string>
     <string name="requesting_iphone_usb_permission">Solicitando permiso USB del iPhone</string>
@@ -345,7 +345,7 @@
     <string name="saving_report">Guardando informe…</string>
     <string name="security">Seguridad</string>
     <string name="selecting_carplay_configuration">Seleccionando configuración de CarPlay</string>
-    <string name="sends_precise_android_location_as_carplay_gps_data_when_th">Envía la ubicación precisa de Android como datos GPS de CarPlay cuando el iPhone lo solicita.</string>
+    <string name="sends_precise_android_location_as_carplay_gps_data_when_th">Envía la ubicación de la fuente seleccionada cuando el iPhone la solicita. Al desactivarlo, el iPhone determina su ubicación.</string>
     <string name="server_address">Dirección del servidor</string>
     <string name="set">Establecer</string>
     <string name="set_up_once_your_details_stay_saved_for_the_next_drive_cha">Configura una vez. Tus datos quedan guardados para el próximo trayecto. Los cambios se aplican en tu próxima conexión.</string>
@@ -573,7 +573,7 @@
     <string name="hotspot_control_timeout">Se agotó el tiempo de espera del punto de acceso. Actívalo en los ajustes del coche.</string>
     <string name="hotspot_control_failed">No se pudo iniciar el punto de acceso. Actívalo en los ajustes del coche.</string>
     <string name="byd_adb_features">Funciones BYD · requieren ADB</string>
-    <string name="location_reporting_reconnects">Cambiar este ajuste vuelve a conectar la sesión activa de CarPlay.</string>
+    <string name="location_reporting_reconnects">Los ajustes se aplican tras reconectar. Guarda y elige cuándo reconectar.</string>
     <string name="diagnostic_report_saved_in_app">El informe se guardó de forma privada en XPlay porque no había una ubicación pública disponible. Compártelo o míralo aquí. No se envía nada automáticamente.</string>
     <string name="diagnostic_report_saved_to_path">El informe se guardó en:\n%1$s\n\nTambién puedes compartirlo o verlo aquí. No se envía nada automáticamente.</string>
     <string name="view_diagnostic_report">Ver informe</string>

@@ -67,7 +67,7 @@ class LocationSettingsScreenshotsTest {
         content.layout(0, 0, width, content.measuredHeight)
         val views = descendants(content).toList()
         val toggle = views.filterIsInstance<Switch>().single {
-            it.settingsControlTitle == activity.getString(if (p7) R.string.settings_p7_battery else R.string.settings_location_drift_protection)
+            it.settingsControlTitle == activity.getString(if (p7) R.string.settings_p7_battery else R.string.settings_location_low_latency)
         }
         assertTrue(toggle.width > 0 && toggle.left >= 0 && toggle.right <= (toggle.parent as View).width)
         for (text in views.filterIsInstance<TextView>()) {

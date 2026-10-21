@@ -9,4 +9,6 @@
     <string name="settings_location_state_stopped">لا يوجد اشتراك</string>
     <string name="settings_location_state_waiting">انتظار موقع موثوق</string>
     <string name="settings_location_diagnostic_values">الموقع: %1$s · الدقة: %2$s · العمر: %3$s\nالحالة: %4$s\nآخر سبب للرفض: %5$s</string>
+    <string name="settings_location_source_dr">DR الملاحة الأصلية</string>
+    <string name="settings_location_state_dr_estimate">تقدير DR؛ العمر منذ الاستلام</string>
 </resources>

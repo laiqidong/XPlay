@@ -39,7 +39,7 @@
     <string name="settings_p7_carplay_title">P7 数据共享（实验性）</string>
     <string name="settings_p7_battery">向 iPhone 发送电池、续航与充电数据</string>
     <string name="settings_p7_battery_description">通过已授权 ADB 发送电量、WLTP 续航及可读的充电状态和电池容量。未知项不发送，下次连接生效。</string>
-    <string name="settings_p7_motion">向 iPhone 发送车速与挡位（实验性）</string>
-    <string name="settings_p7_motion_description">使用车辆真实车速与挡位，车速由 km/h 转换；过期数据不发送。需在“导航与定位”中开启精确定位共享，下次连接生效。</string>
+    <string name="settings_p7_motion">额外发送车辆车速与挡位（实验性）</string>
+    <string name="settings_p7_motion_description">通过独立车辆数据通道，按 iPhone 请求发送真实车速与挡位。与 DR 定位中已包含的速度分开；需开启车机定位共享。下次连接生效。</string>
     <string name="settings_p7_location_link">打开车机定位共享设置</string>
 </resources>

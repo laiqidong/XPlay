@@ -74,7 +74,7 @@ class Iap2WirelessControlClient(
         var postTransportWiFiConfigurationsSent = 0
         var transportNotificationSeen = false
         var wirelessCarPlayAvailableSeen = false
-        val location = Iap2LocationReporter(locationProvider, onProgress)
+        val location = Iap2LocationReporter(locationProvider, onProgress).apply { setWakeUp(session::wakeReceiver) }
         val vehicleStatus = Iap2VehicleStatusReporter(vehicleStatusProvider, onProgress)
         try {
             while (true) {
@@ -226,7 +226,7 @@ class Iap2WirelessControlClient(
                 }
             }
         } finally {
-            locationProvider?.stop()
+            location.stop()
         }
     }
 

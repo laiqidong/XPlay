@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_location_source_mode">Fuente de ubicación</string>
+    <string name="settings_location_system">Automático del sistema (sin DR)</string>
+    <string name="settings_location_gps_first">GPS prioritario (experimental)</string>
+    <string name="settings_location_dr_first">DR prioritario (experimental)</string>
+    <string name="settings_location_only_gps">Solo GPS</string>
+    <string name="settings_location_only_dr">Solo DR (experimental)</string>
+    <string name="settings_location_system_description">Usa GPS, fusión o red válidos del sistema sin DR del navegador original. Se aplica en la próxima conexión.</string>
+    <string name="settings_location_gps_first_description">Usa GPS de hasta 2 segundos y precisión de 30 m o mejor. Si falla, usa DR y después otras fuentes. Con DR válido, requiere 5 posiciones GPS nuevas y válidas consecutivas para volver; una inválida reinicia el contador. Sin DR, una posición GPS válida restablece la ubicación. Se aplica en la próxima conexión.</string>
+    <string name="settings_location_dr_first_description">Prioriza posición, rumbo y velocidad del DR original. Usa el sistema si DR no es válido o no se actualiza durante 2 segundos. Se aplica en la próxima conexión.</string>
+    <string name="settings_location_only_gps_description">Solo GPS válido; informa sin posición si falta, supera 3 segundos o su precisión es peor que 30 m. Se aplica en la próxima conexión.</string>
+    <string name="settings_location_only_dr_description">Solo posición, rumbo y velocidad del DR original. Informa sin posición si no es válido o no se actualiza durante 2 segundos. Se aplica en la próxima conexión.</string>
+</resources>

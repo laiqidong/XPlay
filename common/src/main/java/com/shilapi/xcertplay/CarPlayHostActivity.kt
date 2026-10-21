@@ -1,5 +1,6 @@
 package com.shilapi.xcertplay
 
+import com.shilapi.xcertplay.adb.LocalAdbDevicePolicy
 import android.app.AlertDialog
 import android.Manifest
 import android.content.ActivityNotFoundException
@@ -5204,19 +5205,22 @@ class CarPlayHostActivity : ComponentActivity() {
             size
         }
         val airPlayConfig = createAirPlayConfig(effectiveSize)
+        val locationMode = AirPlayPersistence.loadLocationMode(this)
         val baseLocationProvider: Iap2LocationProvider? =
             when {
                 !config.locationReportingEnabled -> null
                 config.identification.vehicleSpeedEnabled -> VehicleSpeedLocationProvider(
-                    AndroidCarPlayLocationProvider(this, driftProtectionEnabled = AirPlayPersistence.loadLocationDriftProtection(this), gpsOnlyEnabled = AirPlayPersistence.loadLocationGpsOnly(this)),
+                    AndroidCarPlayLocationProvider(this, gpsOnlyEnabled = locationMode == CarPlayLocationMode.GPS_ONLY, gpsMaxAgeMillis = if (locationMode == CarPlayLocationMode.GPS_FIRST) 2000L else 3000L, lowLatencyEnabled = AirPlayPersistence.loadLocationLowLatency(this)),
                     if (P7CarPlaySettings.motion(this)) P7CarPlayData else
                         com.shilapi.xcertplay.hud.BydNavigationOutputs.wheelSpeed(applicationContext),
                     log = ::appendLog,
                 )
-                else -> AndroidCarPlayLocationProvider(this, driftProtectionEnabled = AirPlayPersistence.loadLocationDriftProtection(this), gpsOnlyEnabled = AirPlayPersistence.loadLocationGpsOnly(this))
+                else -> AndroidCarPlayLocationProvider(this, gpsOnlyEnabled = locationMode == CarPlayLocationMode.GPS_ONLY, gpsMaxAgeMillis = if (locationMode == CarPlayLocationMode.GPS_FIRST) 2000L else 3000L, lowLatencyEnabled = AirPlayPersistence.loadLocationLowLatency(this))
             }
-        val locationProvider = if (baseLocationProvider != null && P7CarPlaySettings.direction(this))
-            P7DirectionLocationProvider(applicationContext, baseLocationProvider) else baseLocationProvider
+        val locationProvider = if (baseLocationProvider != null && LocalAdbDevicePolicy.isXpengP7() && locationMode.usesDr)
+            P7DirectionLocationProvider(applicationContext, baseLocationProvider,
+                gpsPreferred = locationMode == CarPlayLocationMode.GPS_FIRST,
+                drOnly = locationMode == CarPlayLocationMode.DR_ONLY) else baseLocationProvider
         appendLog(
             "Starting CarPlay controller at ${size.width}x${size.height} -> " +
                 "${airPlayConfig.main.widthPixels}x${airPlayConfig.main.heightPixels} " +

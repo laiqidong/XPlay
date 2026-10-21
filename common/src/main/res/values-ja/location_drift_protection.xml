@@ -1,7 +1,3 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="settings_location_drift_protection">位置ずれ防止</string>
-    <string name="settings_location_drift_protection_description">自動モードでは GPS・融合・ネットワーク測位を許可します。飛びを除外し、復帰を3点で確認し、新しい車速で停車中の揺れを抑えます。GPS のみでは他の情報源を除外します。次回接続時に適用。</string>
-    <string name="settings_location_gps_only">GPS の位置情報のみ送信</string>
-    <string name="settings_location_gps_only_description">ネットワーク測位と融合測位を使用しません。ドリフト防止は別のスイッチで制御します。オフにすると平滑化や固定を行わず GPS 座標を送信します。GPS が失われた場合や古い場合は測位無効を通知します。次回の接続から適用されます。</string>
 </resources>

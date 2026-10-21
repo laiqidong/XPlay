@@ -58,7 +58,7 @@ class Iap2WiredControlClient(
         var forwardedFrames = 0
         val rxLog = Iap2RxLog()
         var carPlayStartSessions = 0
-        val location = Iap2LocationReporter(locationProvider, onProgress)
+        val location = Iap2LocationReporter(locationProvider, onProgress).apply { setWakeUp(session::wakeReceiver) }
         val vehicleStatus = Iap2VehicleStatusReporter(vehicleStatusProvider, onProgress)
         try {
             while (true) {
@@ -118,7 +118,7 @@ class Iap2WiredControlClient(
                 }
             }
         } finally {
-            locationProvider?.stop()
+            location.stop()
         }
     }
 

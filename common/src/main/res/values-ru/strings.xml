@@ -303,7 +303,7 @@
     <string name="remote_server_address_must_start_with_http_or_https">Адрес удалённого сервера должен начинаться с http:// или https://</string>
     <string name="remote_token_contains_u_0000">Удалённый токен содержит U+0000</string>
     <string name="report_android_location_to_the_iphone">Передавать местоположение Android на iPhone</string>
-    <string name="report_location_to_iphone">Передавать местоположение на iPhone</string>
+    <string name="report_location_to_iphone">Передавать местоположение автомобиля iPhone</string>
     <string name="report_saved_open_it_from_your_file_manager_to_share_it">Отчёт сохранён. Откройте его в файловом менеджере, чтобы поделиться.</string>
     <string name="reports_save_to_downloads_diplay">Отчёты сохраняются в Downloads/DiPlay.\u0020</string>
     <string name="requesting_iphone_usb_permission">Запрос разрешения USB для iPhone</string>
@@ -345,7 +345,7 @@
     <string name="saving_report">Сохранение отчёта…</string>
     <string name="security">Защита</string>
     <string name="selecting_carplay_configuration">Выбор конфигурации CarPlay</string>
-    <string name="sends_precise_android_location_as_carplay_gps_data_when_th">Отправляет точное местоположение Android как данные GPS CarPlay по запросу iPhone.</string>
+    <string name="sends_precise_android_location_as_carplay_gps_data_when_th">Передаёт позицию выбранного источника по запросу iPhone. При отключении iPhone определяет позицию сам.</string>
     <string name="server_address">Адрес сервера</string>
     <string name="set">Задать</string>
     <string name="set_up_once_your_details_stay_saved_for_the_next_drive_cha">Настройте один раз. Ваши данные сохранятся для следующей поездки. Изменения применяются при следующем подключении.</string>
@@ -573,7 +573,7 @@
     <string name="hotspot_control_timeout">Истекло время ожидания включения точки доступа. Откройте настройки автомобиля.</string>
     <string name="hotspot_control_failed">Не удалось включить точку доступа. Откройте настройки автомобиля.</string>
     <string name="byd_adb_features">Функции BYD · нужен ADB</string>
-    <string name="location_reporting_reconnects">Изменение этой настройки перезапускает активное подключение CarPlay.</string>
+    <string name="location_reporting_reconnects">Настройки применяются после переподключения. Сохраните и выберите время переподключения.</string>
     <string name="diagnostic_report_saved_in_app">Отчёт сохранён приватно в XPlay, поскольку общедоступное место сохранения недоступно. Поделитесь им или просмотрите его здесь. Ничего не отправляется автоматически.</string>
     <string name="diagnostic_report_saved_to_path">Отчёт сохранён в:\n%1$s\n\nВы также можете поделиться им или просмотреть его здесь. Ничего не отправляется автоматически.</string>
     <string name="view_diagnostic_report">Просмотреть отчёт</string>

@@ -1,0 +1,4 @@
+<resources>
+    <string name="settings_location_low_latency">低遅延送信</string>
+    <string name="settings_location_low_latency_description">新しい測位を速やかに送信し、毎秒の送信待ちを短縮。システム測位は 200 ms 間隔で要求しますが、純正 DR は約毎秒 1 回のままです。古い座標の外挿や再送は行いません。次回接続から適用。</string>
+</resources>

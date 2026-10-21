@@ -39,6 +39,12 @@ data class CarPlayLocationFix(
 
 /** Supplies location data only while the phone has subscribed to iAP2 LocationInformation. */
 interface Iap2LocationProvider : AutoCloseable {
+    /** Whether the most recent source selection has a fresh, quality-gated GPS fix. */
+    val hasReliableGps: Boolean get() = false
+    val reliableGpsSampleTimeMillis: Long? get() = null
+    val lowLatencyEnabled: Boolean get() = false
+    fun setOnLocationChanged(listener: (() -> Unit)?) = Unit
+
     /** The 0xFFFA parameter ids, i.e. the sentence types the iPhone asked for; called before [start]. */
     fun onRequested(components: Set<Int>) = Unit
 
@@ -49,6 +55,8 @@ interface Iap2LocationProvider : AutoCloseable {
     fun start(): Boolean
 
     fun stop()
+
+    fun onNmeaSent() = Unit
 
     fun latestNmea(): String?
 
@@ -170,7 +178,16 @@ class Iap2LocationReporter(
     private val onProgress: (String) -> Unit,
     private val nanoTime: () -> Long = System::nanoTime,
 ) {
-    private var active = false
+    @Volatile private var active = false
+    private val updatePending = java.util.concurrent.atomic.AtomicBoolean(false)
+    private var wakeUp: () -> Unit = {}
+    fun setWakeUp(callback: () -> Unit) { wakeUp = callback }
+    fun stop() {
+        active = false
+        provider?.setOnLocationChanged(null)
+        updatePending.set(false)
+        provider?.stop()
+    }
     private var sentLogged = false
     private var lastAttemptNanos = 0L
 
@@ -185,28 +202,38 @@ class Iap2LocationReporter(
         }
         Iap2LocationMessages.STOP_LOCATION_INFORMATION -> {
             onProgress("iap2 rx=0xfffc stop-location-information")
-            active = false
+            stop()
             sentLogged = false
-            provider?.stop()
             true
         }
         else -> false
     }
 
-    /** Sends the latest fix once a second while this link has an active request. */
+    /** Event-driven in low-latency mode, with a one-second maintenance heartbeat in either mode. */
     fun tick(send: (Iap2Frame) -> Unit) {
-        if (active && sinceAttemptMillis() >= POLL_INTERVAL_MILLIS) sendLatest(send)
+        if (!active) return
+        val due = if (provider?.lowLatencyEnabled == true && updatePending.get()) 200L else POLL_INTERVAL_MILLIS
+        if (sinceAttemptMillis() >= due) {
+            updatePending.set(false)
+            sendLatest(send)
+        }
     }
 
     /** Wakes the loop when the next requested fix is due. */
     fun pollTimeout(remainingMillis: Long): Long =
-        if (active) min(remainingMillis, (POLL_INTERVAL_MILLIS - sinceAttemptMillis()).coerceAtLeast(1))
+        if (active) min(remainingMillis, ((if (provider?.lowLatencyEnabled == true && updatePending.get()) 200L
+            else POLL_INTERVAL_MILLIS) - sinceAttemptMillis()).coerceAtLeast(1))
         else remainingMillis
 
     private fun sinceAttemptMillis() = (nanoTime() - lastAttemptNanos) / 1_000_000
 
     private fun start(send: (Iap2Frame) -> Unit) {
+        provider?.setOnLocationChanged(if (provider.lowLatencyEnabled) ({
+            updatePending.set(true)
+            wakeUp()
+        }) else null)
         active = startProvider()
+        if (!active) provider?.setOnLocationChanged(null)
         sentLogged = false
         if (active) sendLatest(send)
     }
@@ -225,6 +252,7 @@ class Iap2LocationReporter(
         lastAttemptNanos = nanoTime()
         val sentence = provider?.latestNmea() ?: return
         send(Iap2LocationMessages.locationInformation(sentence))
+        provider?.onNmeaSent()
         if (!sentLogged) {
             sentLogged = true
             onProgress("iap2 tx=0xfffb location-information")

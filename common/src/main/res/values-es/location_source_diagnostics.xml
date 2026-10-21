@@ -9,4 +9,6 @@
     <string name="settings_location_state_stopped">Sin suscripción</string>
     <string name="settings_location_state_waiting">Esperando posición fiable</string>
     <string name="settings_location_diagnostic_values">Posición: %1$s · Precisión: %2$s · Edad: %3$s\nEstado: %4$s\nÚltimo rechazo: %5$s</string>
+    <string name="settings_location_source_dr">DR del navegador</string>
+    <string name="settings_location_state_dr_estimate">DR estimado; edad desde recepción</string>
 </resources>

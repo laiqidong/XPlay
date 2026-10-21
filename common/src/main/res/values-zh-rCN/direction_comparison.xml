@@ -10,6 +10,6 @@
     <string name="settings_direction_no_sample">暂无数据</string>
     <string name="settings_direction_sample">%1$.1f° · %2$d 秒前</string>
     <string name="settings_direction_values">导航 DR：%1$s\nGPS：%2$s</string>
-    <string name="settings_direction_output">使用 DR 车头方向（实验性）</string>
-    <string name="settings_direction_output_hint">用原车导航 DR 车头方向替换发送给 CarPlay 的 GPS 方向，倒车也保持车头方向。需开启定位共享，DR 不可用时方向留空。下次连接生效，可手动重连进行对比。</string>
+    <string name="settings_direction_output">使用原车 DR 定位与方向（实验性）</string>
+    <string name="settings_direction_output_hint">优先使用原车高德匹配位置和车头方向，无 GPS 时也尝试输出。暂按 GCJ-02 转换为 WGS84 试传，精度未验证。需开启定位共享。超过 1.5 秒无回调则回退原定位来源；接收新鲜不代表底层测量更新。下次连接生效。</string>
 </resources>

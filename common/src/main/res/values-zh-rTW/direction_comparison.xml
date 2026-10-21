@@ -10,6 +10,6 @@
     <string name="settings_direction_no_sample">暫無資料</string>
     <string name="settings_direction_sample">%1$.1f° · %2$d 秒前</string>
     <string name="settings_direction_values">導航 DR：%1$s\nGPS：%2$s</string>
-    <string name="settings_direction_output">使用 DR 車頭方向（實驗性）</string>
-    <string name="settings_direction_output_hint">以原車導航 DR 車頭方向取代傳送給 CarPlay 的 GPS 方向，倒車也保持車頭方向。需開啟定位共享，DR 無法使用時方向留空。下次連線生效，可手動重新連線比較。</string>
+    <string name="settings_direction_output">使用原車 DR 定位與方向（實驗性）</string>
+    <string name="settings_direction_output_hint">優先使用原車高德匹配位置及車頭方向，無 GPS 時也嘗試輸出。暫按 GCJ-02 轉換為 WGS84 試傳，精度未驗證。需開啟定位共享。超過 1.5 秒無回呼則退回原定位來源；接收新鮮不代表底層測量更新。下次連線生效。</string>
 </resources>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_location_source_mode">定位來源</string>
+    <string name="settings_location_system">系統自動（不使用 DR）</string>
+    <string name="settings_location_gps_first">GPS 優先（實驗性）</string>
+    <string name="settings_location_dr_first">DR 優先（實驗性）</string>
+    <string name="settings_location_only_gps">僅 GPS</string>
+    <string name="settings_location_only_dr">僅 DR（實驗性）</string>
+    <string name="settings_location_system_description">使用合格的系統 GPS、融合或網路定位，不使用原車導航 DR。下次連線生效。</string>
+    <string name="settings_location_gps_first_description">使用 2 秒內、精度在 30 公尺以內的 GPS；GPS 失效時回退 DR，再回退系統其他來源。DR 有效時，需連續收到 5 筆新的合格 GPS 資料才切回；中間不合格則重新計數。DR 也失效時，一筆合格 GPS 即恢復定位。下次連線生效。</string>
+    <string name="settings_location_dr_first_description">優先使用原車導航 DR 的位置、方向和速度；DR 無效或超過 2 秒未更新時回退系統定位。下次連線生效。</string>
+    <string name="settings_location_only_gps_description">僅使用合格 GPS；GPS 無效、超過 3 秒或精度差於 30 公尺時回報無定位。下次連線生效。</string>
+    <string name="settings_location_only_dr_description">僅使用原車導航 DR 的位置、方向和速度；DR 無效或超過 2 秒未更新時回報無定位。下次連線生效。</string>
+</resources>

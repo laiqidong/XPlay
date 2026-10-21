@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_location_source_mode">位置情報ソース</string>
+    <string name="settings_location_system">システム自動（DR なし）</string>
+    <string name="settings_location_gps_first">GPS 優先（実験的機能）</string>
+    <string name="settings_location_dr_first">DR 優先（実験的機能）</string>
+    <string name="settings_location_only_gps">GPS のみ</string>
+    <string name="settings_location_only_dr">DR のみ（実験的機能）</string>
+    <string name="settings_location_system_description">有効なシステム GPS・融合・ネットワーク測位を使用し、純正ナビ DR は使いません。次回接続から適用。</string>
+    <string name="settings_location_gps_first_description">2 秒以内、精度 30 m 以内の GPS を使用。無効なら DR、次に他のシステム測位へ切り替えます。DR が有効な間、GPS への復帰には新しい有効な測位が連続 5 回必要です。無効な測位でカウントをリセット。DR も無効なら GPS 1 回で測位を再開。次回接続から適用。</string>
+    <string name="settings_location_dr_first_description">純正ナビ DR の位置・方向・速度を優先。DR が無効または 2 秒間更新されない場合はシステム測位を使用。次回接続から適用。</string>
+    <string name="settings_location_only_gps_description">有効な GPS のみ使用。利用不能、3 秒経過、精度が 30 m より悪い場合は測位なしを通知。次回接続から適用。</string>
+    <string name="settings_location_only_dr_description">純正ナビ DR の位置・方向・速度のみ使用。無効または 2 秒間更新されない場合は測位なしを通知。次回接続から適用。</string>
+</resources>

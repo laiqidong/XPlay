@@ -310,7 +310,7 @@
     <string name="remote_server_address_must_start_with_http_or_https">遠端伺服器位址必須以 http\:// 或 https\:// 開頭</string>
     <string name="remote_token_contains_u_0000">遠端權杖包含 U+0000</string>
     <string name="report_android_location_to_the_iphone">向 iPhone 回報 Android 位置</string>
-    <string name="report_location_to_iphone">向 iPhone 回報位置</string>
+    <string name="report_location_to_iphone">向 iPhone 提供車機定位</string>
     <string name="report_saved_open_it_from_your_file_manager_to_share_it">報告已儲存。在檔案管理器中開啟即可分享。</string>
     <string name="reports_save_to_downloads_diplay">報告會儲存至 Downloads/DiPlay。</string>
     <string name="requesting_iphone_usb_permission">正在要求 iPhone USB 權限</string>
@@ -356,7 +356,7 @@
     <string name="saving_report">正在儲存報告…</string>
     <string name="security">安全類型</string>
     <string name="selecting_carplay_configuration">正在選擇 CarPlay 設定</string>
-    <string name="sends_precise_android_location_as_carplay_gps_data_when_th">iPhone 要求時，會將 Android 精確位置作為 CarPlay GPS 資料傳送。</string>
+    <string name="sends_precise_android_location_as_carplay_gps_data_when_th">iPhone 請求時傳送所選來源的位置。關閉後由 iPhone 自行定位。</string>
     <string name="server_address">伺服器位址</string>
     <string name="set">設定</string>
     <string name="set_up_once_your_details_stay_saved_for_the_next_drive_cha">只需設定一次，資訊會儲存供下次駕駛使用。變更會在下次連線時生效。</string>
@@ -600,7 +600,7 @@
     <string name="hotspot_control_timeout">等待車機熱點開啟超時，請在車機設定中開啟。</string>
     <string name="hotspot_control_failed">車機熱點開啟失敗，請在車機設定中開啟。</string>
     <string name="byd_adb_features">比亞迪功能 · 需要 ADB</string>
-    <string name="location_reporting_reconnects">變更此設定會重新連線進行中的 CarPlay。</string>
+    <string name="location_reporting_reconnects">定位設定在重新連線後生效。先儲存，再自行選擇何時重新連線。</string>
     <string name="diagnostic_report_saved_in_app">由於公開儲存位置無法使用，報告已私密儲存到 XPlay。您可以在此分享或檢視報告。不會自動傳送任何內容。</string>
     <string name="diagnostic_report_saved_to_path">報告已儲存到：\n%1$s\n\n您也可以在此分享或檢視報告。不會自動傳送任何內容。</string>
     <string name="view_diagnostic_report">檢視報告</string>

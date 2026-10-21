@@ -1,7 +1,3 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="settings_location_drift_protection">定位防漂移</string>
-    <string name="settings_location_drift_protection_description">自动模式允许 GPS、融合和网络定位。过滤跳点，恢复时连续确认 3 个位置，并结合新鲜车速抑制停车抖动。“仅 GPS”仍排除其他来源。下次连接生效。</string>
-    <string name="settings_location_gps_only">仅传送 GPS 定位</string>
-    <string name="settings_location_gps_only_description">不使用网络或融合定位。防漂移由原开关独立控制；关闭防漂移可发送未经平滑或锁定的 GPS 坐标。GPS 丢失或过期时报告无有效定位。下次连接生效。</string>
 </resources>

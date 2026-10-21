@@ -22,6 +22,10 @@ internal class P7DirectionMonitor(context: Context, private val changed: () -> U
     var failed = false
         private set
     data class Sample(val degrees: Float, val receivedAt: Long)
+    data class Position(val latitude: Double, val longitude: Double, val receivedAt: Long,
+        val speedMetersPerSecond: Double? = null)
+    var drPosition: Position? = null
+        private set
     var gps: Sample? = null
         private set
     var dr: Sample? = null
@@ -43,15 +47,28 @@ internal class P7DirectionMonitor(context: Context, private val changed: () -> U
                     val category = requireNotNull(type.getMethod("category").invoke(location)).toString()
                     val angle = type.getMethod("angle").invoke(location) as Float
                     val received = SystemClock.elapsedRealtime()
+                    val position = if (category == "DR_LOCATION") runCatching {
+                        val lat = (type.getMethod("latitude").invoke(location) as Number).toDouble()
+                        val lon = (type.getMethod("longitude").invoke(location) as Number).toDouble()
+                        // Original-navigation DR speed is km/h (confirmed by the low-speed drive).
+                        // Keep an unavailable/invalid speed empty rather than turning it into a stop.
+                        val speed = runCatching {
+                            (type.getMethod("speed").invoke(location) as Number).toDouble()
+                                .takeIf { it.isFinite() && it >= 0.0 }?.div(3.6)
+                        }.getOrNull()
+                        Position(lat, lon, received, speed).takeIf { lat.isFinite() && lon.isFinite() &&
+                            lat in -90.0..90.0 && lon in -180.0..180.0 && (lat != 0.0 || lon != 0.0) }
+                    }.getOrNull() else null
                     main.post {
+                        if (!stopped && category == "DR_LOCATION") drPosition = position
                         if (!stopped && angle.isFinite() && angle >= 0f && angle < 360f) {
                             val sample = Sample(angle, received)
                             when (category) {
                                 "GPS_LOCATION" -> gps = sample
                                 "DR_LOCATION" -> dr = sample
                             }
-                            changed()
                         }
+                        if (!stopped) changed()
                     }
                 }
                 reply?.writeNoException()
@@ -111,6 +128,7 @@ internal class P7DirectionMonitor(context: Context, private val changed: () -> U
         failed = true
         gps = null
         dr = null
+        drPosition = null
         stop()
         changed()
     }

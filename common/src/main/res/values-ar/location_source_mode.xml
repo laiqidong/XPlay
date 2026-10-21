@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_location_source_mode">مصدر الموقع</string>
+    <string name="settings_location_system">تلقائي من النظام (بدون DR)</string>
+    <string name="settings_location_gps_first">أولوية GPS (تجريبي)</string>
+    <string name="settings_location_dr_first">أولوية DR (تجريبي)</string>
+    <string name="settings_location_only_gps">GPS فقط</string>
+    <string name="settings_location_only_dr">DR فقط (تجريبي)</string>
+    <string name="settings_location_system_description">يستخدم بيانات GPS أو الموقع المدمج أو الشبكة الصالحة دون DR للملاحة الأصلية. يسري عند الاتصال التالي.</string>
+    <string name="settings_location_gps_first_description">يستخدم GPS بعمر لا يتجاوز ثانيتين ودقة 30 مترا أو أفضل. عند فقده يستخدم DR ثم مصادر النظام الأخرى. مع DR صالح يتطلب الرجوع 5 قراءات GPS جديدة وصالحة متتالية؛ القراءة غير الصالحة تصفر العداد. عند فقد DR أيضا تكفي قراءة GPS صالحة واحدة. يسري عند الاتصال التالي.</string>
+    <string name="settings_location_dr_first_description">الأولوية لموقع واتجاه وسرعة DR الأصلي. يرجع للنظام إذا كان DR غير صالح أو لم يتحدث لثانيتين. يسري عند الاتصال التالي.</string>
+    <string name="settings_location_only_gps_description">GPS صالح فقط. يبلغ عن غياب الموقع عند عدم توفره أو تجاوزه 3 ثوان أو دقة أسوأ من 30 مترا. يسري عند الاتصال التالي.</string>
+    <string name="settings_location_only_dr_description">موقع واتجاه وسرعة DR الأصلي فقط. يبلغ عن غياب الموقع إذا كان غير صالح أو لم يتحدث لثانيتين. يسري عند الاتصال التالي.</string>
+</resources>

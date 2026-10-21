@@ -41,28 +41,6 @@ class LocationReportingSettingsTest {
         controller?.pause()?.stop()?.destroy()
     }
 
-    @Test fun driftProtectionDefaultsOffPersistsAndDoesNotInterruptTheSession() {
-        openSettings()
-        assertFalse(AirPlayPersistence.loadLocationDriftProtection(context))
-        assertFalse(driftSwitch().isChecked)
-        val session = mock(CarPlayController::class.java)
-        var stops = 0
-        CarPlayBackgroundSession.store(session, mock(AndroidMediaSink::class.java), 800, 480, Any(),
-            CarPlaySessionDisplay(800, 480, Surface.ROTATION_0, false, false, 800, 480)) { stops++ }
-        CarPlayBackgroundSession.active = true
-        driftSwitch().performClick()
-        assertTrue(AirPlayPersistence.loadLocationDriftProtection(context))
-        assertTrue(PendingReconnect.isPending(session))
-        assertFalse(AirPlayPersistence.loadLocationReportingEnabled(context))
-        assertEquals(0, stops)
-        assertSame(session, CarPlayBackgroundSession.snapshot()?.controller)
-        requireNotNull(controller).recreate()
-        assertTrue(driftSwitch().isChecked)
-        driftSwitch().performClick()
-        assertFalse(AirPlayPersistence.loadLocationDriftProtection(context))
-        assertEquals(0, stops)
-    }
-
     @Test fun currentSettingsExposeLocationSwitchWithDefaultOff() {
         openSettings()
 
@@ -114,29 +92,21 @@ class LocationReportingSettingsTest {
         assertTrue(AirPlayPersistence.loadLocationReportingEnabled(context))
     }
 
-    @Test fun eitherToggleDirectionStopsTheOldSessionAndOpensANewHostWithSavedSetting() {
+    @Test fun eitherToggleDirectionSavesWithoutInterruptingTheSession() {
         shadowOf(context).grantPermissions(Manifest.permission.ACCESS_FINE_LOCATION)
-        AirPlayPersistence.saveWirelessEnabled(context, false)
         openSettings()
-        // Authentication assets are deliberately absent from unit tests. Model an already
-        // provisioned, connected host without constructing transports or native decoders.
-        ReflectionHelpers.setField(activity, "setupError", null)
-        val stoppedWithSettings = mutableListOf<Boolean>()
-
+        val session = mock(CarPlayController::class.java)
+        var stops = 0
+        CarPlayBackgroundSession.store(session, mock(AndroidMediaSink::class.java), 800, 480, Any(),
+            CarPlaySessionDisplay(800, 480, Surface.ROTATION_0, false, false, 800, 480)) { stops++ }
+        CarPlayBackgroundSession.active = true
         for (enabled in listOf(true, false)) {
-            val stop: ((() -> Unit) -> Unit) = { completion ->
-                stoppedWithSettings += AirPlayPersistence.loadLocationReportingEnabled(context)
-                CarPlayBackgroundSession.clear()
-                completion()
-            }
-            ReflectionHelpers.setField(CarPlayBackgroundSession, "stopAction", stop)
-
             locationSwitch().performClick()
-
             assertEquals(enabled, AirPlayPersistence.loadLocationReportingEnabled(context))
-            assertEquals(CarPlayHostActivity::class.java.name, shadowOf(activity).nextStartedActivity.component?.className)
+            assertTrue(PendingReconnect.isPending(session))
+            assertEquals(0, stops)
+            assertSame(session, CarPlayBackgroundSession.snapshot()?.controller)
         }
-        assertEquals(listOf(true, false), stoppedWithSettings)
     }
 
     private fun openSettings() {
@@ -149,10 +119,6 @@ class LocationReportingSettingsTest {
     private fun locationSwitch(): Switch = descendants(activity.window.decorView)
         .filterIsInstance<Switch>()
         .single { it.settingsControlTitle == activity.getString(R.string.report_location_to_iphone) }
-
-    private fun driftSwitch(): Switch = descendants(activity.window.decorView)
-        .filterIsInstance<Switch>()
-        .single { it.settingsControlTitle == activity.getString(R.string.settings_location_drift_protection) }
 
     private fun descendants(view: View): Sequence<View> = sequence {
         yield(view)

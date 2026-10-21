@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_location_source_mode">Источник местоположения</string>
+    <string name="settings_location_system">Автоматически системой (без DR)</string>
+    <string name="settings_location_gps_first">Приоритет GPS (экспериментально)</string>
+    <string name="settings_location_dr_first">Приоритет DR (экспериментально)</string>
+    <string name="settings_location_only_gps">Только GPS</string>
+    <string name="settings_location_only_dr">Только DR (экспериментально)</string>
+    <string name="settings_location_system_description">Использует достоверные системные GPS, объединённые или сетевые данные без DR штатной навигации. Со следующего подключения.</string>
+    <string name="settings_location_gps_first_description">GPS: возраст до 2 секунд, точность до 30 м. При потере — DR, затем другие системные источники. Пока DR действителен, возврат к GPS требует 5 новых достоверных измерений подряд; недостоверное сбрасывает счётчик. При потере DR достаточно одного достоверного GPS. Со следующего подключения.</string>
+    <string name="settings_location_dr_first_description">Приоритет штатного DR: позиция, направление и скорость. Если DR недействителен или не обновляется 2 секунды, используется система. Со следующего подключения.</string>
+    <string name="settings_location_only_gps_description">Только достоверный GPS. Нет позиции при недоступности, возрасте более 3 секунд или точности хуже 30 м. Со следующего подключения.</string>
+    <string name="settings_location_only_dr_description">Только позиция, направление и скорость штатного DR. Нет позиции при недействительных данных или отсутствии обновления 2 секунды. Со следующего подключения.</string>
+</resources>

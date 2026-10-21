@@ -10,6 +10,6 @@
     <string name="settings_direction_no_sample">Sin datos</string>
     <string name="settings_direction_sample">%1$.1f° · hace %2$d s</string>
     <string name="settings_direction_values">Navegación DR: %1$s\nGPS: %2$s</string>
-    <string name="settings_direction_output">Usar rumbo DR del vehículo (experimental)</string>
-    <string name="settings_direction_output_hint">Sustituye el rumbo GPS enviado a CarPlay por el rumbo DR del navegador, también marcha atrás. Requiere compartir ubicación. Sin DR, el rumbo queda vacío. Se aplica al reconectar; reconecta manualmente para comparar.</string>
+    <string name="settings_direction_output">Usar ubicación y rumbo DR originales (experimental)</string>
+    <string name="settings_direction_output_hint">Prioriza la posición ajustada y el rumbo de AMap, incluso sin GPS. Supone GCJ-02 y convierte a WGS84 para probar; precisión sin verificar. Requiere compartir ubicación. Tras 1,5 s sin eventos vuelve a la fuente normal. La recepción reciente no garantiza una medición nueva. Próxima conexión.</string>
 </resources>

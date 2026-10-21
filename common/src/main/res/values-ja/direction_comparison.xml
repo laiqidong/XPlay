@@ -10,6 +10,6 @@
     <string name="settings_direction_no_sample">データなし</string>
     <string name="settings_direction_sample">%1$.1f° · %2$d 秒前</string>
     <string name="settings_direction_values">ナビ DR：%1$s\nGPS：%2$s</string>
-    <string name="settings_direction_output">DR 車頭方位を使用（実験的機能）</string>
-    <string name="settings_direction_output_hint">CarPlay に送る GPS 方位を純正ナビの DR 車頭方位で置き換えます。後退時も同じです。位置共有が必要です。DR が無効なら方位は空欄です。次回接続時に適用されます。比較するには手動で再接続してください。</string>
+    <string name="settings_direction_output">純正 DR 位置と方位を使用（実験的機能）</string>
+    <string name="settings_direction_output_hint">GPS がなくても純正高徳ナビの補正位置と車頭方位を優先します。GCJ-02 と仮定して WGS84 に変換する試験で、精度は未検証です。位置共有が必要です。1.5秒受信がなければ通常の測位へ戻ります。受信時刻は測定時刻ではありません。次回接続時に適用。</string>
 </resources>

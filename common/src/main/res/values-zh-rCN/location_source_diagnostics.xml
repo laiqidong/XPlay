@@ -9,4 +9,6 @@
     <string name="settings_location_state_stopped">未订阅定位</string>
     <string name="settings_location_state_waiting">等待可靠位置</string>
     <string name="settings_location_diagnostic_values">定位：%1$s · 精度：%2$s · 数据年龄：%3$s\n状态：%4$s\n最近拒绝原因：%5$s</string>
+    <string name="settings_location_source_dr">原车导航 DR</string>
+    <string name="settings_location_state_dr_estimate">DR 估算；数据年龄按收到回调计算</string>
 </resources>

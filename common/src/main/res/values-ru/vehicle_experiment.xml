@@ -39,7 +39,7 @@
     <string name="settings_p7_carplay_title">Передача данных P7 (экспериментально)</string>
     <string name="settings_p7_battery">Батарея, запас хода и зарядка для iPhone</string>
     <string name="settings_p7_battery_description">Передаёт заряд, запас хода WLTP и доступные данные о зарядке и ёмкости через разрешённый ADB. Неизвестные значения пропускаются. Применяется при следующем подключении.</string>
-    <string name="settings_p7_motion">Скорость колёс и передача для iPhone (экспериментально)</string>
-    <string name="settings_p7_motion_description">Передаёт фактическую скорость и передачу, преобразует km/h и пропускает устаревшие данные. Требуется передача точного местоположения в разделе «Навигация и геолокация». Применяется при следующем подключении.</string>
+    <string name="settings_p7_motion">Дополнительно передавать скорость и передачу (экспериментально)</string>
+    <string name="settings_p7_motion_description">Независимый канал данных автомобиля по запросу iPhone. Отдельно от скорости в DR. Требуется передача местоположения. Со следующего подключения.</string>
     <string name="settings_p7_location_link">Открыть настройки геопозиции</string>
 </resources>

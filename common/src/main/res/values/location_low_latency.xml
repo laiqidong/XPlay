@@ -1,0 +1,4 @@
+<resources>
+    <string name="settings_location_low_latency">Low-latency sending</string>
+    <string name="settings_location_low_latency_description">Sends new positions promptly instead of waiting for the one-second cycle. Requests system updates every 200 ms; original-navigation DR remains about once per second. Does not extrapolate or repeat old coordinates. Applies at the next connection.</string>
+</resources>

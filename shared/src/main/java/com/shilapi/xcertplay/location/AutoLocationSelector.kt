@@ -4,10 +4,11 @@ import com.shilapi.xcertplay.transport.CarPlayLocationFix
 import kotlin.math.*
 
 /** Quality-gated fallback. Provider names never imply satellite provenance. Session-local. */
-internal class AutoLocationSelector(private val protection: Boolean) {
+internal class AutoLocationSelector(private val protection: Boolean, private val gpsMaxAgeMillis: Long = 3000L) {
     enum class Source(val ageMillis: Long, val accuracyLimit: Double) {
         GPS(3000, 30.0), FUSED(5000, 50.0), NETWORK(5000, 100.0)
     }
+    private fun maxAge(source: Source) = if (source == Source.GPS) gpsMaxAgeMillis else source.ageMillis
     data class Sample(val source: Source, val elapsedMillis: Long, val fix: CarPlayLocationFix)
     private data class Track(var value: Sample? = null, var count: Int = 0,
         var seen: Long = Long.MIN_VALUE, var suspect: Sample? = null, var suspectCount: Int = 0)
@@ -26,7 +27,7 @@ internal class AutoLocationSelector(private val protection: Boolean) {
     }
     fun offer(sample: Sample, now: Long) {
         val track = tracks.getValue(sample.source)
-        if (now - sample.elapsedMillis !in 0..sample.source.ageMillis) {
+        if (now - sample.elapsedMillis !in 0..maxAge(sample.source)) {
             reason = "stale_or_future"; rejection = reason; return
         }
         if (sample.elapsedMillis <= track.seen) return
@@ -39,13 +40,13 @@ internal class AutoLocationSelector(private val protection: Boolean) {
         if (protection && previous != null && !continuous(previous, sample)) {
             val suspect = track.suspect
             track.suspectCount = if (suspect != null && continuous(suspect, sample) &&
-                sample.elapsedMillis - suspect.elapsedMillis <= sample.source.ageMillis) track.suspectCount + 1 else 1
+                sample.elapsedMillis - suspect.elapsedMillis <= maxAge(sample.source)) track.suspectCount + 1 else 1
             track.suspect = sample
             reason = "jump"; rejection = reason
             if (track.suspectCount < 3) return
             track.count = 3
         } else {
-            track.count = if (previous != null && sample.elapsedMillis - previous.elapsedMillis <= sample.source.ageMillis)
+            track.count = if (previous != null && sample.elapsedMillis - previous.elapsedMillis <= maxAge(sample.source))
                 track.count + 1 else 1
         }
         track.suspect = null; track.suspectCount = 0
@@ -54,7 +55,7 @@ internal class AutoLocationSelector(private val protection: Boolean) {
     fun latest(now: Long, speed: Double?): CarPlayLocationFix? {
         selected = Source.entries.asSequence().mapNotNull { source ->
             val track = tracks.getValue(source)
-            track.value?.takeIf { now - it.elapsedMillis in 0..source.ageMillis &&
+            track.value?.takeIf { now - it.elapsedMillis in 0..maxAge(source) &&
                 track.suspect == null && (!protection || track.count >= 3) }
         }.firstOrNull { candidate ->
             val previous = lastOutput
@@ -100,7 +101,21 @@ internal class AutoLocationSelector(private val protection: Boolean) {
 
 /** No coordinates are retained in diagnostics. Times are monotonic reception/source ages. */
 object LocationSourceDiagnostics {
+    /** Receipt time only: original navigation omits measurement time and accuracy. */
+    fun reportDrReception(receivedAt: Long) {
+        snapshot = Snapshot("DR", receivedAt, null, "dr_reception_only")
+    }
     data class Snapshot(val source: String?, val measuredAt: Long?, val accuracy: Double?, val reason: String, val rejection: String? = null)
     @Volatile var snapshot = Snapshot(null, null, null, "stopped")
+        internal set
+}
+
+
+/** Timing only: no coordinates. “Sent” means queued to iAP2, not rendered by iPhone Maps. */
+object LocationLatencyDiagnostics {
+    data class Snapshot(val lowLatency: Boolean = false, val sourcePeriodMillis: Long? = null,
+        val sourceToReceiveMillis: Long? = null, val receiveToSendMillis: Long? = null,
+        val sourceToSendMillis: Long? = null)
+    @Volatile var snapshot = Snapshot()
         internal set
 }

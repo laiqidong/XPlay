@@ -39,7 +39,7 @@
     <string name="settings_p7_carplay_title">P7 資料共享（實驗性）</string>
     <string name="settings_p7_battery">向 iPhone 傳送電池、續航與充電資料</string>
     <string name="settings_p7_battery_description">透過已授權 ADB 傳送電量、WLTP 續航及可讀的充電狀態和電池容量。未知項目不傳送，下次連線生效。</string>
-    <string name="settings_p7_motion">向 iPhone 傳送車速與檔位（實驗性）</string>
-    <string name="settings_p7_motion_description">使用車輛實際車速與檔位，車速由 km/h 轉換；過期資料不傳送。需在「導航與定位」中開啟精確定位共享，下次連線生效。</string>
+    <string name="settings_p7_motion">額外傳送車輛車速與檔位（實驗性）</string>
+    <string name="settings_p7_motion_description">透過獨立車輛資料通道，依 iPhone 請求傳送真實車速與檔位。與 DR 定位已包含的速度分開；需開啟車機定位共享。下次連線生效。</string>
     <string name="settings_p7_location_link">開啟車機定位共享設定</string>
 </resources>
