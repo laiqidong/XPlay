@@ -83,7 +83,7 @@ class AdaptiveSettingsUiTest {
         }
 
         verifyVisibleText()
-        for (category in SettingsCategory.entries.filter { it != SettingsCategory.OVERVIEW }) {
+        for (category in SettingsInformationArchitecture.categories(com.shilapi.xcertplay.adb.LocalAdbDevicePolicy.isXpengP7()).filter { it != SettingsCategory.OVERVIEW }) {
             ReflectionHelpers.callInstanceMethod<Unit>(
                 screen, "openSettingsCategory",
                 ReflectionHelpers.ClassParameter(SettingsCategory::class.java, category),
@@ -668,7 +668,7 @@ class AdaptiveSettingsUiTest {
                 destination.settingsControlTitle?.endsWith(" settings") == true &&
                 descendants(destination).filterIsInstance<ImageView>().count() == 1
         }.toList()
-        assertEquals(SettingsCategory.entries.size, destinations.size)
+        assertEquals(SettingsInformationArchitecture.categories(com.shilapi.xcertplay.adb.LocalAdbDevicePolicy.isXpengP7()).size, destinations.size)
         destinations.forEach { destination ->
             assertEquals(1, descendants(destination).filterIsInstance<ImageView>().count())
         }
@@ -689,7 +689,7 @@ class AdaptiveSettingsUiTest {
 
     @Test fun overviewLinksToEveryOtherCategory() {
         val screen = openSettings()
-        (SettingsCategory.entries - SettingsCategory.OVERVIEW).forEach { category ->
+        (SettingsInformationArchitecture.categories(com.shilapi.xcertplay.adb.LocalAdbDevicePolicy.isXpengP7()) - SettingsCategory.OVERVIEW).forEach { category ->
             val title = ReflectionHelpers.callInstanceMethod<String>(screen, "settingsCategoryTitle",
                 ReflectionHelpers.ClassParameter(SettingsCategory::class.java, category))
             assertTrue(category.name, descendants(screen.window.decorView).any {
@@ -828,7 +828,7 @@ class AdaptiveSettingsUiTest {
         val modules = descendants(screen.window.decorView).single { it.tag == "overview_modules" } as LinearLayout
         assertEquals(LinearLayout.HORIZONTAL, modules.orientation)
         val scroll = ReflectionHelpers.getField<ScrollView>(screen, "rootScroll")
-        (SettingsCategory.entries - SettingsCategory.OVERVIEW).forEach { category ->
+        (SettingsInformationArchitecture.categories(com.shilapi.xcertplay.adb.LocalAdbDevicePolicy.isXpengP7()) - SettingsCategory.OVERVIEW).forEach { category ->
             val title = ReflectionHelpers.callInstanceMethod<String>(screen, "settingsCategoryTitle", ReflectionHelpers.ClassParameter(SettingsCategory::class.java, category))
             assertFalse(descendants(scroll).any { it.settingsControlTitle == screen.getString(R.string.settings_open_category, title) })
         }

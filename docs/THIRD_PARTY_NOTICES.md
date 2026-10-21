@@ -1,5 +1,13 @@
 # Credits and license notices
 
+## P7 instrument image transport
+
+The P7 instrument worker, image policy, native map guardian/lease and optional lane-display
+bridge are adapted from [heavendoorx7/OP-CarPlay](https://github.com/heavendoorx7/OP-CarPlay),
+commit `5ea1cf60024210f3e0729ba14cda5c339be6f20b`, under GPL-3.0.
+XPlay modifications dated 2026-10-21 isolate package/socket/recovery identities and add
+an independent lyrics renderer. See [implementation and permissions](P7_INSTRUMENT_LYRICS.md).
+
 ## Receiver
 
 DiPlay is a modified version of [xcertplay by shilapi](https://github.com/shilapi/xcertplay). The upstream receiver is licensed under GNU GPL version 3; the full text is in `LICENSE` and the original README is retained in `docs/UPSTREAM-README.md`.
