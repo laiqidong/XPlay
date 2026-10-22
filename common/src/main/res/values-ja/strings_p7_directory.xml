@@ -6,7 +6,7 @@
     <string name="settings_menu_navigation">ナビと車両情報</string>
     <string name="settings_menu_controls">ボタンと操作</string>
     <string name="settings_menu_instrument">メーター</string>
-    <string name="settings_menu_about">情報とバックアップ</string>
+    <string name="settings_menu_about">情報</string>
     <string name="settings_connection_method">接続方法</string>
     <string name="settings_connection_hotspot">車載ホットスポット</string>
     <string name="settings_connection_wifi">Wi-Fi</string>
@@ -22,4 +22,6 @@
     <string name="settings_hotspot_confirm_hint">確認して接続ページに戻り、「適用」で変更を保存します。</string>
     <string name="settings_exit">終了</string>
     <string name="settings_exit_to_carplay">設定を閉じて CarPlay に戻る</string>
+    <string name="settings_connection_back">設定に戻る</string>
+    <string name="settings_connection_unavailable">接続できません</string>
 </resources>

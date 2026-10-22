@@ -473,8 +473,7 @@ class AdaptiveSettingsUiTest {
             assertTrue(SettingsSection.WHEEL_KEYS in sections(SettingsCategory.CONTROLS))
             assertTrue(SettingsSection.CAR_BUTTON in sections(SettingsCategory.CONTROLS))
             assertTrue(SettingsSection.P7_CARPLAY_DATA in sections(SettingsCategory.NAVIGATION))
-            assertTrue(SettingsSection.VEHICLE_EXPERIMENT in sections(SettingsCategory.DIAGNOSTICS))
-            assertTrue(SettingsSection.LANGUAGE in sections(SettingsCategory.ABOUT))
+            assertTrue(SettingsSection.BACKUP in sections(SettingsCategory.DIAGNOSTICS))
             assertTrue(SettingsSection.INSTRUMENT_MAP in sections(SettingsCategory.INSTRUMENT))
             assertFalse(SettingsSection.FLOATING_LYRICS in sections(SettingsCategory.INSTRUMENT))
             assertFalse(SettingsSection.INSTRUMENT_MAP in sections(SettingsCategory.LYRICS))
@@ -737,9 +736,12 @@ class AdaptiveSettingsUiTest {
         ReflectionHelpers.callInstanceMethod<Unit>(screen, "openSettingsCategory",
             ReflectionHelpers.ClassParameter(SettingsCategory::class.java, SettingsCategory.ABOUT))
         assertEquals(SettingsCategory.ABOUT, ReflectionHelpers.getField<SettingsCategory>(screen, "settingsCategory"))
-        assertTrue(descendants(screen.window.decorView).any {
+        assertFalse(descendants(screen.window.decorView).any {
             it.settingsControlTitle == screen.getString(R.string.language_app_language)
         })
+        assertFalse(texts(screen).any { it.text == screen.getString(R.string.backup_open) })
+        ReflectionHelpers.callInstanceMethod<Unit>(screen, "openSettingsCategory",
+            ReflectionHelpers.ClassParameter(SettingsCategory::class.java, SettingsCategory.DIAGNOSTICS))
         assertTrue(texts(screen).any { it.text == screen.getString(R.string.backup_open) })
         screen.onBackPressedDispatcher.onBackPressed()
         assertEquals(SettingsCategory.OVERVIEW, ReflectionHelpers.getField<SettingsCategory>(screen, "settingsCategory"))

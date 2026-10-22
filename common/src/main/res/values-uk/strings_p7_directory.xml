@@ -6,7 +6,7 @@
     <string name="settings_menu_navigation">Навігація й автомобіль</string>
     <string name="settings_menu_controls">Кнопки й жести</string>
     <string name="settings_menu_instrument">Панель приладів</string>
-    <string name="settings_menu_about">Інформація й копія</string>
+    <string name="settings_menu_about">Про застосунок</string>
     <string name="settings_connection_method">Спосіб підключення</string>
     <string name="settings_connection_hotspot">Точка доступу автомобіля</string>
     <string name="settings_connection_wifi">Wi-Fi</string>
@@ -22,4 +22,6 @@
     <string name="settings_hotspot_confirm_hint">Підтвердьте й натисніть «Застосувати» на сторінці підключення.</string>
     <string name="settings_exit">Вихід</string>
     <string name="settings_exit_to_carplay">Вийти з налаштувань і повернутися до CarPlay</string>
+    <string name="settings_connection_back">До налаштувань</string>
+    <string name="settings_connection_unavailable">Не вдалося підключитися</string>
 </resources>

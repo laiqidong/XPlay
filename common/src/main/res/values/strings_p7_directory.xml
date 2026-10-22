@@ -6,7 +6,7 @@
     <string name="settings_menu_navigation">Navigation &amp; vehicle data</string>
     <string name="settings_menu_controls">Buttons &amp; gestures</string>
     <string name="settings_menu_instrument">Instrument</string>
-    <string name="settings_menu_about">About &amp; backup</string>
+    <string name="settings_menu_about">About</string>
     <string name="settings_connection_method">Connection method</string>
     <string name="settings_connection_hotspot">Car hotspot</string>
     <string name="settings_connection_wifi">Wi-Fi</string>
@@ -22,4 +22,6 @@
     <string name="settings_hotspot_confirm_hint">Confirm to return, then tap Apply on the connection page.</string>
     <string name="settings_exit">Exit</string>
     <string name="settings_exit_to_carplay">Exit settings and return to CarPlay</string>
+    <string name="settings_connection_back">Back to settings</string>
+    <string name="settings_connection_unavailable">Unable to connect</string>
 </resources>

@@ -96,6 +96,12 @@ Instrument and Lyrics are separate categories. Instrument only projects the inde
 CarPlay map channel; lyrics belong to the floating overlay. Map preferences use
 `InstrumentMapSettings` and preserve the existing storage migration.
 
+### About, backup and language
+
+About contains version/project information only. Backup and restore belong to Diagnostics.
+Do not reintroduce direction comparison or vehicle-information reader/subscriber panels.
+XPlay follows the head unit language, retiring old app locale overrides; do not add an app language selector.
+
 ## Settings layout
 
 Spacing, size and shape in the Settings screen MUST come from one place.

@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="connection_loading" translatable="false">Connecting...</string>
+    <string name="connection_loading">Connecting</string>
 </resources>

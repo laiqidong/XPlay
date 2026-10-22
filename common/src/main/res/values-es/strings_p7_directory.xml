@@ -6,7 +6,7 @@
     <string name="settings_menu_navigation">Navegación y vehículo</string>
     <string name="settings_menu_controls">Botones y gestos</string>
     <string name="settings_menu_instrument">Cuadro de instrumentos</string>
-    <string name="settings_menu_about">Información y copia</string>
+    <string name="settings_menu_about">Acerca de</string>
     <string name="settings_connection_method">Método de conexión</string>
     <string name="settings_connection_hotspot">Punto de acceso del coche</string>
     <string name="settings_connection_wifi">Wi-Fi</string>
@@ -22,4 +22,6 @@
     <string name="settings_hotspot_confirm_hint">Confirma para volver y pulsa Aplicar en la página de conexión.</string>
     <string name="settings_exit">Salir</string>
     <string name="settings_exit_to_carplay">Salir de ajustes y volver a CarPlay</string>
+    <string name="settings_connection_back">Volver a ajustes</string>
+    <string name="settings_connection_unavailable">No se puede conectar</string>
 </resources>

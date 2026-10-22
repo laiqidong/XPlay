@@ -6,7 +6,7 @@
     <string name="settings_menu_navigation">導航與車況</string>
     <string name="settings_menu_controls">按鍵與操作</string>
     <string name="settings_menu_instrument">儀表</string>
-    <string name="settings_menu_about">關於與備份</string>
+    <string name="settings_menu_about">關於</string>
     <string name="settings_connection_method">連線方式</string>
     <string name="settings_connection_hotspot">熱點</string>
     <string name="settings_connection_wifi">Wi-Fi</string>
@@ -22,4 +22,6 @@
     <string name="settings_hotspot_confirm_hint">確認後返回連線頁，點擊「套用」儲存變更。</string>
     <string name="settings_exit">離開</string>
     <string name="settings_exit_to_carplay">離開設定，返回 CarPlay</string>
+    <string name="settings_connection_back">返回設定</string>
+    <string name="settings_connection_unavailable">無法連線</string>
 </resources>

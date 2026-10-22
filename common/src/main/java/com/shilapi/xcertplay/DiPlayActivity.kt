@@ -96,7 +96,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         if (p7Settings) SettingsCategory.CONNECTION else SettingsCategory.OVERVIEW
     private val settingsCategories: List<SettingsCategory> get() = SettingsInformationArchitecture.categories(p7Settings)
     private fun categorySections(category: SettingsCategory) = SettingsInformationArchitecture.sections(category, p7Settings)
-    private fun vehicleMonitorPage() = settingsCategory == SettingsCategory.DIAGNOSTICS
     private val handler = Handler(Looper.getMainLooper())
     private var overviewBackPending = false
     private val overviewSingleBack = Runnable {
@@ -291,7 +290,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         // Retire work queued by older builds; XPlay updates are maintained in our own repository.
         runCatching { BackgroundUpdateScheduler.disable(applicationContext) }
             .onFailure { Log.w("XPlay-Update", "Could not retire old update work", it) }
-        if (page != "settings" || settingsCategory != SettingsCategory.DIAGNOSTICS) stopDirectionMonitor()
         enforceInterfaceSize()
         refreshAppearance()
         rememberLaunchAppearance()
@@ -438,8 +436,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     }
 
     override fun onStop() {
-        stopDirectionMonitor()
-        stopVehicleMonitor()
         routeOnNextStart = true
         window.decorView.visibility = View.INVISIBLE
         cancelUsbPermissionSetup()
@@ -575,8 +571,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     private fun render() = render(appearanceOnly = false)
 
     private fun render(appearanceOnly: Boolean, preferredFocusTag: Any? = null) {
-        if (page != "settings" || !vehicleMonitorPage()) stopVehicleMonitor()
-        if (page != "settings" || settingsCategory != SettingsCategory.DIAGNOSTICS) stopDirectionMonitor()
         enforceInterfaceSize()
         refreshAppearance()
         applyWindowAppearance()
@@ -1059,7 +1053,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     private fun openSettingsCategory(category: SettingsCategory) {
         cancelOverviewBack()
         settingsCategory = SettingsInformationArchitecture.category(category, p7Settings)
-        if (!vehicleMonitorPage()) stopVehicleMonitor()
         render()
     }
 
@@ -1171,130 +1164,12 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         }
     }
 
-    private var directionMonitor: P7DirectionMonitor? = null
-    private var directionLabel: TextView? = null
-    private val directionTick = object : Runnable {
-        override fun run() {
-            updateDirectionLabel()
-            if (page == "settings" && settingsCategory == SettingsCategory.DIAGNOSTICS) handler.postDelayed(this, 1000)
-        }
-    }
-    private fun stopDirectionMonitor() {
-        directionMonitor?.stop()
-        directionMonitor = null
-        handler.removeCallbacks(directionTick)
-        directionLabel = null
-    }
-    private fun updateDirectionLabel() {
-        val monitor = directionMonitor
-        val state = getString(when {
-            monitor == null -> R.string.settings_direction_idle
-            monitor.failed -> R.string.settings_direction_unavailable
-            monitor.connected -> R.string.settings_direction_connected
-            else -> R.string.settings_direction_waiting
-        })
-        fun sample(value: P7DirectionMonitor.Sample?): String {
-            if (value == null) return getString(R.string.settings_direction_no_sample)
-            val age = ((android.os.SystemClock.elapsedRealtime() - value.receivedAt) / 1000).coerceAtLeast(0)
-            return getString(R.string.settings_direction_sample, value.degrees, age)
-        }
-        val location = com.shilapi.xcertplay.location.LocationSourceDiagnostics.snapshot
-        fun status(code: String?) = getString(when (code) {
-            "dr_reception_only" -> R.string.settings_location_state_dr_estimate
-            "selected" -> R.string.settings_location_state_selected
-            "poor_accuracy" -> R.string.settings_location_state_accuracy
-            "jump" -> R.string.settings_location_state_jump
-            "stale_or_future" -> R.string.settings_location_state_stale
-            "stopped" -> R.string.settings_location_state_stopped
-            null -> R.string.settings_direction_no_sample
-            else -> R.string.settings_location_state_waiting
-        })
-        val source = getString(when (location.source) {
-            "DR" -> R.string.settings_location_source_dr
-            "GPS" -> R.string.settings_location_source_gps
-            "FUSED" -> R.string.settings_location_source_fused
-            "NETWORK" -> R.string.settings_location_source_network
-            else -> R.string.settings_direction_no_sample
-        })
-        val age = location.measuredAt?.let {
-            "%.1f s".format(Locale.US, (android.os.SystemClock.elapsedRealtime() - it).coerceAtLeast(0) / 1000.0)
-        } ?: getString(R.string.settings_direction_no_sample)
-        val accuracy = location.accuracy?.let { "%.1f m".format(Locale.US, it) }
-            ?: getString(R.string.settings_direction_no_sample)
-        directionLabel?.text = state + "\n" + getString(R.string.settings_direction_values,
-            sample(monitor?.dr), sample(monitor?.gps)) + "\n" +
-            getString(R.string.settings_location_diagnostic_values, source, accuracy, age,
-                status(location.reason), status(location.rejection))
-    }
-
-    private var vehicleMonitor: VehicleInformationMonitor? = null
-    private var vehicleProbeLabel: TextView? = null
-    private var vehicleReader: VehicleInformationReader? = null
-    private var vehicleProbeReport: String? = null
-
-    private fun stopVehicleMonitor() {
-        vehicleMonitor?.stop()
-        vehicleMonitor = null
-        vehicleReader?.cancel()
-        vehicleReader = null
-    }
-
-    private fun readVehicleInformation() {
-        if (vehicleReader != null || vehicleMonitor != null) return
-        lateinit var reader: VehicleInformationReader
-        reader = VehicleInformationReader(applicationContext) { values ->
-            handler.post {
-                if (vehicleReader === reader && !isFinishing && !isDestroyed) {
-                    vehicleReader = null
-                    vehicleProbeReport = VehicleInformationProbe.format(this, values)
-                    if (values.none { it != null }) Toast.makeText(this,
-                        getString(R.string.settings_vehicle_read_unavailable), Toast.LENGTH_LONG).show()
-                    render()
-                }
-            }
-        }
-        vehicleReader = reader
-        render()
-        reader.start()
-    }
-
-    private fun toggleVehicleSubscription() {
-        if (vehicleMonitor != null) {
-            vehicleMonitor?.stop()
-            vehicleMonitor = null
-        } else if (vehicleReader == null) {
-            lateinit var monitor: VehicleInformationMonitor
-            monitor = VehicleInformationMonitor(applicationContext, onValues = { values ->
-                handler.post {
-                    if (vehicleMonitor === monitor && !isFinishing && !isDestroyed) {
-                        vehicleProbeReport = VehicleInformationProbe.format(this, values)
-                        vehicleProbeLabel?.text = vehicleProbeReport
-                    }
-                }
-            }, onClosed = {
-                handler.post {
-                    if (vehicleMonitor === monitor) {
-                        vehicleMonitor = null
-                        if (!isFinishing && !isDestroyed) {
-                            Toast.makeText(this, getString(R.string.settings_vehicle_subscription_ended), Toast.LENGTH_LONG).show()
-                            render()
-                        }
-                    }
-                }
-            })
-            vehicleMonitor = monitor
-            monitor.start()
-        }
-        render()
-    }
-
     private val settingsSectionRenderer by lazy {
         SettingsSectionRenderer(mapOf(
             SettingsSection.FLOATING_LYRICS to ::floatingLyricsSection,
             SettingsSection.INSTRUMENT_MAP to ::instrumentMapSection,
             SettingsSection.LYRICS_SHARED to ::sharedLyricsSection,
             SettingsSection.P7_CARPLAY_DATA to ::buildP7CarplayDataSection,
-            SettingsSection.VEHICLE_EXPERIMENT to ::buildVehicleExperimentSection,
             SettingsSection.CARPLAY_CONTROLS to ::buildCarplayControlsSection,
             SettingsSection.WHEEL_KEYS to ::buildWheelKeysSection,
             SettingsSection.CONNECTION_SETUP to ::buildConnectionSetupSection,
@@ -1317,7 +1192,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             SettingsSection.CLUSTER_MAP to ::buildClusterMapSection,
             SettingsSection.BYD_NAVIGATION to ::buildBydNavigationSection,
             SettingsSection.PERMISSIONS_AND_HELP to ::buildPermissionsAndHelpSection,
-            SettingsSection.LANGUAGE to ::languageSettings,
+            SettingsSection.BACKUP to ::backupSettings,
         ))
     }
 
@@ -1337,26 +1212,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                 }
 
             }
-        }
-
-    }
-
-    private fun buildVehicleExperimentSection(content: LinearLayout) {
-        filteredSection(content, SettingsSection.VEHICLE_EXPERIMENT,
-            getString(R.string.settings_vehicle_probe_title), R.drawable.ic_dp_dashboard) { card ->
-            card.addView(button(getString(if (vehicleReader != null) R.string.settings_vehicle_read_running
-                else R.string.settings_vehicle_read_start), false, ::readVehicleInformation).apply {
-                    isEnabled = vehicleReader == null && vehicleMonitor == null
-                }, matchButton(0, SETTINGS_RAIL_ROW_HEIGHT_DP))
-            card.addView(space(SETTINGS_BLOCK_GAP_DP))
-            card.addView(button(getString(if (vehicleMonitor != null) R.string.settings_vehicle_subscribe_stop
-                else R.string.settings_vehicle_subscribe_start), false, ::toggleVehicleSubscription).apply {
-                    isEnabled = vehicleReader == null
-                }, matchButton(0, SETTINGS_RAIL_ROW_HEIGHT_DP))
-            card.addView(label(vehicleProbeReport ?: VehicleInformationProbe.empty(this), 18, TEXT).apply {
-                vehicleProbeLabel = this
-                setTextIsSelectable(true)
-            })
         }
 
     }
@@ -1420,23 +1275,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     private fun buildDiagnosticsSection(content: LinearLayout) {
         filteredSection(content, SettingsSection.DIAGNOSTICS,
             getString(R.string.diagnostics), R.drawable.ic_dp_diagnostics) { card ->
-            if (p7Settings) {
-                card.addView(label(getString(R.string.settings_direction_title), 18, TEXT, true))
-                card.addView(label(getString(R.string.settings_direction_hint), 14, MUTED))
-                card.addView(button(getString(if (directionMonitor == null) R.string.settings_direction_start
-                    else R.string.settings_direction_stop), false) {
-                    if (directionMonitor != null) stopDirectionMonitor() else {
-                        directionMonitor = P7DirectionMonitor(this, ::updateDirectionLabel)
-                        directionMonitor?.start()
-                        handler.post(directionTick)
-                    }
-                    render()
-                }, matchButton(SETTINGS_BLOCK_GAP_DP, SETTINGS_RAIL_ROW_HEIGHT_DP))
-                card.addView(label("", 18, TEXT).apply { directionLabel = this })
-                updateDirectionLabel()
-                handler.removeCallbacks(directionTick)
-                handler.postDelayed(directionTick, 1000)
-            }
             exportButton = button(if (exportInProgress) getString(R.string.saving_report) else getString(R.string.save_diagnostic_report), false) {
                 saveReportToDownloads()
             }.apply { isEnabled = !exportInProgress }
@@ -2208,16 +2046,12 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         section(content, getString(R.string.about_public_preview_prefix, version())) { card ->
             card.addView(label(getString(R.string.an_independent_carplay_receiver_for_android_head_units_wir), 17, TEXT))
         }
-        section(content, getString(R.string.backup_title)) { card ->
-            card.addView(button(getString(R.string.backup_open), false) { openBackup() }, matchButton(0, 60))
-            card.addView(label(getString(R.string.backup_open_description), 14, MUTED).apply { setPadding(0, dp(10), 0, 0) })
-        }
         section(content, getString(R.string.made_possible_by_open_source)) { card ->
             card.addView(label(getString(R.string.receiver_based_on_xcertplay_licensed_under_gpl_3_0_diplay), 16, MUTED))
         }
     }
 
-    private fun openBackup(from: SettingsCategory = SettingsCategory.ABOUT) {
+    private fun openBackup(from: SettingsCategory = SettingsCategory.DIAGNOSTICS) {
         backupOpenedFrom = from
         page = "backup"
         render()
@@ -5430,14 +5264,11 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         return grid
     }
     private fun version() = packageManager.getPackageInfo(packageName, 0).versionName ?: "0.1.0-beta.1"
-    private fun languageSettings(content: LinearLayout) {
-        filteredSection(content, SettingsSection.LANGUAGE,
-            getString(R.string.language_section_title), R.drawable.ic_dp_language) { card ->
-            card.addView(label(getString(R.string.language_hint), 14, MUTED))
-            val current = AppLocale.preference(this)
-            val languageButton = button("${getString(R.string.language_app_language)} · ${AppLocale.displayName(this, current)}", false) { }
-            languageButton.setOnClickListener { AppLocale.showPicker(this) }
-            card.addView(languageButton, matchButton(12, 60))
+    private fun backupSettings(content: LinearLayout) {
+        filteredSection(content, SettingsSection.BACKUP, getString(R.string.backup_title), R.drawable.ic_dp_diagnostics) { card ->
+            card.addView(button(getString(R.string.backup_open), false) { openBackup(SettingsCategory.DIAGNOSTICS) },
+                matchButton(0, CONTROL_HEIGHT_DP))
+            card.addView(label(getString(R.string.backup_open_description), 14, MUTED))
         }
     }
 

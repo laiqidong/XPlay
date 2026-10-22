@@ -7,7 +7,6 @@ internal enum class SettingsCategory {
 
 /** A settings card. Every entry needs one category in [SettingsInformationArchitecture]; see AGENTS.md. */
 internal enum class SettingsSection {
-    VEHICLE_EXPERIMENT,
     P7_CARPLAY_DATA,
     INSTRUMENT_MAP,
     FLOATING_LYRICS,
@@ -34,7 +33,7 @@ internal enum class SettingsSection {
     CLUSTER_MAP,
     BYD_NAVIGATION,
     PERMISSIONS_AND_HELP,
-    LANGUAGE,
+    BACKUP,
 }
 
 internal object SettingsInformationArchitecture {
@@ -52,10 +51,10 @@ internal object SettingsInformationArchitecture {
             SettingsSection.CAR_BUTTON),
         SettingsCategory.VEHICLE to setOf(SettingsSection.AMBIENT_LIGHTING),
         SettingsCategory.DIAGNOSTICS to setOf(SettingsSection.DIAGNOSTICS, SettingsSection.AUTHENTICATION,
-            SettingsSection.PERMISSIONS_AND_HELP, SettingsSection.VEHICLE_EXPERIMENT),
+            SettingsSection.PERMISSIONS_AND_HELP, SettingsSection.BACKUP),
         SettingsCategory.LYRICS to setOf(SettingsSection.FLOATING_LYRICS, SettingsSection.LYRICS_SHARED),
         SettingsCategory.INSTRUMENT to setOf(SettingsSection.INSTRUMENT_MAP),
-        SettingsCategory.ABOUT to setOf(SettingsSection.LANGUAGE),
+        SettingsCategory.ABOUT to emptySet(),
     )
 
     val P7_UNAVAILABLE_SECTIONS = setOf(SettingsSection.CLUSTER_MAP, SettingsSection.AMBIENT_LIGHTING,

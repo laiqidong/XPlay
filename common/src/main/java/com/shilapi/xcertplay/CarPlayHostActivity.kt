@@ -783,12 +783,14 @@ class CarPlayHostActivity : ComponentActivity() {
     }
 
     private fun showManualConnectionStart() {
+        connectionTitleView?.setText(R.string.carplay)
         connectionProgress?.visibility = View.GONE
         connectionStartButton?.visibility = View.VISIBLE
         stageStatusView?.setText(R.string.connection_tap_to_start)
     }
 
     private fun beginConnection() {
+        connectionTitleView?.setText(R.string.connection_loading)
         startupRequested = true
         connectionStartButton?.visibility = View.GONE
         connectionProgress?.visibility = View.VISIBLE
@@ -797,6 +799,7 @@ class CarPlayHostActivity : ComponentActivity() {
             val failure = runCatching { DiPlayBootstrap.ensure(this, AirPlayPersistence.loadMfiTarget(this)) }.exceptionOrNull()
             if (failure != null) {
                 startupRequested = false
+                connectionTitleView?.setText(R.string.settings_connection_unavailable)
                 stageStatusView?.setText(R.string.setup_error_auth)
                 connectionProgress?.visibility = View.GONE
                 connectionStartButton?.visibility = View.VISIBLE
@@ -2966,14 +2969,6 @@ class CarPlayHostActivity : ComponentActivity() {
             style(DiPlayButtonKind.TONAL_DANGER, overlayPalette, overlay = true)
             setOnClickListener { exitApplication() }
         }
-
-        content.addView(DiPlayButton(this).apply {
-            text = getString(R.string.language_app_language)
-            textSize = 17f
-            minHeight = dp(52)
-            style(DiPlayButtonKind.SECONDARY, overlayPalette, overlay = true)
-            setOnClickListener { AppLocale.showPicker(this@CarPlayHostActivity) }
-        }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(12) })
 
         val gestureButton = DiPlayButton(this).apply {
             textSize = 17f
@@ -6267,6 +6262,7 @@ class CarPlayHostActivity : ComponentActivity() {
         val englishMessage = englishResources.getString(stringId)
         runOnUiThread {
             if (stringId == R.string.vpn_authorization_unavailable) {
+                connectionTitleView?.setText(R.string.settings_connection_unavailable)
                 connectionHelpView?.apply { text = message; visibility = View.VISIBLE }
                 connectionProgress?.visibility = View.GONE
             }
@@ -6280,7 +6276,7 @@ class CarPlayHostActivity : ComponentActivity() {
 
     private fun showConnectionHelp(failure: CarPlayStatus.Failed?) {
         connectionProgress?.visibility = if (failure == null) View.VISIBLE else View.GONE
-        connectionTitleView?.setText(R.string.connection_loading)
+        connectionTitleView?.setText(if (failure == null) R.string.connection_loading else R.string.settings_connection_unavailable)
         connectionHelpView?.apply {
             visibility = if (failure == null) View.GONE else View.VISIBLE
             if (failure != null) text = getString(ConnectionFailureGuidance.message(failure, wirelessEnabled, wirelessHotspotMode))

@@ -77,8 +77,11 @@ class P7SettingsUiTest {
         open(SettingsCategory.DIAGNOSTICS)
         assertChoice(R.string.mfi_certificate_signing_target, true)
         open(SettingsCategory.ABOUT)
-        assertChoice(R.string.language_app_language, true)
+        assertChoice(R.string.language_app_language, false)
+        assertAbsent(R.string.backup_open)
+        open(SettingsCategory.DIAGNOSTICS)
         assertPresent(R.string.backup_open)
+        assertAbsent(R.string.settings_direction_title, R.string.settings_vehicle_probe_title)
     }
 
     @Test fun switchingToUsbRevealsChargingAndPermissionControls() {
@@ -94,7 +97,7 @@ class P7SettingsUiTest {
 
     @Test fun diagnosticsIsIndependentAndBackReturnsToConnection() {
         open(SettingsCategory.DIAGNOSTICS)
-        assertPresent(R.string.save_diagnostic_report, R.string.settings_vehicle_probe_title)
+        assertPresent(R.string.save_diagnostic_report, R.string.backup_open)
         assertAbsent(R.string.efficient_video)
         ReflectionHelpers.callInstanceMethod<Unit>(screen, "navigateBack")
         assertEquals(SettingsCategory.CONNECTION, category())
