@@ -28,8 +28,8 @@ this local policy does not disable GitHub-hosted workflow triggers.
 ## Adding or moving a setting
 
 The Settings screen is grouped by driver goal, not by implementation.
-`SettingsCategory`, `SettingsSection` and `SettingsInformationArchitecture` at the top of
-`common/src/main/java/com/shilapi/xcertplay/DiPlayActivity.kt` define the groups.
+`SettingsCategory`, `SettingsSection` and `SettingsInformationArchitecture` in
+`common/src/main/java/com/shilapi/xcertplay/SettingsInformationArchitecture.kt` define the groups.
 `SettingsLayoutPolicyTest` fails when a section has no category or has more than one.
 
 ### Choose the category
@@ -57,12 +57,14 @@ Each locale MUST use its existing form: `(تجريبي)`, `(experimental)`, `(э
 
 ### Add the code
 
-1. To extend an existing card, add the control inside the `filteredSection(...)` block of a card in the correct category.
+1. To extend an existing card, add the control inside its builder method
+   (for example `buildLocationSection`) and its `filteredSection(...)` block in the correct category.
 2. For a new card, add a `SettingsSection` entry and map it to exactly one category in `SettingsInformationArchitecture.sectionsByCategory`.
-3. Build the new card with `filteredSection(content, SettingsSection.X, …)` inside `allSettingsSections()`.
-   A plain `section(...)` call there MUST NOT be used: it renders on every category page.
+3. Add a builder method using `filteredSection(content, SettingsSection.X, …)` and register it
+   in the `settingsSectionRenderer` map in `DiPlayActivity.kt`. `allSettingsSections()` delegates
+   to `SettingsSectionRenderer`, which calls only the requested builders in category order.
+   A plain `section(...)` call in a card builder MUST NOT be used: it bypasses section filtering.
 4. A setting MUST NOT appear in two categories.
-   Overview quick settings are the only duplicates. They MUST use the same persistence as the full control. Overview SHOULD NOT have more than four quick settings.
    A header shortcut MAY duplicate a Display setting when it uses the same persistence.
 5. If the change reconnects CarPlay or applies at the next connection, the description MUST say so.
    A setting that only takes effect at the next connection MUST call `markReconnectNeeded()` after it saves.
@@ -76,8 +78,23 @@ Each locale MUST use its existing form: `(تجريبي)`, `(experimental)`, `(э
 
 ### Overview
 
-Overview holds the connection status, links to the categories, quick settings, About and Language.
-Do not add a new setting to Overview. Add it to its category. Then promote it to quick settings only if drivers change it often.
+P7 has no Overview category. Connection is the default page; its connection-method card
+holds inline settings and the Connect action. Do not add a separate status card or hotspot
+instructions action. Wide windows use the category rail;
+narrow windows use a category choice row. Do not restore a separate Overview or quick settings.
+
+### P7 connection and instrument scope
+
+P7 has exactly three user-facing connection methods: car hotspot, existing Wi-Fi and USB.
+The selected method shows its configuration inline in Connection; do not add a separate setup
+page or expose Wi-Fi Direct/local-only hotspot there. Hotspot details use one summary row:
+a popup Confirm only updates the draft, and an external Apply button appears only for changes.
+Persist hotspot edits only through that Apply action. Save changes for the next connection
+and use `markReconnectNeeded()` without dropping the running session.
+
+Instrument and Lyrics are separate categories. Instrument only projects the independent
+CarPlay map channel; lyrics belong to the floating overlay. Map preferences use
+`InstrumentMapSettings` and preserve the existing storage migration.
 
 ## Settings layout
 
@@ -89,8 +106,8 @@ Spacing, size and shape in the Settings screen MUST come from one place.
    Test a menu or panel on a narrow window and on a high-density screen.
 3. Controls in one row MUST have the same height.
    Corner radius MUST follow the control height. A new button MUST NOT set its own radius.
-4. Every `SettingsCategory` except Overview MUST have a link on Overview.
-   `AdaptiveSettingsUiTest.overviewLinksToEveryOtherCategory` checks this.
+4. Every available P7 category MUST be reachable from the category rail or compact category selector.
+   Overview and Vehicle are legacy entries, mapped to Connection and Navigation for P7.
 5. UI and layout changes are visually checked by the user. Agents MUST NOT capture,
    open, inspect or review screenshots/images for UI validation, or start an emulator
    solely for visual checks, unless the user explicitly requests it.

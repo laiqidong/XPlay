@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_menu_connection">連線與啟動</string>
+    <string name="settings_menu_display">畫面與外觀</string>
+    <string name="settings_menu_audio">聲音與通話</string>
+    <string name="settings_menu_navigation">導航與車況</string>
+    <string name="settings_menu_controls">按鍵與操作</string>
+    <string name="settings_menu_instrument">儀表</string>
+    <string name="settings_menu_about">關於與備份</string>
+    <string name="settings_connection_method">連線方式</string>
+    <string name="settings_connection_hotspot">熱點</string>
+    <string name="settings_connection_wifi">Wi-Fi</string>
+    <string name="settings_connection_usb">USB</string>
+    <string name="settings_connection_inline_description">選擇連線方式，在下方設定。儲存的變更於下次連線 CarPlay 時生效。</string>
+    <string name="settings_navigation_p7_summary">設定車輛定位、GPS／DR 來源、速度與檔位，以及電量和續航回報。</string>
+    <string name="settings_connection_not_entered">未填寫</string>
+    <string name="settings_directory">目錄</string>
+    <string name="settings_connection_applies_next">變更於下次連線 CarPlay 時生效。</string>
+    <string name="settings_apply">套用</string>
+    <string name="settings_confirm">確認</string>
+    <string name="settings_apply_before_connect">請先套用變更，再連線。</string>
+    <string name="settings_hotspot_confirm_hint">確認後返回連線頁，點擊「套用」儲存變更。</string>
+    <string name="settings_exit">離開</string>
+    <string name="settings_exit_to_carplay">離開設定，返回 CarPlay</string>
+</resources>

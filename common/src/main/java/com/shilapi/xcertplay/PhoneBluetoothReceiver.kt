@@ -15,6 +15,7 @@ class PhoneBluetoothReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != BluetoothDevice.ACTION_ACL_CONNECTED ||
             !DiPlayPreferences.connectOnPhoneBluetooth(context) ||
+            (com.shilapi.xcertplay.adb.LocalAdbDevicePolicy.isXpengP7() && !P7ConnectionMethod.current(context).wireless) ||
             CarPlayBackgroundSession.hasSession()) return
         val selected = DiPlayPreferences.phoneAddress(context) ?: return
         if (Build.VERSION.SDK_INT >= 31 &&

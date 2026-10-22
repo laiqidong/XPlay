@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_menu_connection">接続と起動</string>
+    <string name="settings_menu_display">画面と外観</string>
+    <string name="settings_menu_audio">音声と通話</string>
+    <string name="settings_menu_navigation">ナビと車両情報</string>
+    <string name="settings_menu_controls">ボタンと操作</string>
+    <string name="settings_menu_instrument">メーター</string>
+    <string name="settings_menu_about">情報とバックアップ</string>
+    <string name="settings_connection_method">接続方法</string>
+    <string name="settings_connection_hotspot">車載ホットスポット</string>
+    <string name="settings_connection_wifi">Wi-Fi</string>
+    <string name="settings_connection_usb">USB</string>
+    <string name="settings_connection_inline_description">接続方法を選び、下で設定します。保存した変更は次回の CarPlay 接続時に適用されます。</string>
+    <string name="settings_navigation_p7_summary">車両の位置情報、GPS／DR、速度とギア、バッテリーと航続距離の送信を設定します。</string>
+    <string name="settings_connection_not_entered">未入力</string>
+    <string name="settings_directory">カテゴリ</string>
+    <string name="settings_connection_applies_next">変更は次回の CarPlay 接続時に適用されます。</string>
+    <string name="settings_apply">適用</string>
+    <string name="settings_confirm">確認</string>
+    <string name="settings_apply_before_connect">接続する前に変更を適用してください。</string>
+    <string name="settings_hotspot_confirm_hint">確認して接続ページに戻り、「適用」で変更を保存します。</string>
+    <string name="settings_exit">終了</string>
+    <string name="settings_exit_to_carplay">設定を閉じて CarPlay に戻る</string>
+</resources>

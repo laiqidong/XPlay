@@ -11,10 +11,10 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 
-/** The upstream installer UI is retired; retain provider isolation for cached APKs and image uploads. */
+/** The legacy authority now shares only car-icon uploads. */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [25, 28, 33], shadows = [FileProviderPathTestShadow::class])
-class UpdateInstallCompatibilityTest {
+class CarImageProviderTest {
     @Before fun resetFileProviderCache() {
         val cache = FileProvider::class.java.getDeclaredField("sCache").apply { isAccessible = true }
         (cache.get(null) as MutableMap<*, *>).clear()
@@ -26,12 +26,12 @@ class UpdateInstallCompatibilityTest {
             FileProvider.getUriForFile(context, "${context.packageName}.update-apks", outside)
         }
     }
-    @Test fun cachedApkIsSharedThroughContentUriInsideTheAllowedDirectory() {
+    @Test fun retiredUpdateDirectoryIsNoLongerShared() {
         val context = RuntimeEnvironment.getApplication()
         val apk = File(context.cacheDir, "update/test/XPlay.apk").apply { parentFile!!.mkdirs(); writeBytes(byteArrayOf(1)) }
-        val uri = FileProvider.getUriForFile(context, "${context.packageName}.update-apks", apk)
-        assertEquals("content", uri.scheme)
-        assertEquals("${context.packageName}.update-apks", uri.authority)
+        assertThrows(IllegalArgumentException::class.java) {
+            FileProvider.getUriForFile(context, "${context.packageName}.update-apks", apk)
+        }
     }
     @Test fun imageUploadSharesOnlyItsOwnCacheDirectory() {
         val context = RuntimeEnvironment.getApplication()

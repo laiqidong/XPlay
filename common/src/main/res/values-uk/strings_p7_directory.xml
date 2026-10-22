@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_menu_connection">Підключення й запуск</string>
+    <string name="settings_menu_display">Екран і вигляд</string>
+    <string name="settings_menu_audio">Звук і виклики</string>
+    <string name="settings_menu_navigation">Навігація й автомобіль</string>
+    <string name="settings_menu_controls">Кнопки й жести</string>
+    <string name="settings_menu_instrument">Панель приладів</string>
+    <string name="settings_menu_about">Інформація й копія</string>
+    <string name="settings_connection_method">Спосіб підключення</string>
+    <string name="settings_connection_hotspot">Точка доступу автомобіля</string>
+    <string name="settings_connection_wifi">Wi-Fi</string>
+    <string name="settings_connection_usb">USB</string>
+    <string name="settings_connection_inline_description">Виберіть спосіб і налаштуйте його нижче. Збережені зміни застосуються під час наступного підключення CarPlay.</string>
+    <string name="settings_navigation_p7_summary">Положення автомобіля, джерела GPS/DR, швидкість, передача, заряд і запас ходу.</string>
+    <string name="settings_connection_not_entered">Не заповнено</string>
+    <string name="settings_directory">Розділ</string>
+    <string name="settings_connection_applies_next">Зміни застосуються під час наступного підключення CarPlay.</string>
+    <string name="settings_apply">Застосувати</string>
+    <string name="settings_confirm">Підтвердити</string>
+    <string name="settings_apply_before_connect">Застосуйте зміни перед підключенням.</string>
+    <string name="settings_hotspot_confirm_hint">Підтвердьте й натисніть «Застосувати» на сторінці підключення.</string>
+    <string name="settings_exit">Вихід</string>
+    <string name="settings_exit_to_carplay">Вийти з налаштувань і повернутися до CarPlay</string>
+</resources>

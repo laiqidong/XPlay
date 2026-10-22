@@ -5,10 +5,6 @@ import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 
-internal object BackgroundUpdatePolicy {
-    fun connectionBusy(hasSession: Boolean, active: Boolean): Boolean = hasSession && !active
-}
-
 /** Keep the class loadable so already-persisted jobs finish without making any network request. */
 internal class BackgroundUpdateWorker(context: Context, parameters: WorkerParameters) : Worker(context, parameters) {
     override fun doWork(): Result = Result.success()
@@ -22,8 +18,9 @@ internal object BackgroundUpdateScheduler {
     fun schedule(context: Context) = disable(context)
 
     fun disable(context: Context) {
-        UpdateAvailability.saveBackgroundChecksEnabled(context, false)
-        UpdateAvailability.clear(context)
+        // Old installations may retain an advertised upstream release. Keep only the disabled flag.
+        context.getSharedPreferences("diplay_update_availability", Context.MODE_PRIVATE)
+            .edit().clear().putBoolean("background_checks", false).apply()
         val manager = WorkManager.getInstance(context.applicationContext)
         manager.cancelUniqueWork(PERIODIC_WORK)
         manager.cancelUniqueWork(OPEN_WORK)

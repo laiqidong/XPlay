@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_menu_connection">Conexión e inicio</string>
+    <string name="settings_menu_display">Imagen y apariencia</string>
+    <string name="settings_menu_audio">Sonido y llamadas</string>
+    <string name="settings_menu_navigation">Navegación y vehículo</string>
+    <string name="settings_menu_controls">Botones y gestos</string>
+    <string name="settings_menu_instrument">Cuadro de instrumentos</string>
+    <string name="settings_menu_about">Información y copia</string>
+    <string name="settings_connection_method">Método de conexión</string>
+    <string name="settings_connection_hotspot">Punto de acceso del coche</string>
+    <string name="settings_connection_wifi">Wi-Fi</string>
+    <string name="settings_connection_usb">USB</string>
+    <string name="settings_connection_inline_description">Elige un método y configúralo debajo. Los cambios guardados se aplican en la próxima conexión de CarPlay.</string>
+    <string name="settings_navigation_p7_summary">Ubicación del vehículo, fuentes GPS/DR, velocidad, marcha, batería y autonomía.</string>
+    <string name="settings_connection_not_entered">Sin introducir</string>
+    <string name="settings_directory">Categoría</string>
+    <string name="settings_connection_applies_next">Los cambios se aplican en la próxima conexión de CarPlay.</string>
+    <string name="settings_apply">Aplicar</string>
+    <string name="settings_confirm">Confirmar</string>
+    <string name="settings_apply_before_connect">Aplica los cambios antes de conectar.</string>
+    <string name="settings_hotspot_confirm_hint">Confirma para volver y pulsa Aplicar en la página de conexión.</string>
+    <string name="settings_exit">Salir</string>
+    <string name="settings_exit_to_carplay">Salir de ajustes y volver a CarPlay</string>
+</resources>

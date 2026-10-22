@@ -2,7 +2,7 @@ package com.shilapi.xcertplay
 
 import android.content.Context
 
-/** Independent output preferences. Requesting a new map stream needs the next CarPlay connection. */
+/** Floating lyric appearance, sources and timing. Instrument projection uses InstrumentMapSettings. */
 internal object InstrumentLyricsSettings {
     fun prefs(context: Context): android.content.SharedPreferences {
         val prefs = context.getSharedPreferences("xplay-instrument-lyrics", Context.MODE_PRIVATE)
@@ -32,10 +32,7 @@ internal object InstrumentLyricsSettings {
         prefs(c).edit().putInt("floating_$key", value.coerceIn(if (key == "font") 80..140 else 0..100)).apply()
         InstrumentLyrics.floatingStyleChanged()
     }
-    fun enabled(c: Context) = prefs(c).getBoolean("enabled", false)
-    fun autoStart(c: Context) = prefs(c).getBoolean("auto", true)
     fun online(c: Context) = prefs(c).getBoolean("online", true)
-    fun hideLane(c: Context) = prefs(c).getBoolean("lane", false)
     fun delay(c: Context) = prefs(c).getInt("delay_ms", 0).coerceIn(0, 5000)
     fun saveDelay(c: Context, value: Int) {
         prefs(c).edit().putInt("delay_ms", value.coerceIn(0, 5000)).apply()
@@ -47,10 +44,9 @@ internal object InstrumentLyricsSettings {
         InstrumentLyrics.timingChanged(c)
     }
     fun save(c: Context, key: String, value: Boolean) {
-        require(key in setOf("enabled", "auto", "online", "lane", "floating", "floating_next", "floating_locked", "floating_animation"))
+        require(key in setOf("online", "floating", "floating_next", "floating_locked", "floating_animation"))
         prefs(c).edit().putBoolean(key, value).apply()
         if (key in setOf("floating_next", "floating_locked", "floating_animation")) InstrumentLyrics.floatingStyleChanged()
-        else if (key in setOf("enabled", "auto", "lane")) InstrumentLyrics.mapSettingsChanged(c)
         else InstrumentLyrics.settingsChanged(c)
     }
 }

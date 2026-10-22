@@ -42,18 +42,14 @@ class P7SettingsUiTest {
         CarPlayBackgroundSession.clear()
     }
 
-    @Test fun overviewLinksToAllP7Categories() {
+    @Test fun directoryContainsAllP7CategoriesWithoutOverview() {
         val categories = SettingsInformationArchitecture.categories(true)
-        assertEquals(SettingsCategory.entries.size, categories.size)
-        val destinationTitles = SettingsCategory.entries.map { category ->
-            screen.getString(R.string.settings_open_category, title(category))
-        }
-        val actual = views().mapNotNull { it.settingsControlTitle }.filter { it in destinationTitles }.toList()
-        val expected = (categories - SettingsCategory.OVERVIEW).map { category ->
-            screen.getString(R.string.settings_open_category, title(category))
-        }
-        assertEquals(expected.toSet(), actual.toSet())
-        assertEquals(expected.size, actual.size)
+        assertEquals(SettingsCategory.entries.size - 2, categories.size)
+        assertFalse(SettingsCategory.VEHICLE in categories)
+        assertFalse(SettingsCategory.OVERVIEW in categories)
+        assertEquals(SettingsCategory.CONNECTION, category())
+        assertEquals(SettingsCategory.CONNECTION, SettingsInformationArchitecture.category(SettingsCategory.OVERVIEW, true))
+        assertEquals(SettingsCategory.NAVIGATION, SettingsInformationArchitecture.category(SettingsCategory.VEHICLE, true))
     }
 
     @Test fun settingsLiveWhereDriversLookForThem() {
@@ -62,10 +58,10 @@ class P7SettingsUiTest {
         assertAbsent(R.string.report_location_to_iphone, R.string.settings_p7_battery)
         open(SettingsCategory.NAVIGATION)
         assertPresent(R.string.report_location_to_iphone, R.string.settings_p7_motion, R.string.settings_direction_output)
-        assertAbsent(R.string.settings_p7_battery, R.string.carplay_map_on_instrument_cluster_experimental)
-        open(SettingsCategory.VEHICLE)
         assertPresent(R.string.settings_p7_battery)
-        assertAbsent(R.string.settings_direction_output, R.string.settings_ambient_title)
+        assertAbsent(R.string.carplay_map_on_instrument_cluster_experimental, R.string.settings_ambient_title)
+        open(SettingsCategory.VEHICLE)
+        assertEquals(SettingsCategory.NAVIGATION, category())
         open(SettingsCategory.DISPLAY)
         assertPresent(R.string.efficient_video, R.string.side_panel)
         assertAbsent(R.string.settings_harman_fullscreen_experimental)
@@ -74,8 +70,12 @@ class P7SettingsUiTest {
         assertChoice(R.string.music_buffer, true)
         assertAbsent(R.string.efficient_video)
         open(SettingsCategory.CONNECTION)
-        assertChoice(R.string.mfi_certificate_signing_target, true)
+        assertChoice(R.string.mfi_certificate_signing_target, false)
+        assertChoice(R.string.settings_connection_method, true)
+        assertAbsent(R.string.open_connection_setup, R.string.wifi_direct)
         assertChoice(R.string.settings_usb_charging, false)
+        open(SettingsCategory.DIAGNOSTICS)
+        assertChoice(R.string.mfi_certificate_signing_target, true)
         open(SettingsCategory.ABOUT)
         assertChoice(R.string.language_app_language, true)
         assertPresent(R.string.backup_open)
@@ -92,12 +92,12 @@ class P7SettingsUiTest {
         assertAbsent(R.string.usb_auto_confirm_title)
     }
 
-    @Test fun diagnosticsIsIndependentAndBackReturnsToOverview() {
+    @Test fun diagnosticsIsIndependentAndBackReturnsToConnection() {
         open(SettingsCategory.DIAGNOSTICS)
         assertPresent(R.string.save_diagnostic_report, R.string.settings_vehicle_probe_title)
         assertAbsent(R.string.efficient_video)
         ReflectionHelpers.callInstanceMethod<Unit>(screen, "navigateBack")
-        assertEquals(SettingsCategory.OVERVIEW, category())
+        assertEquals(SettingsCategory.CONNECTION, category())
     }
 
     @Test fun menuChangesPreserveSavedConnectionAndAudioPreferences() {

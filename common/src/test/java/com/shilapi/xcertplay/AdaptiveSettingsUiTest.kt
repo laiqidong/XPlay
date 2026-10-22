@@ -104,7 +104,7 @@ class AdaptiveSettingsUiTest {
         val screen = openSettings()
 
         assertTrue(texts(screen).any { it.text == screen.getString(R.string.settings_overview) })
-        assertTrue(texts(screen).any { it.text == screen.getString(R.string.settings_quick_settings) })
+        assertFalse(texts(screen).any { it.text == screen.getString(R.string.settings_quick_settings) })
     }
 
     @Test fun savedLightAppearanceThemesTheSettingsCanvasAndSystemBars() {
@@ -187,7 +187,7 @@ class AdaptiveSettingsUiTest {
         descendants(screen.window.decorView).single {
             it.settingsControlTitle == screen.getString(
                 R.string.settings_open_category,
-                screen.getString(R.string.settings_display),
+                screen.getString(R.string.settings_menu_display),
             )
         }.performClick()
         layoutRoot(screen)
@@ -304,7 +304,7 @@ class AdaptiveSettingsUiTest {
         val screen = openSettings()
         descendants(screen.window.decorView)
             .first { it.settingsControlTitle == screen.getString(R.string.settings_open_category,
-                screen.getString(R.string.settings_display)) }
+                screen.getString(R.string.settings_menu_display)) }
             .performClick()
         val density = screen.resources.displayMetrics.density
         fun dp(value: Int) = Math.round(value * density)
@@ -334,7 +334,7 @@ class AdaptiveSettingsUiTest {
         val screen = openSettings()
         descendants(screen.window.decorView)
             .first { it.settingsControlTitle == screen.getString(R.string.settings_open_category,
-                screen.getString(R.string.settings_controls_category)) }
+                screen.getString(R.string.settings_menu_controls)) }
             .performClick()
         val chooseImage = texts(screen).single { it.text == screen.getString(R.string.settings_car_phone_image) }
         val card = chooseImage.parent as LinearLayout
@@ -348,6 +348,8 @@ class AdaptiveSettingsUiTest {
         AirPlayPersistence.saveHideTopBar(context, false)
         AirPlayPersistence.saveHideBottomBar(context, false)
         val screen = openSettings()
+        ReflectionHelpers.callInstanceMethod<Unit>(screen, "openSettingsCategory",
+            ReflectionHelpers.ClassParameter(SettingsCategory::class.java, SettingsCategory.DISPLAY))
         val fullScreen = descendants(screen.window.decorView).filterIsInstance<Switch>()
             .single { it.settingsControlTitle == screen.getString(R.string.full_screen) }
 
@@ -365,13 +367,13 @@ class AdaptiveSettingsUiTest {
         val screen = openSettings()
         descendants(screen.window.decorView)
             .single { it.settingsControlTitle == screen.getString(R.string.settings_open_category,
-                screen.getString(R.string.settings_display)) }
+                screen.getString(R.string.settings_menu_display)) }
             .performClick()
         assertTrue(texts(screen).any { it.text == screen.getString(R.string.settings_carplay_picture_group) })
 
         screen.onBackPressedDispatcher.onBackPressed()
 
-        assertTrue(texts(screen).any { it.text == screen.getString(R.string.settings_quick_settings) })
+        assertFalse(texts(screen).any { it.text == screen.getString(R.string.settings_quick_settings) })
     }
 
     @Test fun openingACompactCategoryAlwaysStartsAtTheTop() {
@@ -387,17 +389,19 @@ class AdaptiveSettingsUiTest {
 
         descendants(screen.window.decorView)
             .single { it.settingsControlTitle == screen.getString(R.string.settings_open_category,
-                screen.getString(R.string.settings_display)) }
+                screen.getString(R.string.settings_menu_display)) }
             .performClick()
 
         val detailScroll = descendants(screen.window.decorView).filterIsInstance<ScrollView>().single()
         assertEquals(0, detailScroll.scrollY)
     }
 
-    @Test fun quickFullScreenChangesBothExistingPreferencesTogether() {
+    @Test fun displayFullScreenChangesBothExistingPreferencesTogether() {
         AirPlayPersistence.saveHideTopBar(context, false)
         AirPlayPersistence.saveHideBottomBar(context, false)
         val screen = openSettings()
+        ReflectionHelpers.callInstanceMethod<Unit>(screen, "openSettingsCategory",
+            ReflectionHelpers.ClassParameter(SettingsCategory::class.java, SettingsCategory.DISPLAY))
         val fullScreen = descendants(screen.window.decorView).filterIsInstance<Switch>()
             .single { it.settingsControlTitle == screen.getString(R.string.full_screen) }
 
@@ -451,7 +455,7 @@ class AdaptiveSettingsUiTest {
         val screen = openSettings()
         descendants(screen.window.decorView)
             .single { it.settingsControlTitle == screen.getString(R.string.settings_open_category,
-                screen.getString(R.string.settings_display)) }
+                screen.getString(R.string.settings_menu_display)) }
             .performClick()
 
         assertTrue(texts(screen).any { it.text == screen.getString(R.string.picture_adjustments) })
@@ -461,14 +465,14 @@ class AdaptiveSettingsUiTest {
         for (p7 in listOf(false, true)) {
             fun sections(category: SettingsCategory) = SettingsInformationArchitecture.sections(category, p7)
             assertTrue(SettingsSection.LOCATION in sections(SettingsCategory.NAVIGATION))
-            assertTrue(SettingsSection.AUTHENTICATION in sections(SettingsCategory.CONNECTION))
+            assertTrue(SettingsSection.AUTHENTICATION in sections(SettingsCategory.DIAGNOSTICS))
             assertTrue(SettingsSection.ADVANCED_VIDEO in sections(SettingsCategory.DISPLAY))
             assertTrue(SettingsSection.EXPERIMENTAL_DISPLAY in sections(SettingsCategory.DISPLAY))
             assertTrue(SettingsSection.ADVANCED_MEDIA in sections(SettingsCategory.AUDIO))
             assertTrue(SettingsSection.NAVIGATION_WHEEL in sections(SettingsCategory.AUDIO))
             assertTrue(SettingsSection.WHEEL_KEYS in sections(SettingsCategory.CONTROLS))
             assertTrue(SettingsSection.CAR_BUTTON in sections(SettingsCategory.CONTROLS))
-            assertTrue(SettingsSection.P7_CARPLAY_DATA in sections(SettingsCategory.VEHICLE))
+            assertTrue(SettingsSection.P7_CARPLAY_DATA in sections(SettingsCategory.NAVIGATION))
             assertTrue(SettingsSection.VEHICLE_EXPERIMENT in sections(SettingsCategory.DIAGNOSTICS))
             assertTrue(SettingsSection.LANGUAGE in sections(SettingsCategory.ABOUT))
             assertTrue(SettingsSection.INSTRUMENT_MAP in sections(SettingsCategory.INSTRUMENT))
@@ -656,11 +660,11 @@ class AdaptiveSettingsUiTest {
         val categoryScroll = ReflectionHelpers.getField<ScrollView>(screen, "rootScroll")
         val railDestination = descendants(screen.window.decorView).first {
             it.settingsControlTitle == screen.getString(R.string.settings_open_category,
-                screen.getString(R.string.settings_display)) &&
+                screen.getString(R.string.settings_menu_display)) &&
                 descendants(it).filterIsInstance<ImageView>().count() == 1
         }
 
-        assertTrue(texts(screen).any { it.text == screen.getString(R.string.settings_quick_settings) && isInside(it, categoryScroll) })
+        assertFalse(texts(screen).any { it.text == screen.getString(R.string.settings_quick_settings) })
         assertFalse(isInside(railDestination, categoryScroll))
     }
 
@@ -829,10 +833,10 @@ class AdaptiveSettingsUiTest {
 
     @Test
     @Config(qualifiers = "en-w1280dp-h700dp")
-    fun overviewUsesTwoModulesWithoutDuplicatingRailDestinations() {
+    fun overviewShowsConnectionWithoutQuickSettingsOrDuplicateRailDestinations() {
         val screen = openSettings()
         val modules = descendants(screen.window.decorView).single { it.tag == "overview_modules" } as LinearLayout
-        assertEquals(LinearLayout.HORIZONTAL, modules.orientation)
+        assertEquals(LinearLayout.VERTICAL, modules.orientation)
         val scroll = ReflectionHelpers.getField<ScrollView>(screen, "rootScroll")
         (SettingsInformationArchitecture.categories(com.shilapi.xcertplay.adb.LocalAdbDevicePolicy.isXpengP7()) - SettingsCategory.OVERVIEW).forEach { category ->
             val title = ReflectionHelpers.callInstanceMethod<String>(screen, "settingsCategoryTitle", ReflectionHelpers.ClassParameter(SettingsCategory::class.java, category))
@@ -842,7 +846,12 @@ class AdaptiveSettingsUiTest {
         assertFalse(descendants(scroll).filterIsInstance<Switch>().any {
             it.settingsControlTitle == screen.getString(R.string.report_location_to_iphone)
         })
-        val autoConnect = descendants(scroll).filterIsInstance<Switch>().single {
+        assertFalse(descendants(scroll).filterIsInstance<Switch>().any {
+            it.settingsControlTitle?.toString()?.startsWith(screen.getString(R.string.connect_when_diplay_opens)) == true
+        })
+        ReflectionHelpers.callInstanceMethod<Unit>(screen, "openSettingsCategory",
+            ReflectionHelpers.ClassParameter(SettingsCategory::class.java, SettingsCategory.CONNECTION))
+        val autoConnect = descendants(screen.window.decorView).filterIsInstance<Switch>().single {
             it.settingsControlTitle?.toString()?.startsWith(screen.getString(R.string.connect_when_diplay_opens)) == true
         }
         val wasEnabled = DiPlayPreferences.autoConnect(screen)

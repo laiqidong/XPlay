@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_menu_connection">الاتصال والتشغيل</string>
+    <string name="settings_menu_display">الصورة والمظهر</string>
+    <string name="settings_menu_audio">الصوت والمكالمات</string>
+    <string name="settings_menu_navigation">الملاحة وبيانات السيارة</string>
+    <string name="settings_menu_controls">الأزرار والإيماءات</string>
+    <string name="settings_menu_instrument">لوحة العدادات</string>
+    <string name="settings_menu_about">حول والنسخ الاحتياطي</string>
+    <string name="settings_connection_method">طريقة الاتصال</string>
+    <string name="settings_connection_hotspot">نقطة اتصال السيارة</string>
+    <string name="settings_connection_wifi">Wi-Fi</string>
+    <string name="settings_connection_usb">USB</string>
+    <string name="settings_connection_inline_description">اختر طريقة الاتصال واضبطها أدناه. تسري التغييرات المحفوظة عند اتصال CarPlay التالي.</string>
+    <string name="settings_navigation_p7_summary">موقع السيارة ومصادر GPS/DR والسرعة وناقل الحركة والإبلاغ عن البطارية والمدى.</string>
+    <string name="settings_connection_not_entered">لم يتم الإدخال</string>
+    <string name="settings_directory">القسم</string>
+    <string name="settings_connection_applies_next">تسري التغييرات عند اتصال CarPlay التالي.</string>
+    <string name="settings_apply">تطبيق</string>
+    <string name="settings_confirm">تأكيد</string>
+    <string name="settings_apply_before_connect">طبّق التغييرات قبل الاتصال.</string>
+    <string name="settings_hotspot_confirm_hint">أكّد للعودة، ثم اضغط تطبيق في صفحة الاتصال.</string>
+    <string name="settings_exit">خروج</string>
+    <string name="settings_exit_to_carplay">الخروج من الإعدادات والعودة إلى CarPlay</string>
+</resources>

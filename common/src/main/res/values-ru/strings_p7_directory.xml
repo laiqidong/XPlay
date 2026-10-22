@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_menu_connection">Подключение и запуск</string>
+    <string name="settings_menu_display">Экран и оформление</string>
+    <string name="settings_menu_audio">Звук и звонки</string>
+    <string name="settings_menu_navigation">Навигация и автомобиль</string>
+    <string name="settings_menu_controls">Кнопки и жесты</string>
+    <string name="settings_menu_instrument">Приборная панель</string>
+    <string name="settings_menu_about">Информация и копия</string>
+    <string name="settings_connection_method">Способ подключения</string>
+    <string name="settings_connection_hotspot">Точка доступа автомобиля</string>
+    <string name="settings_connection_wifi">Wi-Fi</string>
+    <string name="settings_connection_usb">USB</string>
+    <string name="settings_connection_inline_description">Выберите способ и настройте его ниже. Сохранённые изменения применятся при следующем подключении CarPlay.</string>
+    <string name="settings_navigation_p7_summary">Положение автомобиля, источники GPS/DR, скорость, передача, заряд и запас хода.</string>
+    <string name="settings_connection_not_entered">Не заполнено</string>
+    <string name="settings_directory">Раздел</string>
+    <string name="settings_connection_applies_next">Изменения применятся при следующем подключении CarPlay.</string>
+    <string name="settings_apply">Применить</string>
+    <string name="settings_confirm">Подтвердить</string>
+    <string name="settings_apply_before_connect">Примените изменения перед подключением.</string>
+    <string name="settings_hotspot_confirm_hint">Подтвердите и нажмите «Применить» на странице подключения.</string>
+    <string name="settings_exit">Выход</string>
+    <string name="settings_exit_to_carplay">Выйти из настроек и вернуться в CarPlay</string>
+</resources>

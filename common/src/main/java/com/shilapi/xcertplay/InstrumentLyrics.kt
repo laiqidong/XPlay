@@ -44,7 +44,7 @@ internal object InstrumentLyrics {
     private fun needsLyrics(c: Context) = InstrumentLyricsSettings.floating(c)
     private fun syncMap() {
         val c = context ?: return
-        val enabled = supported() && attached && !manuallyStopped && InstrumentLyricsSettings.enabled(c)
+        val enabled = supported() && attached && !manuallyStopped && InstrumentMapSettings.enabled(c)
         if (enabled) {
             val renderer = mapRenderer ?: P7InstrumentMapRenderer().also { mapRenderer = it }
             boundSink?.let(renderer::bind)
@@ -128,7 +128,7 @@ internal object InstrumentLyrics {
     }
     fun start(c: Context) = main.post {
         initialize(c); manuallyStopped = false
-        if (!InstrumentLyricsSettings.enabled(c)) { channelState = "disabled"; changed(); return@post }
+        if (!InstrumentMapSettings.enabled(c)) { channelState = "disabled"; changed(); return@post }
         if (!attached) { channelState = "waiting_carplay"; changed(); return@post }
         ensureServer(); syncMap(); launch(true)
     }
@@ -160,13 +160,13 @@ internal object InstrumentLyrics {
     private fun refresh() {
         val c = context ?: return
         syncMap()
-        if (!supported() || !InstrumentLyricsSettings.enabled(c) || !attached || manuallyStopped) {
+        if (!supported() || !InstrumentMapSettings.enabled(c) || !attached || manuallyStopped) {
             if (server != null) stopOutput()
             if (channelState !in setOf("restoring", "released", "restore_unconfirmed"))
                 channelState = if (!attached) "waiting_carplay" else "disabled"
             return
         }
-        if (server == null && InstrumentLyricsSettings.autoStart(c)) { ensureServer(); launch(false) }
+        if (server == null && InstrumentMapSettings.autoStart(c)) { ensureServer(); launch(false) }
     }
     private fun ensureServer() {
         if (server == null) server = FrameServer().also { it.start() }
@@ -318,7 +318,7 @@ internal object InstrumentLyrics {
                         diagnostics = "${data!!.optInt("width")}×${data!!.optInt("height")} · ${data!!.optInt("requestedFps")} fps · ${data!!.optLong("submittedFrames")}" 
                     } else if (!launching) {
                         if (channelState !in setOf("authorization_required", "shell_required", "release_required", "adb_unavailable")) channelState = "unavailable"
-                        if (InstrumentLyricsSettings.autoStart(context!!)) launch(false)
+                        if (InstrumentMapSettings.autoStart(context!!)) launch(false)
                     }
                     changed()
                 }
@@ -344,7 +344,7 @@ internal object InstrumentLyrics {
                         while (!closed) {
                             when (input.readInt()) {
                                 2 -> out.writeInt(if (closed) 0 else 1)
-                                3 -> out.writeInt(if (context?.let { InstrumentLyricsSettings.hideLane(it) } == true) 1 else 0)
+                                3 -> out.writeInt(if (context?.let { InstrumentMapSettings.hideLane(it) } == true) 1 else 0)
                                 1 -> {
                                     val width = input.readInt(); val height = input.readInt()
                                     check(width in 64..1024 && height in 64..1024)
