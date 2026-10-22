@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="settings_instrument_title">仪表投放（实验性）</string>
-    <string name="settings_instrument_description">在 P7 导航卡片显示歌词、歌曲信息或 iPhone 独立地图。歌词即时生效，启用地图视频需下次连接 CarPlay 生效。</string>
-    <string name="settings_instrument_enable">启用仪表投放</string>
+    <string name="settings_instrument_title">仪表地图（实验性）</string>
+    <string name="settings_instrument_description">在 P7 导航卡片显示 iPhone 独立地图。启用后，下次连接 CarPlay 生效。</string>
+    <string name="settings_instrument_enable">启用仪表地图</string>
     <string name="settings_instrument_auto">自动启动已授权通道</string>
     <string name="settings_instrument_auto_desc">仅在 CarPlay 会话期间启动，不会自动弹出 ADB 授权请求。</string>
     <string name="settings_instrument_stopped">已停止</string>
@@ -21,12 +21,8 @@
     <string name="settings_instrument_start">授权并启动通道</string>
     <string name="settings_instrument_stop">停止投放并恢复原车地图</string>
     <string name="settings_instrument_permissions">需要 E28 Android 9、本机 ADB 授权及 shell 访问原车服务的权限。请在仪表选择导航卡片。无需 Root、定位或通知读取权限。</string>
-    <string name="settings_instrument_content">显示内容</string>
-    <string name="settings_instrument_lyrics">当前句和下一句歌词</string>
-    <string name="settings_instrument_song">歌曲信息</string>
     <string name="settings_instrument_font">歌词字号</string>
-    <string name="settings_instrument_cover">显示专辑封面</string>
-    <string name="settings_instrument_live">立即应用于仪表投放。</string>
+    <string name="settings_instrument_live">立即生效。</string>
     <string name="settings_instrument_lane">隐藏原车车道提示</string>
     <string name="settings_instrument_lane_desc">可选。停止后恢复当前缓存状态；无缓存时等待原车后续更新。</string>
     <string name="settings_instrument_online">在线查询歌词</string>
@@ -43,12 +39,10 @@
     <string name="settings_instrument_wait_progress">等待可靠的播放进度</string>
     <string name="settings_instrument_intro">前奏</string>
     <string name="settings_instrument_no_lyrics">未找到匹配的同步歌词</string>
-    <string name="settings_instrument_paused">已暂停</string>
     <string name="settings_instrument_delay">歌词延迟</string>
     <string name="settings_instrument_delay_desc">补偿 CarPlay 音频延迟，所有歌曲的歌词统一延后显示。范围 0–5000 毫秒，每步 50 毫秒。立即生效，无需重连。</string>
-    <string name="settings_instrument_output">仪表投放内容</string>
     <string name="settings_instrument_map">地图</string>
-    <string name="settings_instrument_map_desc">地图使用 iPhone 独立地图视频。选择地图或开启地图投放后，下次连接生效，请自行选择重连时机。歌词可即时切换。请先停止 OP 等其他仪表投放应用。</string>
+    <string name="settings_instrument_map_desc">使用 iPhone 独立地图视频。启用后，下次连接生效，请自行选择重连时机。请先停止 OP 等其他仪表投放应用。</string>
     <string name="settings_instrument_wait_map">等待 iPhone 独立地图；若本次连接中才开启地图，请重连</string>
     <string name="settings_floating_lyrics_title">CarPlay 悬浮歌词</string>
     <string name="settings_floating_lyrics_enable">显示悬浮歌词</string>
@@ -59,9 +53,11 @@
     <string name="settings_floating_lyrics_opacity">背景不透明度</string>
     <string name="settings_floating_lyrics_x">横向位置</string>
     <string name="settings_floating_lyrics_y">纵向位置</string>
-    <string name="settings_lyrics_and_instrument">歌词与仪表</string>
-    <string name="settings_lyrics_and_instrument_desc">统一配置悬浮歌词、仪表投放和共用的歌词同步。</string>
     <string name="settings_lyrics_shared">歌词来源与同步</string>
     <string name="settings_floating_lyrics_animation">歌词切换动画</string>
     <string name="settings_floating_lyrics_animation_desc">下一句平滑上移、放大成为当前句，动画约 250 毫秒。立即生效；切歌、跳进度和拖动时直接刷新。</string>
+    <string name="settings_lyrics_category">歌词</string>
+    <string name="settings_lyrics_category_desc">配置 CarPlay 悬浮歌词、字号、切换动画、位置、来源、缓存和延迟。</string>
+    <string name="settings_instrument_map_category">仪表地图</string>
+    <string name="settings_instrument_map_category_desc">配置仪表地图投放、授权、自动启动、状态和恢复。</string>
 </resources>

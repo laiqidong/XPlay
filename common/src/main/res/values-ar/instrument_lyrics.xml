@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="settings_instrument_title">عرض لوحة العدادات (تجريبي)</string>
-    <string name="settings_instrument_description">يعرض الكلمات أو معلومات الأغنية أو خريطة iPhone المستقلة في بطاقة P7. الكلمات تطبق فورًا، وتفعيل فيديو الخريطة يسري عند اتصال CarPlay التالي.</string>
-    <string name="settings_instrument_enable">تفعيل عرض العدادات</string>
+    <string name="settings_instrument_title">خريطة العدادات (تجريبي)</string>
+    <string name="settings_instrument_description">يعرض خريطة iPhone المستقلة في بطاقة ملاحة P7. يسري التفعيل عند اتصال CarPlay التالي.</string>
+    <string name="settings_instrument_enable">تفعيل خريطة العدادات</string>
     <string name="settings_instrument_auto">بدء القناة المصرح بها تلقائيًا</string>
     <string name="settings_instrument_auto_desc">يعمل أثناء اتصال CarPlay فقط، ولا يفتح طلب إذن ADB تلقائيًا.</string>
     <string name="settings_instrument_stopped">متوقف</string>
@@ -21,12 +21,8 @@
     <string name="settings_instrument_start">التصريح وبدء القناة</string>
     <string name="settings_instrument_stop">إيقاف العرض واستعادة الخريطة الأصلية</string>
     <string name="settings_instrument_permissions">يتطلب E28 بنظام Android 9 وتصريح ADB المحلي ووصول shell لخدمات الشركة. اختر بطاقة الملاحة. لا يحتاج Root أو الموقع أو قراءة الإشعارات.</string>
-    <string name="settings_instrument_content">محتوى العرض</string>
-    <string name="settings_instrument_lyrics">سطر الكلمات الحالي والتالي</string>
-    <string name="settings_instrument_song">معلومات الأغنية</string>
     <string name="settings_instrument_font">حجم خط الكلمات</string>
-    <string name="settings_instrument_cover">عرض غلاف الألبوم</string>
-    <string name="settings_instrument_live">يطبق فورًا على عرض العدادات.</string>
+    <string name="settings_instrument_live">يطبق فوراً.</string>
     <string name="settings_instrument_lane">إخفاء إرشادات المسار الأصلية</string>
     <string name="settings_instrument_lane_desc">اختياري. يستعيد الحالة الحديثة المحفوظة أو ينتظر تحديث السيارة التالي.</string>
     <string name="settings_instrument_online">البحث عن الكلمات عبر الإنترنت</string>
@@ -43,12 +39,10 @@
     <string name="settings_instrument_wait_progress">بانتظار موضع تشغيل موثوق</string>
     <string name="settings_instrument_intro">مقدمة موسيقية</string>
     <string name="settings_instrument_no_lyrics">لم يتم العثور على كلمات متزامنة مطابقة</string>
-    <string name="settings_instrument_paused">متوقف مؤقتًا</string>
     <string name="settings_instrument_delay">تأخير الكلمات</string>
     <string name="settings_instrument_delay_desc">يعوض تأخر صوت CarPlay بتأخير كلمات جميع الأغاني. النطاق 0–5000 مللي ثانية بخطوات 50 مللي ثانية. يطبق فورًا دون إعادة الاتصال.</string>
-    <string name="settings_instrument_output">محتوى العدادات</string>
     <string name="settings_instrument_map">الخريطة</string>
-    <string name="settings_instrument_map_desc">يستخدم فيديو الخريطة المستقل من iPhone. اختيار الخريطة أو تفعيلها يسري عند اتصال CarPlay التالي، وتختار وقت إعادة الاتصال. الكلمات تتبدل فورًا. أوقف OP وأي مرسل آخر أولًا.</string>
+    <string name="settings_instrument_map_desc">يستخدم بث خريطة iPhone المستقلة. يسري التفعيل عند الاتصال التالي؛ اختر وقت إعادة الاتصال. أوقف تطبيقات العرض الأخرى أولاً.</string>
     <string name="settings_instrument_wait_map">بانتظار خريطة iPhone؛ أعد الاتصال إذا فعّلتها أثناء الجلسة</string>
     <string name="settings_floating_lyrics_title">كلمات عائمة في CarPlay</string>
     <string name="settings_floating_lyrics_enable">عرض الكلمات العائمة</string>
@@ -59,9 +53,11 @@
     <string name="settings_floating_lyrics_opacity">عتامة الخلفية</string>
     <string name="settings_floating_lyrics_x">الموضع الأفقي</string>
     <string name="settings_floating_lyrics_y">الموضع العمودي</string>
-    <string name="settings_lyrics_and_instrument">الكلمات والعدادات</string>
-    <string name="settings_lyrics_and_instrument_desc">إعداد الكلمات العائمة وعرض العدادات والمزامنة المشتركة في مكان واحد.</string>
     <string name="settings_lyrics_shared">مصدر الكلمات والمزامنة</string>
     <string name="settings_floating_lyrics_animation">حركة انتقال الكلمات</string>
     <string name="settings_floating_lyrics_animation_desc">يرتفع السطر التالي ويتكبر ليصبح السطر الحالي خلال 250 مللي ثانية. يطبق فوراً؛ يتحدث مباشرة عند تغيير الأغنية أو الانتقال أو السحب.</string>
+    <string name="settings_lyrics_category">كلمات الأغاني</string>
+    <string name="settings_lyrics_category_desc">إعداد كلمات CarPlay العائمة وحجم الخط والحركة والموضع والمصادر والتخزين والتأخير.</string>
+    <string name="settings_instrument_map_category">خريطة العدادات</string>
+    <string name="settings_instrument_map_category_desc">إعداد عرض خريطة العدادات والتفويض والبدء التلقائي والحالة والاستعادة.</string>
 </resources>

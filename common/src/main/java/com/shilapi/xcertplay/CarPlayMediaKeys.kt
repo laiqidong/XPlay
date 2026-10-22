@@ -145,7 +145,7 @@ internal object CarPlayMediaKeys {
                 if (nowPlaying.elapsedMillis != update.elapsedMillis) elapsedUpdatedAt = SystemClock.elapsedRealtime()
                 val metadataChanged = metadataChanged(nowPlaying, update) || artwork !== previousArtwork
                 nowPlaying = update
-                InstrumentLyrics.update(update, update.artworkTransferId?.let { artworkCache[it] })
+                InstrumentLyrics.update(update)
                 if (metadataChanged) ClusterMusicState.publish(update, update.artworkTransferId?.let { artworkCache[it] })
                 updateInitialAlbumRecovery(expected)
                 // The iPhone repeats NowPlayingUpdate about twice a second for the position alone.
@@ -180,7 +180,7 @@ internal object CarPlayMediaKeys {
         if (nowPlaying.artworkTransferId == id) {
             artwork = decoded
             ClusterMusicState.publish(nowPlaying, artwork)
-            InstrumentLyrics.update(nowPlaying, artwork)
+            InstrumentLyrics.update(nowPlaying)
             controller?.let { com.shilapi.xcertplay.media.AmbientMusicController.albumColorChanged(it, result?.color) }
             controller?.let(::updateInitialAlbumRecovery)
             session?.setMetadata(androidMetadata(nowPlaying, shownArtworkLocked()))

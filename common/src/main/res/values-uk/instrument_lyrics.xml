@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="settings_instrument_title">Виведення на прилади (експериментально)</string>
-    <string name="settings_instrument_description">Текст, відомості про трек або окрема карта iPhone в картці P7. Текст діє одразу; увімкнення карти — з наступного підключення CarPlay.</string>
-    <string name="settings_instrument_enable">Увімкнути виведення</string>
+    <string name="settings_instrument_title">Карта панелі приладів (експериментально)</string>
+    <string name="settings_instrument_description">Показує окрему карту iPhone у навігаційній картці P7. Увімкнення діє з наступного підключення CarPlay.</string>
+    <string name="settings_instrument_enable">Увімкнути карту приладів</string>
     <string name="settings_instrument_auto">Автозапуск дозволеного каналу</string>
     <string name="settings_instrument_auto_desc">Лише під час CarPlay; запит дозволу ADB автоматично не відкривається.</string>
     <string name="settings_instrument_stopped">Зупинено</string>
@@ -21,12 +21,8 @@
     <string name="settings_instrument_start">Дозволити та запустити канал</string>
     <string name="settings_instrument_stop">Зупинити й відновити штатну карту</string>
     <string name="settings_instrument_permissions">Потрібні E28 Android 9, локальний ADB і доступ shell до служб виробника. Виберіть картку навігації. Root, геолокація та читання сповіщень не потрібні.</string>
-    <string name="settings_instrument_content">Вміст</string>
-    <string name="settings_instrument_lyrics">Поточний і наступний рядки</string>
-    <string name="settings_instrument_song">Відомості про трек</string>
     <string name="settings_instrument_font">Розмір тексту пісні</string>
-    <string name="settings_instrument_cover">Показувати обкладинку</string>
-    <string name="settings_instrument_live">Одразу застосовується до приладів.</string>
+    <string name="settings_instrument_live">Діє відразу.</string>
     <string name="settings_instrument_lane">Приховати штатні підказки смуг</string>
     <string name="settings_instrument_lane_desc">Необов’язково. Після зупинки відновлюється свіжий знімок або очікується оновлення авто.</string>
     <string name="settings_instrument_online">Шукати текст онлайн</string>
@@ -43,12 +39,10 @@
     <string name="settings_instrument_wait_progress">Очікування достовірної позиції відтворення</string>
     <string name="settings_instrument_intro">Вступ</string>
     <string name="settings_instrument_no_lyrics">Відповідного синхронного тексту немає</string>
-    <string name="settings_instrument_paused">Пауза</string>
     <string name="settings_instrument_delay">Затримка тексту</string>
     <string name="settings_instrument_delay_desc">Компенсує затримку звуку CarPlay для всіх пісень. Від 0 до 5000 мс із кроком 50 мс. Застосовується одразу без перепідключення.</string>
-    <string name="settings_instrument_output">Вміст приладів</string>
     <string name="settings_instrument_map">Карта</string>
-    <string name="settings_instrument_map_desc">Окремий відеопотік карти iPhone. Вибір або ввімкнення карти діє з наступного підключення CarPlay. Час перепідключення обираєте ви. Текст перемикається одразу. Спочатку зупиніть OP та інші програми виведення.</string>
+    <string name="settings_instrument_map_desc">Використовує окремий відеопотік карти iPhone. Увімкнення діє з наступного підключення; виберіть час перепідключення. Зупиніть інші програми проєкції.</string>
     <string name="settings_instrument_wait_map">Очікування карти iPhone; перепідключіться, якщо ввімкнули її в цьому сеансі</string>
     <string name="settings_floating_lyrics_title">Плаваючий текст CarPlay</string>
     <string name="settings_floating_lyrics_enable">Показувати плаваючий текст</string>
@@ -59,9 +53,11 @@
     <string name="settings_floating_lyrics_opacity">Непрозорість тла</string>
     <string name="settings_floating_lyrics_x">Горизонтальне положення</string>
     <string name="settings_floating_lyrics_y">Вертикальне положення</string>
-    <string name="settings_lyrics_and_instrument">Текст і прилади</string>
-    <string name="settings_lyrics_and_instrument_desc">Плаваючий текст, виведення на прилади та спільна синхронізація в одному місці.</string>
     <string name="settings_lyrics_shared">Джерело та синхронізація тексту</string>
     <string name="settings_floating_lyrics_animation">Анімація зміни рядків</string>
     <string name="settings_floating_lyrics_animation_desc">Наступний рядок піднімається та збільшується за 250 мс. Діє відразу; при зміні пісні, перемотуванні та перетягуванні оновлюється без анімації.</string>
+    <string name="settings_lyrics_category">Текст пісень</string>
+    <string name="settings_lyrics_category_desc">Налаштування плаваючого тексту CarPlay, розміру, анімації, положення, джерел, кешу й затримки.</string>
+    <string name="settings_instrument_map_category">Карта приладів</string>
+    <string name="settings_instrument_map_category_desc">Налаштування карти приладів, авторизації, автозапуску, стану та відновлення.</string>
 </resources>

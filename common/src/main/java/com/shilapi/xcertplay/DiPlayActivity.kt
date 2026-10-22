@@ -88,14 +88,14 @@ import java.util.Locale
 import kotlin.math.roundToInt
 
 internal enum class SettingsCategory {
-    OVERVIEW, CONNECTION, DISPLAY, AUDIO, NAVIGATION, CONTROLS, VEHICLE, DIAGNOSTICS, INSTRUMENT, ABOUT,
+    OVERVIEW, CONNECTION, DISPLAY, AUDIO, NAVIGATION, CONTROLS, VEHICLE, DIAGNOSTICS, LYRICS, INSTRUMENT, ABOUT,
 }
 
 /** A settings card. Every entry needs one category in [SettingsInformationArchitecture]; see AGENTS.md. */
 internal enum class SettingsSection {
     VEHICLE_EXPERIMENT,
     P7_CARPLAY_DATA,
-    INSTRUMENT_LYRICS,
+    INSTRUMENT_MAP,
     FLOATING_LYRICS,
     LYRICS_SHARED,
     CARPLAY_CONTROLS,
@@ -139,7 +139,8 @@ internal object SettingsInformationArchitecture {
             SettingsSection.CAR_BUTTON),
         SettingsCategory.VEHICLE to setOf(SettingsSection.P7_CARPLAY_DATA, SettingsSection.AMBIENT_LIGHTING),
         SettingsCategory.DIAGNOSTICS to setOf(SettingsSection.DIAGNOSTICS, SettingsSection.VEHICLE_EXPERIMENT),
-        SettingsCategory.INSTRUMENT to setOf(SettingsSection.FLOATING_LYRICS, SettingsSection.INSTRUMENT_LYRICS, SettingsSection.LYRICS_SHARED),
+        SettingsCategory.LYRICS to setOf(SettingsSection.FLOATING_LYRICS, SettingsSection.LYRICS_SHARED),
+        SettingsCategory.INSTRUMENT to setOf(SettingsSection.INSTRUMENT_MAP),
         SettingsCategory.ABOUT to setOf(SettingsSection.LANGUAGE),
     )
 
@@ -986,6 +987,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         SettingsCategory.VEHICLE -> R.drawable.ic_dp_car
         SettingsCategory.DIAGNOSTICS -> R.drawable.ic_dp_diagnostics
         SettingsCategory.CONTROLS -> R.drawable.ic_dp_controls
+        SettingsCategory.LYRICS -> R.drawable.ic_dp_audio
         SettingsCategory.INSTRUMENT -> R.drawable.ic_dp_dashboard
         SettingsCategory.ABOUT -> R.drawable.ic_dp_about
     }
@@ -999,7 +1001,8 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         SettingsCategory.VEHICLE -> R.string.settings_vehicle
         SettingsCategory.DIAGNOSTICS -> R.string.diagnostics
         SettingsCategory.CONTROLS -> R.string.settings_controls_category
-        SettingsCategory.INSTRUMENT -> R.string.settings_lyrics_and_instrument
+        SettingsCategory.LYRICS -> R.string.settings_lyrics_category
+        SettingsCategory.INSTRUMENT -> R.string.settings_instrument_map_category
         SettingsCategory.ABOUT -> R.string.about
     })
 
@@ -1016,8 +1019,12 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                 settingsPageTitle(content, getString(R.string.settings_controls_category), getString(R.string.settings_controls_summary))
                 renderSections(content, categorySections(SettingsCategory.CONTROLS))
             }
+            SettingsCategory.LYRICS -> {
+                settingsPageTitle(content, getString(R.string.settings_lyrics_category), getString(R.string.settings_lyrics_category_desc))
+                renderSections(content, categorySections(SettingsCategory.LYRICS))
+            }
             SettingsCategory.INSTRUMENT -> {
-                settingsPageTitle(content, getString(R.string.settings_lyrics_and_instrument), getString(R.string.settings_lyrics_and_instrument_desc))
+                settingsPageTitle(content, getString(R.string.settings_instrument_map_category), getString(R.string.settings_instrument_map_category_desc))
                 renderSections(content, categorySections(SettingsCategory.INSTRUMENT))
             }
             SettingsCategory.ABOUT -> about(content)
@@ -1352,7 +1359,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
 
     private fun allSettingsSections(content: LinearLayout) {
         floatingLyricsSection(content)
-        if (p7Settings) instrumentLyricsSection(content)
+        if (p7Settings) instrumentMapSection(content)
         sharedLyricsSection(content)
         if (com.shilapi.xcertplay.adb.LocalAdbDevicePolicy.isXpengP7()) {
             filteredSection(content, SettingsSection.P7_CARPLAY_DATA,
@@ -5334,13 +5341,13 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
 
     private var instrumentStatusRemoval: (() -> Unit)? = null
 
-    private fun instrumentLyricsSection(content: LinearLayout) {
-        filteredSection(content, SettingsSection.INSTRUMENT_LYRICS,
+    private fun instrumentMapSection(content: LinearLayout) {
+        filteredSection(content, SettingsSection.INSTRUMENT_MAP,
             getString(R.string.settings_instrument_title), R.drawable.ic_dp_dashboard) { card ->
             fun setting(key: String, title: Int, desc: Int, value: Boolean) {
                 toggle(card, getString(title), getString(desc), value) {
                     InstrumentLyricsSettings.save(this, key, it)
-                    if (key == "enabled" && it && InstrumentLyricsSettings.map(this)) markReconnectNeeded()
+                    if (key == "enabled" && it) markReconnectNeeded()
                 }
             }
             fun action(title: Int, run: () -> Unit) {
@@ -5372,21 +5379,8 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                     "adb_unavailable" to R.string.settings_instrument_adb_required,
                     "shell_required" to R.string.settings_instrument_shell_required,
                     "release_required" to R.string.settings_instrument_release_required)
-                val lyrics = mapOf(
-                    "waiting_song" to R.string.settings_instrument_wait_song,
-                    "searching" to R.string.settings_instrument_searching,
-                    "matched" to R.string.settings_instrument_matched,
-                    "cached" to R.string.settings_instrument_cached,
-                    "offline" to R.string.settings_instrument_offline,
-                    "network_error" to R.string.settings_instrument_network_error,
-                    "waiting_duration" to R.string.settings_instrument_wait_progress,
-                    "song_only" to R.string.settings_instrument_song,
-                    "cache_cleared" to R.string.settings_instrument_cache_clear)
                 status.text = getString(ids[state] ?: R.string.settings_instrument_unavailable) + "\n" +
-                    (if (InstrumentLyricsSettings.map(this)) getString(R.string.settings_instrument_map)
-                    else getString(lyrics[InstrumentLyrics.lyricState] ?: R.string.settings_instrument_no_lyrics)) +
-                    "\n" + InstrumentLyrics.diagnostics + "\n" + getString(R.string.settings_instrument_cache) + " · " +
-                    android.text.format.Formatter.formatShortFileSize(this, InstrumentLyrics.cacheBytes(this))
+                    getString(R.string.settings_instrument_map) + "\n" + InstrumentLyrics.diagnostics
             }
             val removeStatus = InstrumentLyrics.observe(update)
             instrumentStatusRemoval = removeStatus
@@ -5400,31 +5394,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             action(R.string.settings_instrument_start) { InstrumentLyrics.start(this) }
             action(R.string.settings_instrument_stop) { InstrumentLyrics.stop() }
             card.addView(label(getString(R.string.settings_instrument_permissions), 16, MUTED))
-            val outputs = arrayOf(getString(R.string.settings_instrument_lyrics), getString(R.string.settings_instrument_map))
-            card.addView(button(getString(R.string.settings_instrument_output) + " · " + outputs[if (InstrumentLyricsSettings.map(this)) 1 else 0], false) {
-                appDialogBuilder().setTitle(R.string.settings_instrument_output)
-                    .setSingleChoiceItems(outputs, if (InstrumentLyricsSettings.map(this)) 1 else 0) { dialog, which ->
-                        InstrumentLyricsSettings.save(this, "map", which == 1)
-                        if (which == 1) markReconnectNeeded()
-                        dialog.dismiss(); render()
-                    }.setNegativeButton(R.string.cancel, null).show()
-            }, matchButton(0, SETTINGS_RAIL_ROW_HEIGHT_DP))
             card.addView(label(getString(R.string.settings_instrument_map_desc), 16, MUTED))
-            val modes = arrayOf(getString(R.string.settings_instrument_lyrics), getString(R.string.settings_instrument_song))
-            card.addView(button(getString(R.string.settings_instrument_content) + " · " + modes[if (InstrumentLyricsSettings.lyrics(this)) 0 else 1], false) {
-                appDialogBuilder().setTitle(R.string.settings_instrument_content)
-                    .setSingleChoiceItems(modes, if (InstrumentLyricsSettings.lyrics(this)) 0 else 1) { dialog, which ->
-                        InstrumentLyricsSettings.save(this, "lyrics", which == 0); dialog.dismiss(); render()
-                    }.setNegativeButton(R.string.cancel, null).show()
-            }, matchButton(0, SETTINGS_RAIL_ROW_HEIGHT_DP))
-            card.addView(button(getString(R.string.settings_instrument_font) + " · " + InstrumentLyricsSettings.font(this) + "%", false) {
-                val sizes = intArrayOf(80, 100, 120, 140)
-                appDialogBuilder().setTitle(R.string.settings_instrument_font)
-                    .setSingleChoiceItems(sizes.map { "$it%" }.toTypedArray(), sizes.indexOf(InstrumentLyricsSettings.font(this))) { dialog, which ->
-                        InstrumentLyricsSettings.saveFont(this, sizes[which]); dialog.dismiss(); render()
-                    }.setNegativeButton(R.string.cancel, null).show()
-            }, matchButton(0, SETTINGS_RAIL_ROW_HEIGHT_DP))
-            setting("cover", R.string.settings_instrument_cover, R.string.settings_instrument_live, InstrumentLyricsSettings.cover(this))
             setting("lane", R.string.settings_instrument_lane, R.string.settings_instrument_lane_desc, InstrumentLyricsSettings.hideLane(this))
 
         }

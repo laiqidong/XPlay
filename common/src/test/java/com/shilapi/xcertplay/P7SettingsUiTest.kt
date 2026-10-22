@@ -44,7 +44,7 @@ class P7SettingsUiTest {
 
     @Test fun overviewLinksToAllP7Categories() {
         val categories = SettingsInformationArchitecture.categories(true)
-        assertEquals(10, categories.size)
+        assertEquals(SettingsCategory.entries.size, categories.size)
         val destinationTitles = SettingsCategory.entries.map { category ->
             screen.getString(R.string.settings_open_category, title(category))
         }

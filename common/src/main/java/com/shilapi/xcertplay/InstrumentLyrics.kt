@@ -1,7 +1,7 @@
 package com.shilapi.xcertplay
 
 import android.content.Context
-import android.graphics.*
+import android.graphics.Bitmap
 import android.net.LocalServerSocket
 import android.net.LocalSocket
 import android.net.LocalSocketAddress
@@ -18,7 +18,7 @@ import java.io.DataOutputStream
 import java.util.concurrent.Executors
 import org.json.JSONObject
 
-/** Process-owned instrument output. Activity visibility never owns the lyric clock or OEM lease. */
+/** Process-owned floating lyric clock and independent P7 instrument map channel. */
 internal object InstrumentLyrics {
     private val main = Handler(Looper.getMainLooper())
     private val lookup = Executors.newSingleThreadExecutor()
@@ -41,18 +41,16 @@ internal object InstrumentLyrics {
     }
     fun floatingStyleChanged() = main.post { floatingObservers.toList().forEach { it(floatingSnapshot) } }
     fun bindSink(sink: com.shilapi.xcertplay.media.AndroidMediaSink) = main.post { boundSink = sink; syncMap() }
-    private fun needsLyrics(c: Context) = InstrumentLyricsSettings.floating(c) ||
-        (InstrumentLyricsSettings.enabled(c) && !InstrumentLyricsSettings.map(c) && InstrumentLyricsSettings.lyrics(c))
+    private fun needsLyrics(c: Context) = InstrumentLyricsSettings.floating(c)
     private fun syncMap() {
         val c = context ?: return
-        val enabled = supported() && attached && !manuallyStopped && InstrumentLyricsSettings.enabled(c) && InstrumentLyricsSettings.map(c)
+        val enabled = supported() && attached && !manuallyStopped && InstrumentLyricsSettings.enabled(c)
         if (enabled) {
             val renderer = mapRenderer ?: P7InstrumentMapRenderer().also { mapRenderer = it }
             boundSink?.let(renderer::bind)
         } else { mapRenderer?.close(); mapRenderer = null }
     }
     private var info = CarPlayNowPlaying()
-    private var artwork: Bitmap? = null
     private var song: InstrumentSong? = null
     private var lines = emptyList<InstrumentLyricLine>()
     private var anchor = 0L
@@ -65,16 +63,10 @@ internal object InstrumentLyrics {
     @Volatile private var activeAdb: LocalAdb? = null
     @Volatile private var sessionGeneration = 0L
     private var retryAt = 0L
-    private var revision = 0L
-    @Volatile private var picture = Picture()
     @Volatile var channelState = "stopped"; private set
     @Volatile var lyricState = "waiting_song"; private set
     @Volatile var diagnostics = ""; private set
     private val observers = mutableSetOf<() -> Unit>()
-    private data class Picture(val title: String = "", val artist: String = "", val current: String = "",
-        val next: String = "", val previous: String = "", val playing: Boolean = false, val cover: Bitmap? = null,
-        val font: Int = 100, val night: Boolean = true, val revision: Long = 0)
-
     fun supported() = LocalAdbDevicePolicy.isXpengP7() && android.os.Build.VERSION.SDK_INT == 28
     fun observe(listener: () -> Unit): () -> Unit { observers.add(listener); listener(); return { observers.remove(listener) } }
     private fun changed() { observers.toList().forEach { it() } }
@@ -87,12 +79,12 @@ internal object InstrumentLyrics {
     }
     fun detach() = main.post {
         attached = false; sessionGeneration++; repository?.cancel(); song = null; lines = emptyList()
-        info = CarPlayNowPlaying(); artwork = null; clockKnown = false
+        info = CarPlayNowPlaying(); clockKnown = false
         boundSink = null; mapRenderer?.close(); mapRenderer = null
         floatingSnapshot = FloatingSnapshot(); floatingObservers.toList().forEach { it(floatingSnapshot) }
         lyricState = "waiting_song"; stopOutput(); main.removeCallbacks(tick); changed()
     }
-    fun update(next: CarPlayNowPlaying, cover: Bitmap?) = main.post {
+    fun update(next: CarPlayNowPlaying) = main.post {
         if (!attached) return@post
         val track = info.title != next.title || info.artist != next.artist || info.album != next.album || info.sourceApp != next.sourceApp
         val now = SystemClock.elapsedRealtime()
@@ -107,7 +99,7 @@ internal object InstrumentLyrics {
             anchor = position(now); anchorAt = now
         }
         if (!track && !info.playing && next.playing && clockKnown) anchorAt = now
-        info = next; artwork = cover
+        info = next
         val selected = next.title?.takeIf { it.isNotBlank() }?.let {
             InstrumentSong(it, next.artist.orEmpty(), next.album.orEmpty(), next.durationMillis ?: 0)
         }
@@ -219,7 +211,6 @@ internal object InstrumentLyrics {
         val selected = song ?: return
         val c = context ?: return
         if (!attached || (manuallyStopped && !InstrumentLyricsSettings.floating(c)) || !needsLyrics(c)) { lyricState = "waiting_song"; return }
-        if (!needsLyrics(c)) { lyricState = "song_only"; return }
         val repo = repository ?: return
         val ticket = repo.generation
         val online = InstrumentLyricsSettings.online(c)
@@ -238,24 +229,11 @@ internal object InstrumentLyrics {
         val trusted = clockKnown && (!info.playing || now - progressAt < 15000)
         val index = if (trusted && needsLyrics(c))
             lines.indexOfLast { it.time <= position(now) - InstrumentLyricsSettings.delay(c) } else -1
-        val current = when {
-            !InstrumentLyricsSettings.lyrics(c) -> ""
-            !trusted -> c.getString(com.shilapi.xcertplay.host.R.string.settings_instrument_wait_progress)
-            index >= 0 -> lines[index].text
-            lines.isNotEmpty() -> c.getString(com.shilapi.xcertplay.host.R.string.settings_instrument_intro)
-            else -> c.getString(com.shilapi.xcertplay.host.R.string.settings_instrument_no_lyrics)
-        }
-        val showLyrics = trusted && needsLyrics(c)
-        val previous = if (showLyrics && index > 0) lines[index - 1].text else ""
-        val next = if (showLyrics && index + 1 in lines.indices) lines[index + 1].text else ""
+        val next = if (trusted && needsLyrics(c) && index + 1 in lines.indices) lines[index + 1].text else ""
         val chinese = repository?.chinese
         fun simplified(value: String) = chinese?.simplified(value) ?: value
         val night = c.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK !=
             android.content.res.Configuration.UI_MODE_NIGHT_NO
-        val p = Picture(simplified(info.title.orEmpty()), simplified(info.artist.orEmpty()),
-            simplified(current), simplified(next), simplified(previous), info.playing,
-            artwork.takeIf { InstrumentLyricsSettings.cover(c) }, InstrumentLyricsSettings.font(c), night)
-        if (p != picture.copy(revision = 0)) { revision++; picture = p.copy(revision = revision) }
         val hasLine = trusted && index >= 0 && lines[index].text.isNotBlank()
         val statusResource = when {
             lyricState == "searching" -> com.shilapi.xcertplay.host.R.string.settings_instrument_searching
@@ -330,7 +308,6 @@ internal object InstrumentLyrics {
                         check(socket.peerCredentials.uid == 2000); socket.soTimeout = 3000
                         val input = DataInputStream(socket.inputStream); val out = DataOutputStream(socket.outputStream)
                         check(input.readInt() == 0x4f504332); out.writeInt(0x4f504332); out.flush()
-                        var cachedKey = ""; var jpeg = ByteArray(0)
                         while (!closed) {
                             when (input.readInt()) {
                                 2 -> out.writeInt(if (closed) 0 else 1)
@@ -338,27 +315,13 @@ internal object InstrumentLyrics {
                                 1 -> {
                                     val width = input.readInt(); val height = input.readInt()
                                     check(width in 64..1024 && height in 64..1024)
-                                    if (context?.let { InstrumentLyricsSettings.map(it) } == true) {
-                                        val frame = mapRenderer?.capture(width, height)
-                                        if (frame == null) { out.writeLong(-1); out.writeInt(0); out.flush(); continue }
-                                        val bytes = ByteArrayOutputStream()
-                                        try { check(frame.second.compress(Bitmap.CompressFormat.JPEG, 85, bytes)) }
-                                        finally { frame.second.recycle() }
-                                        check(bytes.size() in 4..1_048_576)
-                                        out.writeLong(frame.first); out.writeInt(bytes.size()); bytes.writeTo(out); out.flush()
-                                        continue
-                                    }
-                                    val p = picture
-                                    val key = "$width/$height/${p.revision}"
-                                    if (key != cachedKey) {
-                                        val bitmap = render(p, width, height)
-                                        try {
-                                            val bytes = ByteArrayOutputStream()
-                                            check(bitmap.compress(Bitmap.CompressFormat.JPEG, 85, bytes))
-                                            jpeg = bytes.toByteArray(); check(jpeg.size in 4..1_048_576); cachedKey = key
-                                        } finally { bitmap.recycle() }
-                                    }
-                                    out.writeLong(p.revision); out.writeInt(jpeg.size); out.write(jpeg)
+                                    val frame = mapRenderer?.capture(width, height)
+                                    if (frame == null) { out.writeLong(-1); out.writeInt(0); out.flush(); continue }
+                                    val bytes = ByteArrayOutputStream()
+                                    try { check(frame.second.compress(Bitmap.CompressFormat.JPEG, 85, bytes)) }
+                                    finally { frame.second.recycle() }
+                                    check(bytes.size() in 4..1_048_576)
+                                    out.writeLong(frame.first); out.writeInt(bytes.size()); bytes.writeTo(out)
                                 }
                                 else -> break
                             }
@@ -373,61 +336,4 @@ internal object InstrumentLyrics {
         override fun close() { closed = true; runCatching { client?.close() }; runCatching { listener?.close() } }
     }
 
-    private fun render(p: Picture, width: Int, height: Int): Bitmap {
-        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        val background = if (p.night) Color.rgb(12, 15, 20) else Color.rgb(242, 243, 245)
-        val primary = if (p.night) Color.rgb(245, 246, 248) else Color.rgb(25, 29, 35)
-        val secondary = if (p.night) Color.rgb(173, 181, 194) else Color.rgb(79, 88, 101)
-        canvas.drawColor(background)
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
-        p.cover?.takeUnless { it.isRecycled }?.let { cover ->
-            runCatching { paint.alpha = if (p.night) 36 else 20; canvas.drawBitmap(cover, null, Rect(0, 0, width, height), paint) }
-            paint.alpha = 255
-        }
-        // Reference-canvas units, independent of Android UI density; scale to the OEM request.
-        val scale = minOf(width, height) / 660f
-        val x = width * .08f; val available = width * .84f
-        val headerGap = 10f * scale
-        val lyricGap = 16f * scale
-        fun layout(value: String, size: Float, color: Int, maxLines: Int, bold: Boolean): android.text.StaticLayout {
-            val tp = android.text.TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
-                textSize = size * scale; this.color = color
-                typeface = if (bold) Typeface.DEFAULT_BOLD else Typeface.DEFAULT
-            }
-            return android.text.StaticLayout.Builder.obtain(value, 0, value.length, tp, available.toInt().coerceAtLeast(1))
-                .setAlignment(android.text.Layout.Alignment.ALIGN_CENTER).setMaxLines(maxLines)
-                .setLineSpacing(0f, 1f)
-                .setEllipsize(android.text.TextUtils.TruncateAt.END).setIncludePad(false).build()
-        }
-        fun draw(text: android.text.StaticLayout, y: Float) {
-            canvas.save(); canvas.translate(x, y); text.draw(canvas); canvas.restore()
-        }
-        val c = context!!
-        val title = layout(p.title.ifBlank { c.getString(com.shilapi.xcertplay.host.R.string.settings_instrument_wait_song) }, 30f, primary, 2, true)
-        val artist = layout(p.artist, 23f, secondary, 1, false)
-        val headerTop = height * .14f
-        draw(title, headerTop)
-        val artistTop = headerTop + title.height + headerGap
-        draw(artist, artistTop)
-        val current = layout(p.current, 44f * p.font / 100, primary, 2, true)
-        val previousColor = if (p.night) Color.rgb(136, 145, 159) else Color.rgb(105, 113, 125)
-        val previous = layout(p.previous, 25f, previousColor, 1, false)
-        val previousHeight = if (p.previous.isBlank()) 0 else previous.height
-        val next = layout(p.next, 27f, secondary, 2, false)
-        val nextHeight = if (p.next.isBlank()) 0 else next.height
-        val precedingHeight = if (previousHeight > 0) previousHeight + lyricGap else 0f
-        val followingHeight = if (nextHeight > 0) lyricGap + nextHeight else 0f
-        val blockHeight = precedingHeight + current.height + followingHeight
-        // Measure the whole group so wrapped current/next lyrics stay compact without overlap.
-        val groupTop = (height * .57f - blockHeight / 2)
-            .coerceAtLeast(artistTop + artist.height + 30f * scale)
-        if (previousHeight > 0) draw(previous, groupTop)
-        val currentTop = groupTop + precedingHeight
-        draw(current, currentTop)
-        if (nextHeight > 0) draw(next, currentTop + current.height + lyricGap)
-        if (!p.playing) draw(layout(c.getString(com.shilapi.xcertplay.host.R.string.settings_instrument_paused),
-            20f, secondary, 1, false), height * .88f)
-        return bitmap
-    }
 }

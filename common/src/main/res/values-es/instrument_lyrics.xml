@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="settings_instrument_title">Proyección al cuadro (experimental)</string>
-    <string name="settings_instrument_description">Muestra letras, información musical o el mapa independiente del iPhone en la tarjeta del P7. Las letras se aplican al instante; el mapa requiere la próxima conexión CarPlay.</string>
-    <string name="settings_instrument_enable">Activar proyección al cuadro</string>
+    <string name="settings_instrument_title">Mapa del cuadro (experimental)</string>
+    <string name="settings_instrument_description">Muestra el mapa independiente del iPhone en la tarjeta de navegación del P7. Se activa en la próxima conexión de CarPlay.</string>
+    <string name="settings_instrument_enable">Activar mapa del cuadro</string>
     <string name="settings_instrument_auto">Iniciar automáticamente el canal autorizado</string>
     <string name="settings_instrument_auto_desc">Solo durante CarPlay; nunca solicita autorización ADB automáticamente.</string>
     <string name="settings_instrument_stopped">Detenido</string>
@@ -21,12 +21,8 @@
     <string name="settings_instrument_start">Autorizar e iniciar canal</string>
     <string name="settings_instrument_stop">Detener y restaurar mapa original</string>
     <string name="settings_instrument_permissions">Requiere E28 Android 9, ADB local autorizado y acceso shell a servicios del fabricante. Selecciona la tarjeta de navegación. No necesita Root, ubicación ni lectura de notificaciones.</string>
-    <string name="settings_instrument_content">Contenido</string>
-    <string name="settings_instrument_lyrics">Letra actual y siguiente</string>
-    <string name="settings_instrument_song">Información musical</string>
     <string name="settings_instrument_font">Tamaño de letra</string>
-    <string name="settings_instrument_cover">Mostrar carátula</string>
-    <string name="settings_instrument_live">Se aplica inmediatamente al cuadro.</string>
+    <string name="settings_instrument_live">Se aplica al instante.</string>
     <string name="settings_instrument_lane">Ocultar indicaciones originales de carril</string>
     <string name="settings_instrument_lane_desc">Opcional. Restaura el estado reciente guardado o espera una actualización del coche.</string>
     <string name="settings_instrument_online">Buscar letras en línea</string>
@@ -43,12 +39,10 @@
     <string name="settings_instrument_wait_progress">Esperando una posición de reproducción fiable</string>
     <string name="settings_instrument_intro">Introducción instrumental</string>
     <string name="settings_instrument_no_lyrics">No hay letra sincronizada coincidente</string>
-    <string name="settings_instrument_paused">En pausa</string>
     <string name="settings_instrument_delay">Retraso de letras</string>
     <string name="settings_instrument_delay_desc">Compensa la latencia de audio de CarPlay retrasando las letras de todas las canciones. De 0 a 5000 ms en pasos de 50 ms. Se aplica sin reconectar.</string>
-    <string name="settings_instrument_output">Contenido del cuadro</string>
     <string name="settings_instrument_map">Mapa</string>
-    <string name="settings_instrument_map_desc">Usa el mapa independiente del iPhone. Al seleccionar o activar el mapa, se aplica en la próxima conexión CarPlay. Tú eliges cuándo reconectar. Las letras cambian al instante. Detén antes otros emisores como OP.</string>
+    <string name="settings_instrument_map_desc">Usa el vídeo de mapa independiente del iPhone. Se activa en la próxima conexión; elige cuándo reconectar. Detén otras aplicaciones de proyección.</string>
     <string name="settings_instrument_wait_map">Esperando el mapa del iPhone; reconecta si lo activaste durante esta sesión</string>
     <string name="settings_floating_lyrics_title">Letras flotantes de CarPlay</string>
     <string name="settings_floating_lyrics_enable">Mostrar letras flotantes</string>
@@ -59,9 +53,11 @@
     <string name="settings_floating_lyrics_opacity">Opacidad del fondo</string>
     <string name="settings_floating_lyrics_x">Posición horizontal</string>
     <string name="settings_floating_lyrics_y">Posición vertical</string>
-    <string name="settings_lyrics_and_instrument">Letras e instrumentos</string>
-    <string name="settings_lyrics_and_instrument_desc">Configura letras flotantes, salida al cuadro y sincronización compartida en un solo lugar.</string>
     <string name="settings_lyrics_shared">Fuente y sincronización</string>
     <string name="settings_floating_lyrics_animation">Animación al cambiar de verso</string>
     <string name="settings_floating_lyrics_animation_desc">La siguiente línea sube y se amplía en 250 ms. Se aplica al instante; al cambiar de canción, buscar o arrastrar se actualiza directamente.</string>
+    <string name="settings_lyrics_category">Letras</string>
+    <string name="settings_lyrics_category_desc">Configura las letras flotantes de CarPlay, tamaño, transiciones, posición, fuentes, caché y retraso.</string>
+    <string name="settings_instrument_map_category">Mapa del cuadro</string>
+    <string name="settings_instrument_map_category_desc">Configura la proyección del mapa, autorización, inicio automático, estado y restauración.</string>
 </resources>

@@ -1450,7 +1450,7 @@ class CarPlayHostActivity : ComponentActivity() {
         adbClusterConfigured = false
         clusterStreamOnDisplay = false
         requestedSmallWindowForStream = null
-        if (InstrumentLyrics.supported() && InstrumentLyricsSettings.enabled(this) && InstrumentLyricsSettings.map(this)) {
+        if (InstrumentLyrics.supported() && InstrumentLyricsSettings.enabled(this)) {
             return CarPlayClusterDisplay.config(1328, 664, scalePercent = 100,
                 baseSafeArea = com.shilapi.xcertplay.airplay.AirPlayInsets(0, 0, 0, 0))
         }
