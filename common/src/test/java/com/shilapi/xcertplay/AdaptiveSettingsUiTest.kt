@@ -471,6 +471,9 @@ class AdaptiveSettingsUiTest {
             assertTrue(SettingsSection.P7_CARPLAY_DATA in sections(SettingsCategory.VEHICLE))
             assertTrue(SettingsSection.VEHICLE_EXPERIMENT in sections(SettingsCategory.DIAGNOSTICS))
             assertTrue(SettingsSection.LANGUAGE in sections(SettingsCategory.ABOUT))
+            assertTrue(SettingsSection.FLOATING_LYRICS in sections(SettingsCategory.INSTRUMENT))
+            assertTrue(SettingsSection.LYRICS_SHARED in sections(SettingsCategory.INSTRUMENT))
+            assertFalse(SettingsSection.FLOATING_LYRICS in sections(SettingsCategory.DISPLAY))
         }
     }
 

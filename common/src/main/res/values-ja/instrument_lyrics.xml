@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_instrument_title">メーター表示（実験的機能）</string>
-    <string name="settings_instrument_description">P7 純正ナビ地図カードに歌詞や曲情報を表示します。CarPlay の再接続は不要です。</string>
+    <string name="settings_instrument_description">P7 のナビカードに歌詞、曲情報、iPhone の独立地図を表示します。歌詞は即時反映し、地図映像の有効化は次回 CarPlay 接続時に反映します。</string>
     <string name="settings_instrument_enable">メーター表示を有効にする</string>
     <string name="settings_instrument_auto">認証済みの経路を自動起動</string>
     <string name="settings_instrument_auto_desc">CarPlay 接続中のみ起動します。ADB 認証画面は自動表示しません。</string>
@@ -30,7 +30,7 @@
     <string name="settings_instrument_lane">純正の車線案内を非表示</string>
     <string name="settings_instrument_lane_desc">任意。停止時に新しい保存状態を復元し、保存がなければ純正の次の更新を待ちます。</string>
     <string name="settings_instrument_online">オンラインで歌詞を検索</string>
-    <string name="settings_instrument_online_desc">LRCLIB に曲名、アーティスト、アルバム、長さを送信します。車載機の通信が必要です。キャッシュはオフラインで使用できます。</string>
+    <string name="settings_instrument_online_desc">NetEase Music を優先し、見つからない場合は LRCLIB を検索します。曲名、アーティスト、アルバム、長さを送信します。通信が必要です。キャッシュはオフラインで使用できます。</string>
     <string name="settings_instrument_rematch">現在の曲を再検索</string>
     <string name="settings_instrument_cache_clear">歌詞キャッシュを削除</string>
     <string name="settings_instrument_cache">歌詞キャッシュ（最大 50 MB）</string>
@@ -46,4 +46,22 @@
     <string name="settings_instrument_paused">一時停止中</string>
     <string name="settings_instrument_delay">歌詞の遅延</string>
     <string name="settings_instrument_delay_desc">CarPlay の音声遅延に合わせ、全曲の歌詞を遅らせます。0～5000 ミリ秒、50 ミリ秒単位。再接続せず即時反映します。</string>
+    <string name="settings_instrument_output">メーター表示内容</string>
+    <string name="settings_instrument_map">地図</string>
+    <string name="settings_instrument_map_desc">iPhone の独立地図映像を使用します。地図の選択や有効化は次回の CarPlay 接続時に反映されます。再接続の時機は自分で選べます。歌詞への切替は即時です。先に OP 等の投放を停止してください。</string>
+    <string name="settings_instrument_wait_map">iPhone の独立地図を待機中。この接続中に有効化した場合は再接続してください</string>
+    <string name="settings_floating_lyrics_title">CarPlay フローティング歌詞</string>
+    <string name="settings_floating_lyrics_enable">フローティング歌詞を表示</string>
+    <string name="settings_floating_lyrics_desc">再生中は同期歌詞を表示し、歌詞がない場合は曲名と検索状況を表示します。重ねて表示する権限は不要です。全体の歌詞遅延を共用します。</string>
+    <string name="settings_floating_lyrics_next">次の歌詞を表示</string>
+    <string name="settings_floating_lyrics_lock">長押ししてドラッグ</string>
+    <string name="settings_floating_lyrics_lock_desc">歌詞パネルを長押ししてから移動します。通常のタップとスワイプは CarPlay に通します。オフにするとすぐドラッグできます。</string>
+    <string name="settings_floating_lyrics_opacity">背景の不透明度</string>
+    <string name="settings_floating_lyrics_x">横位置</string>
+    <string name="settings_floating_lyrics_y">縦位置</string>
+    <string name="settings_lyrics_and_instrument">歌詞とメーター</string>
+    <string name="settings_lyrics_and_instrument_desc">フローティング歌詞、メーター表示、共通の同期をまとめて設定します。</string>
+    <string name="settings_lyrics_shared">歌詞の取得と同期</string>
+    <string name="settings_floating_lyrics_animation">歌詞切り替えアニメーション</string>
+    <string name="settings_floating_lyrics_animation_desc">次の行が250ミリ秒で上に移動し、拡大して現在の行になります。すぐに反映されます。曲の変更、シーク、ドラッグ時は直接更新します。</string>
 </resources>

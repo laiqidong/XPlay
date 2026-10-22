@@ -1,5 +1,14 @@
 # Credits and license notices
 
+## Instrument lyric Chinese conversion
+
+The offline `TSCharacters.txt` and `TSPhrases.txt` dictionaries in `common/src/main/assets/opencc/`
+are from [OpenCC](https://github.com/BYVoid/OpenCC), commit `ba09ffb8353f680381200c72452a36c72d540155`,
+under Apache-2.0. Original dictionary headers are retained; the license is bundled in
+`common/src/main/assets/licenses/OpenCC-Apache-2.0.txt`.
+XPlay uses longest-match phrase/character replacement for simplified lyric display and
+script-insensitive metadata comparison on Android 9, without a native library or online translator.
+
 ## P7 instrument image transport
 
 The P7 instrument worker, image policy, native map guardian/lease and optional lane-display
@@ -7,6 +16,10 @@ bridge are adapted from [heavendoorx7/OP-CarPlay](https://github.com/heavendoorx
 commit `5ea1cf60024210f3e0729ba14cda5c339be6f20b`, under GPL-3.0.
 XPlay modifications dated 2026-10-21 isolate package/socket/recovery identities and add
 an independent lyrics renderer. See [implementation and permissions](P7_INSTRUMENT_LYRICS.md).
+
+`P7InstrumentMapRenderer` and `P7InstrumentFraming` also adapt that commit's
+offscreen EGL map renderer and AMap framing under GPL-3.0 (2026-10-22).
+The map renderer supplies frames to the existing exclusive instrument sender.
 
 ## Receiver
 

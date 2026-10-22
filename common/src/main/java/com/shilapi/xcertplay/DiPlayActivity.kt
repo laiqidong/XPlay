@@ -96,6 +96,8 @@ internal enum class SettingsSection {
     VEHICLE_EXPERIMENT,
     P7_CARPLAY_DATA,
     INSTRUMENT_LYRICS,
+    FLOATING_LYRICS,
+    LYRICS_SHARED,
     CARPLAY_CONTROLS,
     WHEEL_KEYS,
     CONNECTION_SETUP,
@@ -127,7 +129,7 @@ internal object SettingsInformationArchitecture {
         SettingsCategory.CONNECTION to setOf(SettingsSection.CONNECTION_SETUP, SettingsSection.AUTHENTICATION,
             SettingsSection.AUTOMATIC_CONNECTION, SettingsSection.USB_CONNECTION, SettingsSection.BYD_ADB,
             SettingsSection.PERMISSIONS_AND_HELP),
-        SettingsCategory.DISPLAY to setOf(SettingsSection.DISPLAY_APPEARANCE, SettingsSection.DISPLAY_AND_PERFORMANCE,
+        SettingsCategory.DISPLAY to setOf( SettingsSection.DISPLAY_APPEARANCE, SettingsSection.DISPLAY_AND_PERFORMANCE,
             SettingsSection.DISPLAY_SCREEN, SettingsSection.EXPERIMENTAL_DISPLAY, SettingsSection.ADVANCED_VIDEO),
         SettingsCategory.AUDIO to setOf(SettingsSection.AUDIO_ROUTING, SettingsSection.ADVANCED_MEDIA,
             SettingsSection.NAVIGATION_WHEEL),
@@ -137,14 +139,13 @@ internal object SettingsInformationArchitecture {
             SettingsSection.CAR_BUTTON),
         SettingsCategory.VEHICLE to setOf(SettingsSection.P7_CARPLAY_DATA, SettingsSection.AMBIENT_LIGHTING),
         SettingsCategory.DIAGNOSTICS to setOf(SettingsSection.DIAGNOSTICS, SettingsSection.VEHICLE_EXPERIMENT),
-        SettingsCategory.INSTRUMENT to setOf(SettingsSection.INSTRUMENT_LYRICS),
+        SettingsCategory.INSTRUMENT to setOf(SettingsSection.FLOATING_LYRICS, SettingsSection.INSTRUMENT_LYRICS, SettingsSection.LYRICS_SHARED),
         SettingsCategory.ABOUT to setOf(SettingsSection.LANGUAGE),
     )
 
-    fun categories(p7: Boolean): List<SettingsCategory> = SettingsCategory.entries.filter { p7 || it != SettingsCategory.INSTRUMENT }
+    fun categories(p7: Boolean): List<SettingsCategory> = SettingsCategory.entries
 
-    fun category(category: SettingsCategory, p7: Boolean): SettingsCategory =
-        if (!p7 && category == SettingsCategory.INSTRUMENT) SettingsCategory.OVERVIEW else category
+    fun category(category: SettingsCategory, p7: Boolean): SettingsCategory = category
 
     fun sections(category: SettingsCategory, p7: Boolean): Set<SettingsSection> =
         sectionsByCategory.getValue(category).let { sections ->
@@ -998,7 +999,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         SettingsCategory.VEHICLE -> R.string.settings_vehicle
         SettingsCategory.DIAGNOSTICS -> R.string.diagnostics
         SettingsCategory.CONTROLS -> R.string.settings_controls_category
-        SettingsCategory.INSTRUMENT -> R.string.settings_instrument_title
+        SettingsCategory.INSTRUMENT -> R.string.settings_lyrics_and_instrument
         SettingsCategory.ABOUT -> R.string.about
     })
 
@@ -1016,7 +1017,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                 renderSections(content, categorySections(SettingsCategory.CONTROLS))
             }
             SettingsCategory.INSTRUMENT -> {
-                settingsPageTitle(content, getString(R.string.settings_instrument_title), getString(R.string.settings_instrument_description))
+                settingsPageTitle(content, getString(R.string.settings_lyrics_and_instrument), getString(R.string.settings_lyrics_and_instrument_desc))
                 renderSections(content, categorySections(SettingsCategory.INSTRUMENT))
             }
             SettingsCategory.ABOUT -> about(content)
@@ -1350,7 +1351,9 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     }
 
     private fun allSettingsSections(content: LinearLayout) {
+        floatingLyricsSection(content)
         if (p7Settings) instrumentLyricsSection(content)
+        sharedLyricsSection(content)
         if (com.shilapi.xcertplay.adb.LocalAdbDevicePolicy.isXpengP7()) {
             filteredSection(content, SettingsSection.P7_CARPLAY_DATA,
                 getString(R.string.settings_vehicle_carplay_data), R.drawable.ic_dp_car) { card ->
@@ -5282,13 +5285,63 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     }
 
 
+    private fun floatingLyricsSection(content: LinearLayout) {
+        filteredSection(content, SettingsSection.FLOATING_LYRICS,
+            getString(R.string.settings_floating_lyrics_title), R.drawable.ic_dp_audio) { card ->
+            toggle(card, getString(R.string.settings_floating_lyrics_enable), getString(R.string.settings_floating_lyrics_desc),
+                InstrumentLyricsSettings.floating(this)) { InstrumentLyricsSettings.save(this, "floating", it) }
+            toggle(card, getString(R.string.settings_floating_lyrics_next), getString(R.string.settings_instrument_live),
+                InstrumentLyricsSettings.floatingNext(this)) { InstrumentLyricsSettings.save(this, "floating_next", it) }
+            toggle(card, getString(R.string.settings_floating_lyrics_animation), getString(R.string.settings_floating_lyrics_animation_desc),
+                InstrumentLyricsSettings.floatingAnimation(this)) { InstrumentLyricsSettings.save(this, "floating_animation", it) }
+            toggle(card, getString(R.string.settings_floating_lyrics_lock), getString(R.string.settings_floating_lyrics_lock_desc),
+                InstrumentLyricsSettings.floatingLocked(this)) { InstrumentLyricsSettings.save(this, "floating_locked", it) }
+            fun choice(key: String, title: Int, values: List<Int>, unit: String) {
+                card.addView(button(getString(title) + " · " + InstrumentLyricsSettings.floatingValue(this, key) + unit, false) {
+                    appDialogBuilder().setTitle(title)
+                        .setSingleChoiceItems(values.map { "$it$unit" }.toTypedArray(), values.indexOf(InstrumentLyricsSettings.floatingValue(this, key))) { dialog, which ->
+                            InstrumentLyricsSettings.saveFloating(this, key, values[which]); dialog.dismiss(); render()
+                        }.setNegativeButton(R.string.cancel, null).show()
+                }, matchButton(0, SETTINGS_RAIL_ROW_HEIGHT_DP))
+            }
+            choice("font", R.string.settings_instrument_font, listOf(80, 100, 120, 140), "%")
+            choice("opacity", R.string.settings_floating_lyrics_opacity, (0..100 step 10).toList(), "%")
+            choice("x", R.string.settings_floating_lyrics_x, (0..100 step 10).toList(), "%")
+            choice("y", R.string.settings_floating_lyrics_y, (0..100 step 10).toList(), "%")
+        }
+    }
+
+    private fun sharedLyricsSection(content: LinearLayout) {
+        filteredSection(content, SettingsSection.LYRICS_SHARED, getString(R.string.settings_lyrics_shared), R.drawable.ic_dp_audio) { card ->
+            fun action(title: Int, run: () -> Unit) {
+                card.addView(button(getString(title), false, run), matchButton(0, SETTINGS_RAIL_ROW_HEIGHT_DP))
+                card.addView(space(SETTINGS_BLOCK_GAP_DP))
+            }
+            toggle(card, getString(R.string.settings_instrument_online), getString(R.string.settings_instrument_online_desc),
+                InstrumentLyricsSettings.online(this)) { InstrumentLyricsSettings.save(this, "online", it) }
+            action(R.string.settings_instrument_rematch) { InstrumentLyrics.rematch() }
+            card.addView(button(getString(R.string.settings_instrument_delay) + " · " + InstrumentLyricsSettings.delay(this) + " ms", false) {
+                val delays = (0..100).map { it * 50 }
+                appDialogBuilder().setTitle(R.string.settings_instrument_delay)
+                    .setSingleChoiceItems(delays.map { "$it ms" }.toTypedArray(), delays.indexOf(InstrumentLyricsSettings.delay(this))) { dialog, which ->
+                        InstrumentLyricsSettings.saveDelay(this, delays[which]); dialog.dismiss(); render()
+                    }.setNegativeButton(R.string.cancel, null).show()
+            }, matchButton(0, SETTINGS_RAIL_ROW_HEIGHT_DP))
+            card.addView(label(getString(R.string.settings_instrument_delay_desc), 16, MUTED))
+            action(R.string.settings_instrument_cache_clear) { InstrumentLyrics.clearCache(this) }
+        }
+    }
+
     private var instrumentStatusRemoval: (() -> Unit)? = null
 
     private fun instrumentLyricsSection(content: LinearLayout) {
         filteredSection(content, SettingsSection.INSTRUMENT_LYRICS,
             getString(R.string.settings_instrument_title), R.drawable.ic_dp_dashboard) { card ->
             fun setting(key: String, title: Int, desc: Int, value: Boolean) {
-                toggle(card, getString(title), getString(desc), value) { InstrumentLyricsSettings.save(this, key, it) }
+                toggle(card, getString(title), getString(desc), value) {
+                    InstrumentLyricsSettings.save(this, key, it)
+                    if (key == "enabled" && it && InstrumentLyricsSettings.map(this)) markReconnectNeeded()
+                }
             }
             fun action(title: Int, run: () -> Unit) {
                 card.addView(button(getString(title), false, run), matchButton(0, SETTINGS_RAIL_ROW_HEIGHT_DP))
@@ -5310,7 +5363,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                     "submitting" to R.string.settings_instrument_submitting,
                     "waiting_request" to R.string.settings_instrument_wait_card,
                     "waiting_app" to R.string.settings_instrument_starting,
-                    "waiting_map" to R.string.settings_instrument_starting,
+                    "waiting_map" to R.string.settings_instrument_wait_map,
                     "native_pause_unavailable" to R.string.settings_instrument_unavailable,
                     "restoring" to R.string.settings_instrument_restoring,
                     "released" to R.string.settings_instrument_released,
@@ -5330,7 +5383,8 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                     "song_only" to R.string.settings_instrument_song,
                     "cache_cleared" to R.string.settings_instrument_cache_clear)
                 status.text = getString(ids[state] ?: R.string.settings_instrument_unavailable) + "\n" +
-                    getString(lyrics[InstrumentLyrics.lyricState] ?: R.string.settings_instrument_no_lyrics) +
+                    (if (InstrumentLyricsSettings.map(this)) getString(R.string.settings_instrument_map)
+                    else getString(lyrics[InstrumentLyrics.lyricState] ?: R.string.settings_instrument_no_lyrics)) +
                     "\n" + InstrumentLyrics.diagnostics + "\n" + getString(R.string.settings_instrument_cache) + " · " +
                     android.text.format.Formatter.formatShortFileSize(this, InstrumentLyrics.cacheBytes(this))
             }
@@ -5346,6 +5400,16 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             action(R.string.settings_instrument_start) { InstrumentLyrics.start(this) }
             action(R.string.settings_instrument_stop) { InstrumentLyrics.stop() }
             card.addView(label(getString(R.string.settings_instrument_permissions), 16, MUTED))
+            val outputs = arrayOf(getString(R.string.settings_instrument_lyrics), getString(R.string.settings_instrument_map))
+            card.addView(button(getString(R.string.settings_instrument_output) + " · " + outputs[if (InstrumentLyricsSettings.map(this)) 1 else 0], false) {
+                appDialogBuilder().setTitle(R.string.settings_instrument_output)
+                    .setSingleChoiceItems(outputs, if (InstrumentLyricsSettings.map(this)) 1 else 0) { dialog, which ->
+                        InstrumentLyricsSettings.save(this, "map", which == 1)
+                        if (which == 1) markReconnectNeeded()
+                        dialog.dismiss(); render()
+                    }.setNegativeButton(R.string.cancel, null).show()
+            }, matchButton(0, SETTINGS_RAIL_ROW_HEIGHT_DP))
+            card.addView(label(getString(R.string.settings_instrument_map_desc), 16, MUTED))
             val modes = arrayOf(getString(R.string.settings_instrument_lyrics), getString(R.string.settings_instrument_song))
             card.addView(button(getString(R.string.settings_instrument_content) + " · " + modes[if (InstrumentLyricsSettings.lyrics(this)) 0 else 1], false) {
                 appDialogBuilder().setTitle(R.string.settings_instrument_content)
@@ -5362,17 +5426,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             }, matchButton(0, SETTINGS_RAIL_ROW_HEIGHT_DP))
             setting("cover", R.string.settings_instrument_cover, R.string.settings_instrument_live, InstrumentLyricsSettings.cover(this))
             setting("lane", R.string.settings_instrument_lane, R.string.settings_instrument_lane_desc, InstrumentLyricsSettings.hideLane(this))
-            setting("online", R.string.settings_instrument_online, R.string.settings_instrument_online_desc, InstrumentLyricsSettings.online(this))
-            action(R.string.settings_instrument_rematch) { InstrumentLyrics.rematch() }
-            card.addView(button(getString(R.string.settings_instrument_delay) + " · " + InstrumentLyricsSettings.delay(this) + " ms", false) {
-                val delays = (0..100).map { it * 50 }
-                appDialogBuilder().setTitle(R.string.settings_instrument_delay)
-                    .setSingleChoiceItems(delays.map { "$it ms" }.toTypedArray(), delays.indexOf(InstrumentLyricsSettings.delay(this))) { dialog, which ->
-                        InstrumentLyricsSettings.saveDelay(this, delays[which]); dialog.dismiss(); render()
-                    }.setNegativeButton(R.string.cancel, null).show()
-            }, matchButton(0, SETTINGS_RAIL_ROW_HEIGHT_DP))
-            card.addView(label(getString(R.string.settings_instrument_delay_desc), 16, MUTED))
-            action(R.string.settings_instrument_cache_clear) { InstrumentLyrics.clearCache(this) }
+
         }
     }
 

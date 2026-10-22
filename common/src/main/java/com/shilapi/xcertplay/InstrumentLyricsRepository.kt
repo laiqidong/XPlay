@@ -8,7 +8,6 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 import java.security.MessageDigest
-import kotlin.math.abs
 
 internal data class InstrumentSong(val title: String, val artist: String, val album: String, val duration: Long) {
     val key: String get() = MessageDigest.getInstance("SHA-256")
@@ -20,6 +19,8 @@ internal data class InstrumentLyricResult(val lines: List<InstrumentLyricLine>, 
 
 /** Bounded HTTPS lookup. No Apple credentials, audio, location or device identifiers are sent. */
 internal class InstrumentLyricsRepository(context: Context) {
+    val chinese = InstrumentChineseText(context.applicationContext)
+    private val matcher = InstrumentSongMatcher(chinese)
     private val directory = File(context.cacheDir, "instrument-lyrics")
     @Volatile var generation = 0L
     @Volatile private var connection: HttpURLConnection? = null
@@ -39,20 +40,22 @@ internal class InstrumentLyricsRepository(context: Context) {
         }
         if (!online) return InstrumentLyricResult(emptyList(), "offline")
         if (song.duration <= 0) return InstrumentLyricResult(emptyList(), "waiting_duration")
-        fun query(path: String, fields: Map<String, String>): String? {
-            if (ticket != generation) return null
-            val query = fields.entries.joinToString("&") { (k, v) -> "$k=${URLEncoder.encode(v, "UTF-8")}" }
-            val conn = URL("https://lrclib.net/api/$path?$query").openConnection() as HttpURLConnection
+        val deadline = android.os.SystemClock.elapsedRealtime() + 30000
+        var networkFailure = false
+        fun query(base: String, fields: Map<String, String>): String? {
+            if (ticket != generation || android.os.SystemClock.elapsedRealtime() >= deadline) return null
+            val params = fields.entries.joinToString("&") { (k, v) -> "$k=${URLEncoder.encode(v, "UTF-8")}" }
+            val conn = URL("$base?$params").openConnection() as HttpURLConnection
             connection = conn
             try {
-                conn.connectTimeout = 6000; conn.readTimeout = 6000
+                conn.connectTimeout = 3500; conn.readTimeout = 3500
                 conn.instanceFollowRedirects = false
-                conn.setRequestProperty("User-Agent", "XPlay-InstrumentLyrics/1.0")
+                conn.setRequestProperty("User-Agent", "XPlay-InstrumentLyrics/1.1")
+                if (base.startsWith("https://music.163.com/")) conn.setRequestProperty("Referer", "https://music.163.com/")
                 val code = conn.responseCode
                 if (code == 404) return null
                 check(code == 200)
                 return conn.inputStream.use { input ->
-                    val deadline = android.os.SystemClock.elapsedRealtime() + 12000
                     val buffer = java.io.ByteArrayOutputStream()
                     val chunk = ByteArray(8192)
                     while (true) {
@@ -62,34 +65,57 @@ internal class InstrumentLyricsRepository(context: Context) {
                         check(buffer.size() + count <= MAX_BYTES)
                         buffer.write(chunk, 0, count)
                     }
-                    val bytes = buffer.toByteArray()
-                    check(bytes.size <= MAX_BYTES)
-                    bytes.toString(Charsets.UTF_8)
+                    buffer.toByteArray().toString(Charsets.UTF_8)
                 }
-            } finally { conn.disconnect(); if (connection === conn) connection = null }
+            } catch (_: Exception) { networkFailure = true; return null }
+            finally { conn.disconnect(); if (connection === conn) connection = null }
         }
-        return try {
-            val exact = query("get", mapOf("track_name" to song.title, "artist_name" to song.artist,
-                "album_name" to song.album, "duration" to (song.duration / 1000.0).toString()))
-                ?.let(::JSONObject)
-            fun suitable(item: JSONObject): Boolean =
-                normalized(item.optString("trackName")) == normalized(song.title) &&
-                normalized(item.optString("artistName")) == normalized(song.artist) &&
-                abs(item.optDouble("duration", -100.0) - song.duration / 1000.0) <= 2.0 &&
-                (!item.optString("syncedLyrics").isBlank() && item.optString("syncedLyrics") != "null")
-            var match = exact?.takeIf(::suitable)
-            if (match == null && ticket == generation) {
-                val found = query("search", mapOf("track_name" to song.title, "artist_name" to song.artist))
-                    ?.let(::JSONArray)
-                val candidates = (0 until (found?.length() ?: 0)).map { found!!.getJSONObject(it) }.filter(::suitable)
-                // Ambiguous recordings do not silently choose a different release.
-                match = candidates.firstOrNull { normalized(it.optString("albumName")) == normalized(song.album) }
-                    ?: candidates.singleOrNull()
+        fun objects(array: JSONArray?): List<JSONObject> = (0 until minOf(array?.length() ?: 0, 30))
+            .mapNotNull { array?.optJSONObject(it) }
+        fun lrclib(): String? {
+            val variants = listOf(song.copy(title = chinese.simplified(song.title),
+                artist = chinese.simplified(song.artist), album = chinese.simplified(song.album)), song).distinct()
+            fun candidate(item: JSONObject) = InstrumentSongMatcher.Candidate(item.optString("id"),
+                item.optString("trackName"), listOf(item.optString("artistName")), item.optString("albumName"),
+                (item.optDouble("duration", -1.0) * 1000).toLong(), item.optString("syncedLyrics"))
+            fun usable(items: List<JSONObject>) = items.filter { parse(it.optString("syncedLyrics")).isNotEmpty() }.map(::candidate)
+            for (variant in variants) {
+                val exact = query("https://lrclib.net/api/get", mapOf("track_name" to variant.title,
+                    "artist_name" to variant.artist, "album_name" to variant.album,
+                    "duration" to (variant.duration / 1000.0).toString()))?.let(::JSONObject)
+                matcher.select(song, usable(listOfNotNull(exact)))?.lyrics?.let { return it }
             }
-            val raw = match?.optString("syncedLyrics").orEmpty()
+            val found = mutableListOf<InstrumentSongMatcher.Candidate>()
+            for (title in listOf(matcher.searchTitle(song.title), song.title).distinct()) {
+                val response = query("https://lrclib.net/api/search", mapOf("track_name" to title))?.let(::JSONArray)
+                found += usable(objects(response))
+                matcher.select(song, found)?.lyrics?.let { return it }
+            }
+            return null
+        }
+        fun netease(): String? {
+            val title = matcher.searchTitle(song.title)
+            val response = query("https://music.163.com/api/search/get/web", mapOf("s" to "$title ${chinese.simplified(song.artist)}",
+                "type" to "1", "limit" to "30", "offset" to "0"))?.let(::JSONObject) ?: return null
+            check(response.optInt("code") == 200)
+            val candidates = objects(response.optJSONObject("result")?.optJSONArray("songs")).map { item ->
+                InstrumentSongMatcher.Candidate(item.optString("id"), item.optString("name"),
+                    objects(item.optJSONArray("artists")).map { it.optString("name") },
+                    item.optJSONObject("album")?.optString("name").orEmpty(), item.optLong("duration", -1))
+            }
+            val selected = matcher.select(song, candidates) ?: return null
+            val lyrics = query("https://music.163.com/api/song/lyric", mapOf("id" to selected.id,
+                "lv" to "-1", "kv" to "-1", "tv" to "-1"))?.let(::JSONObject) ?: return null
+            check(lyrics.optInt("code") == 200)
+            return lyrics.optJSONObject("lrc")?.optString("lyric")?.takeIf { parse(it).isNotEmpty() }
+        }
+        fun safely(provider: () -> String?): String? = try { provider() }
+            catch (_: Exception) { networkFailure = true; null }
+        return try {
+            val raw = (safely(::netease) ?: safely(::lrclib)).orEmpty()
             val lines = parse(raw)
             if (ticket != generation) return InstrumentLyricResult(emptyList(), "cancelled")
-            if (lines.isEmpty()) InstrumentLyricResult(emptyList(), "not_found")
+            if (lines.isEmpty()) InstrumentLyricResult(emptyList(), if (networkFailure) "network_error" else "not_found")
             else {
                 synchronized(this) {
                     if (ticket == generation) {
@@ -111,7 +137,6 @@ internal class InstrumentLyricsRepository(context: Context) {
     companion object {
         private const val MAX_BYTES = 1_048_576
         private const val CACHE_BYTES = 50L * 1024 * 1024
-        private fun normalized(value: String) = value.trim().lowercase(java.util.Locale.ROOT).replace(Regex("\\s+"), " ")
         fun parse(raw: String): List<InstrumentLyricLine> {
             if (raw.length > MAX_BYTES) return emptyList()
             val stamp = Regex("\\[(\\d{1,3}):([0-5]\\d)(?:[.:](\\d{1,3}))?]")

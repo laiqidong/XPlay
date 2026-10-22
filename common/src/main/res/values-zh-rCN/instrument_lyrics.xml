@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_instrument_title">仪表投放（实验性）</string>
-    <string name="settings_instrument_description">在 P7 原车导航地图卡片中显示歌词或歌曲信息。立即生效，不重连 CarPlay。</string>
+    <string name="settings_instrument_description">在 P7 导航卡片显示歌词、歌曲信息或 iPhone 独立地图。歌词即时生效，启用地图视频需下次连接 CarPlay 生效。</string>
     <string name="settings_instrument_enable">启用仪表投放</string>
     <string name="settings_instrument_auto">自动启动已授权通道</string>
     <string name="settings_instrument_auto_desc">仅在 CarPlay 会话期间启动，不会自动弹出 ADB 授权请求。</string>
@@ -30,7 +30,7 @@
     <string name="settings_instrument_lane">隐藏原车车道提示</string>
     <string name="settings_instrument_lane_desc">可选。停止后恢复当前缓存状态；无缓存时等待原车后续更新。</string>
     <string name="settings_instrument_online">在线查询歌词</string>
-    <string name="settings_instrument_online_desc">使用 LRCLIB，发送歌名、歌手、专辑和时长。车机需要联网，缓存歌词可离线使用。</string>
+    <string name="settings_instrument_online_desc">优先查询网易云音乐，未匹配时尝试 LRCLIB。发送歌名、歌手、专辑和时长。车机需要联网，缓存歌词可离线使用。</string>
     <string name="settings_instrument_rematch">重新匹配当前歌曲</string>
     <string name="settings_instrument_cache_clear">清除歌词缓存</string>
     <string name="settings_instrument_cache">歌词缓存（上限 50 MB）</string>
@@ -46,4 +46,22 @@
     <string name="settings_instrument_paused">已暂停</string>
     <string name="settings_instrument_delay">歌词延迟</string>
     <string name="settings_instrument_delay_desc">补偿 CarPlay 音频延迟，所有歌曲的歌词统一延后显示。范围 0–5000 毫秒，每步 50 毫秒。立即生效，无需重连。</string>
+    <string name="settings_instrument_output">仪表投放内容</string>
+    <string name="settings_instrument_map">地图</string>
+    <string name="settings_instrument_map_desc">地图使用 iPhone 独立地图视频。选择地图或开启地图投放后，下次连接生效，请自行选择重连时机。歌词可即时切换。请先停止 OP 等其他仪表投放应用。</string>
+    <string name="settings_instrument_wait_map">等待 iPhone 独立地图；若本次连接中才开启地图，请重连</string>
+    <string name="settings_floating_lyrics_title">CarPlay 悬浮歌词</string>
+    <string name="settings_floating_lyrics_enable">显示悬浮歌词</string>
+    <string name="settings_floating_lyrics_desc">播放时显示同步歌词；未找到歌词时显示歌名和查询状态。无需悬浮窗权限，共用全局歌词延迟。</string>
+    <string name="settings_floating_lyrics_next">显示下一句歌词</string>
+    <string name="settings_floating_lyrics_lock">长按后拖动</string>
+    <string name="settings_floating_lyrics_lock_desc">长按歌词面板后即可拖动。普通点击和滑动穿透到 CarPlay；关闭此项可直接拖动。</string>
+    <string name="settings_floating_lyrics_opacity">背景不透明度</string>
+    <string name="settings_floating_lyrics_x">横向位置</string>
+    <string name="settings_floating_lyrics_y">纵向位置</string>
+    <string name="settings_lyrics_and_instrument">歌词与仪表</string>
+    <string name="settings_lyrics_and_instrument_desc">统一配置悬浮歌词、仪表投放和共用的歌词同步。</string>
+    <string name="settings_lyrics_shared">歌词来源与同步</string>
+    <string name="settings_floating_lyrics_animation">歌词切换动画</string>
+    <string name="settings_floating_lyrics_animation_desc">下一句平滑上移、放大成为当前句，动画约 250 毫秒。立即生效；切歌、跳进度和拖动时直接刷新。</string>
 </resources>

@@ -357,6 +357,7 @@ class CarPlayHostActivity : ComponentActivity() {
     private var picturePanel: View? = null
     private var picturePanelGeneration = 0
     private var gestureOverlay: View? = null
+    private var floatingLyricsView: FloatingLyricsView? = null
     private var settingsMenu: View? = null
     private var settingsMenuCategoryKey = "connection"
     private var settingsMenuContentScroll: ScrollView? = null
@@ -1449,6 +1450,10 @@ class CarPlayHostActivity : ComponentActivity() {
         adbClusterConfigured = false
         clusterStreamOnDisplay = false
         requestedSmallWindowForStream = null
+        if (InstrumentLyrics.supported() && InstrumentLyricsSettings.enabled(this) && InstrumentLyricsSettings.map(this)) {
+            return CarPlayClusterDisplay.config(1328, 664, scalePercent = 100,
+                baseSafeArea = com.shilapi.xcertplay.airplay.AirPlayInsets(0, 0, 0, 0))
+        }
         if (!AirPlayPersistence.loadClusterMapEnabled(this)) return null
         if (AdbClusterRouter.enabled(this) && ClusterActivityOutput.hasConfirmedRoute()) {
             adbClusterConfigured = true
@@ -1833,6 +1838,11 @@ class CarPlayHostActivity : ComponentActivity() {
         }
         paintWaitingScreen()
         root.addView(viewport, FrameLayout.LayoutParams(-1, -1))
+        root.addView(FloatingLyricsView(this).also {
+            floatingLyricsView = it
+            it.videoSource = { fallbackVideoView ?: videoView }
+            it.cancelCarPlayTouch = { controller?.sendTouch(emptyList()) }
+        }, FrameLayout.LayoutParams(-1, -1))
         // Above the video and gesture layer, below the menus.
         sidePanelBlur = ImageView(this).apply {
             visibility = View.GONE
@@ -5111,6 +5121,7 @@ class CarPlayHostActivity : ComponentActivity() {
         controller = snapshot.controller
         updateClusterMapShown()
         sink = snapshot.sink
+        InstrumentLyrics.bindSink(snapshot.sink)
         sessionDisplay = snapshot.display
         resetSidePanel()
         if (snapshot.display.viewAreas?.let { it.kindOf(it.current) == CarPlayViewAreas.Kind.SIDE_PANEL } == true) {
@@ -5284,6 +5295,7 @@ class CarPlayHostActivity : ComponentActivity() {
         resetSidePanel() // a new session starts without the side panel
         updateClusterMapShown()
         CarPlayMediaKeys.attach(this, next)
+        InstrumentLyrics.bindSink(renderer)
         if (airPlayConfig.videoInCar) CarPlayVideo.attach(this, next)
         val display = CarPlaySessionDisplay(
             airPlayConfig.main.widthPixels, airPlayConfig.main.heightPixels,
@@ -6128,6 +6140,7 @@ class CarPlayHostActivity : ComponentActivity() {
 
     private fun onHostTouch(view: View, event: MotionEvent): Boolean {
         if (menuOpen) return true
+        if (floatingLyricsView?.handleHostTouch(event) == true) return true
 
         when (event.actionMasked) {
             MotionEvent.ACTION_DOWN -> {

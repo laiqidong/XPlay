@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_instrument_title">Вывод на приборы (экспериментально)</string>
-    <string name="settings_instrument_description">Текст песни или сведения о треке в карточке карты P7. Без переподключения CarPlay.</string>
+    <string name="settings_instrument_description">Текст, сведения о треке или отдельная карта iPhone в карточке P7. Текст применяется сразу; включение карты действует со следующего подключения CarPlay.</string>
     <string name="settings_instrument_enable">Включить вывод на приборы</string>
     <string name="settings_instrument_auto">Автозапуск разрешённого канала</string>
     <string name="settings_instrument_auto_desc">Только при подключённом CarPlay; запрос доступа ADB автоматически не открывается.</string>
@@ -30,7 +30,7 @@
     <string name="settings_instrument_lane">Скрыть штатные подсказки полос</string>
     <string name="settings_instrument_lane_desc">Необязательно. При остановке восстанавливается свежий снимок или ожидается обновление автомобиля.</string>
     <string name="settings_instrument_online">Искать текст в интернете</string>
-    <string name="settings_instrument_online_desc">LRCLIB получает название, исполнителя, альбом и длительность. Нужен интернет на головном устройстве. Кэш работает без сети.</string>
+    <string name="settings_instrument_online_desc">Сначала поиск в NetEase Music, затем в LRCLIB. Отправляются название, исполнитель, альбом и длительность. Нужен интернет; кэш работает офлайн.</string>
     <string name="settings_instrument_rematch">Повторно найти текущую песню</string>
     <string name="settings_instrument_cache_clear">Очистить кэш текстов</string>
     <string name="settings_instrument_cache">Кэш текстов (до 50 МБ)</string>
@@ -46,4 +46,22 @@
     <string name="settings_instrument_paused">Пауза</string>
     <string name="settings_instrument_delay">Задержка текста</string>
     <string name="settings_instrument_delay_desc">Компенсирует задержку звука CarPlay для всех песен. От 0 до 5000 мс с шагом 50 мс. Применяется сразу без переподключения.</string>
+    <string name="settings_instrument_output">Содержимое приборов</string>
+    <string name="settings_instrument_map">Карта</string>
+    <string name="settings_instrument_map_desc">Используется отдельный видеопоток карты iPhone. Выбор или включение карты действует со следующего подключения CarPlay. Вы сами выбираете время переподключения. Текст включается сразу. Сначала остановите OP и другие отправители.</string>
+    <string name="settings_instrument_wait_map">Ожидание карты iPhone; переподключитесь, если включили её в этом сеансе</string>
+    <string name="settings_floating_lyrics_title">Плавающий текст CarPlay</string>
+    <string name="settings_floating_lyrics_enable">Показывать плавающий текст</string>
+    <string name="settings_floating_lyrics_desc">При воспроизведении показывает синхронный текст или название песни и статус поиска. Разрешение наложения не нужно. Используется общая задержка текста.</string>
+    <string name="settings_floating_lyrics_next">Показывать следующую строку</string>
+    <string name="settings_floating_lyrics_lock">Перемещение после удержания</string>
+    <string name="settings_floating_lyrics_lock_desc">Удерживайте панель, затем перемещайте. Обычные касания и жесты проходят в CarPlay. Отключите для немедленного перемещения.</string>
+    <string name="settings_floating_lyrics_opacity">Непрозрачность фона</string>
+    <string name="settings_floating_lyrics_x">Положение по горизонтали</string>
+    <string name="settings_floating_lyrics_y">Положение по вертикали</string>
+    <string name="settings_lyrics_and_instrument">Текст и приборы</string>
+    <string name="settings_lyrics_and_instrument_desc">Плавающий текст, вывод на приборы и общая синхронизация в одном месте.</string>
+    <string name="settings_lyrics_shared">Источник и синхронизация текста</string>
+    <string name="settings_floating_lyrics_animation">Анимация смены строк</string>
+    <string name="settings_floating_lyrics_animation_desc">Следующая строка поднимается и увеличивается за 250 мс. Действует сразу; при смене песни, перемотке и перетаскивании обновляется без анимации.</string>
 </resources>

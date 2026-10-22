@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_instrument_title">Instrument projection (experimental)</string>
-    <string name="settings_instrument_description">Shows lyrics or song information in the P7 navigation map card. Applies immediately without reconnecting CarPlay.</string>
+    <string name="settings_instrument_description">Shows lyrics, song information or an independent iPhone map in the P7 navigation card. Lyrics apply immediately. Enabling a map stream takes effect at the next CarPlay connection.</string>
     <string name="settings_instrument_enable">Enable instrument projection</string>
     <string name="settings_instrument_auto">Start authorized channel automatically</string>
     <string name="settings_instrument_auto_desc">Starts only during a CarPlay session; never opens an ADB authorization prompt automatically.</string>
@@ -30,7 +30,7 @@
     <string name="settings_instrument_lane">Hide factory lane prompts</string>
     <string name="settings_instrument_lane_desc">Optional. On release, restore a current cached state or wait for the next factory update.</string>
     <string name="settings_instrument_online">Look up lyrics online</string>
-    <string name="settings_instrument_online_desc">Uses LRCLIB. Sends song title, artist, album and duration. Requires internet on the head unit. Cached lyrics work offline.</string>
+    <string name="settings_instrument_online_desc">Queries NetEase Music first, then LRCLIB. Sends song title, artist, album and duration. Requires internet on the head unit; cached lyrics work offline.</string>
     <string name="settings_instrument_rematch">Rematch current song</string>
     <string name="settings_instrument_cache_clear">Clear lyric cache</string>
     <string name="settings_instrument_cache">Lyric cache (50 MB limit)</string>
@@ -46,4 +46,22 @@
     <string name="settings_instrument_paused">Paused</string>
     <string name="settings_instrument_delay">Lyric delay</string>
     <string name="settings_instrument_delay_desc">Compensates for CarPlay audio latency by delaying lyrics for all songs. Range: 0–5000 ms, step: 50 ms. Applies immediately without reconnecting.</string>
+    <string name="settings_instrument_output">Instrument output</string>
+    <string name="settings_instrument_map">Map</string>
+    <string name="settings_instrument_map_desc">Map uses the iPhone independent map stream. Selecting map or enabling it takes effect at the next CarPlay connection; choose when to reconnect. Lyrics can switch immediately. Stop OP or other instrument senders first.</string>
+    <string name="settings_instrument_wait_map">Waiting for the iPhone independent map; reconnect if map was enabled during this session</string>
+    <string name="settings_floating_lyrics_title">CarPlay floating lyrics</string>
+    <string name="settings_floating_lyrics_enable">Show floating lyrics</string>
+    <string name="settings_floating_lyrics_desc">Shows synchronized lyrics while playing; otherwise shows the song title and lookup status. No overlay permission needed. Uses the shared global lyric delay.</string>
+    <string name="settings_floating_lyrics_next">Show the next lyric line</string>
+    <string name="settings_floating_lyrics_lock">Drag after a long press</string>
+    <string name="settings_floating_lyrics_lock_desc">Hold the lyric panel, then drag. Ordinary taps and swipes pass through to CarPlay. Turn off to drag immediately.</string>
+    <string name="settings_floating_lyrics_opacity">Background opacity</string>
+    <string name="settings_floating_lyrics_x">Horizontal position</string>
+    <string name="settings_floating_lyrics_y">Vertical position</string>
+    <string name="settings_lyrics_and_instrument">Lyrics and instruments</string>
+    <string name="settings_lyrics_and_instrument_desc">Manage floating lyrics, instrument output and shared lyric synchronization in one place.</string>
+    <string name="settings_lyrics_shared">Lyric source and synchronization</string>
+    <string name="settings_floating_lyrics_animation">Lyric transition animation</string>
+    <string name="settings_floating_lyrics_animation_desc">The next line moves up and becomes the current line in 250 ms. Applies immediately; seeking, changing songs and dragging refresh directly.</string>
 </resources>

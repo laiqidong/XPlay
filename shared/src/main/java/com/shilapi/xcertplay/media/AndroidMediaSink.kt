@@ -236,6 +236,14 @@ class AndroidMediaSink(
 
     private val screenStateLock = Any()
     private val activeScreenTypes = mutableSetOf<Int>()
+    private val requestedStreamSizes = ConcurrentHashMap<Int, Pair<Int, Int>>()
+    private val decodedStreamSizes = ConcurrentHashMap<Int, Pair<Int, Int>>()
+    fun setStreamDimensions(type: Int, width: Int, height: Int) {
+        require(width in 1..4096 && height in 1..4096)
+        requestedStreamSizes[type] = width to height
+    }
+    fun decodedVideoSize(type: Int): Pair<Int, Int>? = decodedStreamSizes[type]
+
     private var defaultSurface = surface
     @Volatile private var screenStreamActiveChanged = onScreenStreamActiveChanged
     private val surfaces = ConcurrentHashMap<Int, Surface>()
@@ -646,9 +654,10 @@ class AndroidMediaSink(
     private fun newVideoDecoder(type: Int, surface: Surface?, statsLabel: String? = null, startImmediately: Boolean = true) = VideoDecoder(
         type,
         surface,
-        videoWidth,
-        videoHeight,
+        requestedStreamSizes[type]?.first ?: videoWidth,
+        requestedStreamSizes[type]?.second ?: videoHeight,
         preferSoftwareHevcDecoder,
+        onDimensions = { width, height -> if (statsLabel == null) decodedStreamSizes[type] = width to height },
         requestKeyFrame = { requestVideoRecovery(type) },
         report = { videoDiagnosticHandlers[type]?.invoke(it) },
         statsLabel = statsLabel,
@@ -836,6 +845,7 @@ private class VideoDecoder(
     private val width: Int,
     private val height: Int,
     private val preferSoftwareHevcDecoder: Boolean,
+    private val onDimensions: (Int, Int) -> Unit = { _, _ -> },
     private val requestKeyFrame: () -> Unit,
     private val report: (String) -> Unit,
     statsLabel: String? = null,
@@ -1573,6 +1583,15 @@ private class VideoDecoder(
     }
 
     private fun logOutputFormat(format: MediaFormat) {
+        val outputWidth = format.intOrNull(MediaFormat.KEY_WIDTH)
+        val outputHeight = format.intOrNull(MediaFormat.KEY_HEIGHT)
+        if (outputWidth != null && outputHeight != null && outputWidth > 0 && outputHeight > 0) {
+            val left = format.intOrNull("crop-left") ?: 0
+            val top = format.intOrNull("crop-top") ?: 0
+            val visibleWidth = (format.intOrNull("crop-right")?.minus(left)?.plus(1) ?: outputWidth).coerceIn(1, outputWidth)
+            val visibleHeight = (format.intOrNull("crop-bottom")?.minus(top)?.plus(1) ?: outputHeight).coerceIn(1, outputHeight)
+            onDimensions(visibleWidth, visibleHeight)
+        }
         report("output format requested=${width}x${height} " +
             "coded=${format.intOrNull(MediaFormat.KEY_WIDTH)}x${format.intOrNull(MediaFormat.KEY_HEIGHT)} " +
             "crop=${format.intOrNull("crop-left")},${format.intOrNull("crop-top")}," +

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_instrument_title">Proyección al cuadro (experimental)</string>
-    <string name="settings_instrument_description">Muestra letras o información musical en la tarjeta del mapa del P7. Se aplica sin reconectar CarPlay.</string>
+    <string name="settings_instrument_description">Muestra letras, información musical o el mapa independiente del iPhone en la tarjeta del P7. Las letras se aplican al instante; el mapa requiere la próxima conexión CarPlay.</string>
     <string name="settings_instrument_enable">Activar proyección al cuadro</string>
     <string name="settings_instrument_auto">Iniciar automáticamente el canal autorizado</string>
     <string name="settings_instrument_auto_desc">Solo durante CarPlay; nunca solicita autorización ADB automáticamente.</string>
@@ -30,7 +30,7 @@
     <string name="settings_instrument_lane">Ocultar indicaciones originales de carril</string>
     <string name="settings_instrument_lane_desc">Opcional. Restaura el estado reciente guardado o espera una actualización del coche.</string>
     <string name="settings_instrument_online">Buscar letras en línea</string>
-    <string name="settings_instrument_online_desc">Usa LRCLIB. Envía título, artista, álbum y duración. El coche necesita internet; la caché funciona sin conexión.</string>
+    <string name="settings_instrument_online_desc">Consulta primero NetEase Music y después LRCLIB. Envía título, artista, álbum y duración. Requiere internet; la caché funciona sin conexión.</string>
     <string name="settings_instrument_rematch">Buscar de nuevo la canción</string>
     <string name="settings_instrument_cache_clear">Borrar caché de letras</string>
     <string name="settings_instrument_cache">Caché de letras (límite 50 MB)</string>
@@ -46,4 +46,22 @@
     <string name="settings_instrument_paused">En pausa</string>
     <string name="settings_instrument_delay">Retraso de letras</string>
     <string name="settings_instrument_delay_desc">Compensa la latencia de audio de CarPlay retrasando las letras de todas las canciones. De 0 a 5000 ms en pasos de 50 ms. Se aplica sin reconectar.</string>
+    <string name="settings_instrument_output">Contenido del cuadro</string>
+    <string name="settings_instrument_map">Mapa</string>
+    <string name="settings_instrument_map_desc">Usa el mapa independiente del iPhone. Al seleccionar o activar el mapa, se aplica en la próxima conexión CarPlay. Tú eliges cuándo reconectar. Las letras cambian al instante. Detén antes otros emisores como OP.</string>
+    <string name="settings_instrument_wait_map">Esperando el mapa del iPhone; reconecta si lo activaste durante esta sesión</string>
+    <string name="settings_floating_lyrics_title">Letras flotantes de CarPlay</string>
+    <string name="settings_floating_lyrics_enable">Mostrar letras flotantes</string>
+    <string name="settings_floating_lyrics_desc">Durante la reproducción muestra letras sincronizadas o el título y el estado de búsqueda. No necesita permiso de superposición. Usa el retraso global compartido.</string>
+    <string name="settings_floating_lyrics_next">Mostrar la siguiente línea</string>
+    <string name="settings_floating_lyrics_lock">Arrastrar tras mantener pulsado</string>
+    <string name="settings_floating_lyrics_lock_desc">Mantén pulsado el panel y arrastra. Los toques y deslizamientos normales pasan a CarPlay. Desactívalo para arrastrar directamente.</string>
+    <string name="settings_floating_lyrics_opacity">Opacidad del fondo</string>
+    <string name="settings_floating_lyrics_x">Posición horizontal</string>
+    <string name="settings_floating_lyrics_y">Posición vertical</string>
+    <string name="settings_lyrics_and_instrument">Letras e instrumentos</string>
+    <string name="settings_lyrics_and_instrument_desc">Configura letras flotantes, salida al cuadro y sincronización compartida en un solo lugar.</string>
+    <string name="settings_lyrics_shared">Fuente y sincronización</string>
+    <string name="settings_floating_lyrics_animation">Animación al cambiar de verso</string>
+    <string name="settings_floating_lyrics_animation_desc">La siguiente línea sube y se amplía en 250 ms. Se aplica al instante; al cambiar de canción, buscar o arrastrar se actualiza directamente.</string>
 </resources>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="settings_instrument_title">Виведення на прилади (експериментально)</string>
-    <string name="settings_instrument_description">Текст пісні або відомості про трек у картці карти P7. Без перепідключення CarPlay.</string>
+    <string name="settings_instrument_description">Текст, відомості про трек або окрема карта iPhone в картці P7. Текст діє одразу; увімкнення карти — з наступного підключення CarPlay.</string>
     <string name="settings_instrument_enable">Увімкнути виведення</string>
     <string name="settings_instrument_auto">Автозапуск дозволеного каналу</string>
     <string name="settings_instrument_auto_desc">Лише під час CarPlay; запит дозволу ADB автоматично не відкривається.</string>
@@ -30,7 +30,7 @@
     <string name="settings_instrument_lane">Приховати штатні підказки смуг</string>
     <string name="settings_instrument_lane_desc">Необов’язково. Після зупинки відновлюється свіжий знімок або очікується оновлення авто.</string>
     <string name="settings_instrument_online">Шукати текст онлайн</string>
-    <string name="settings_instrument_online_desc">LRCLIB отримує назву, виконавця, альбом і тривалість. Потрібен інтернет у головному пристрої. Кеш працює офлайн.</string>
+    <string name="settings_instrument_online_desc">Спочатку пошук у NetEase Music, потім у LRCLIB. Надсилає назву, виконавця, альбом і тривалість. Потрібен інтернет; кеш працює офлайн.</string>
     <string name="settings_instrument_rematch">Знову знайти поточну пісню</string>
     <string name="settings_instrument_cache_clear">Очистити кеш текстів</string>
     <string name="settings_instrument_cache">Кеш текстів (до 50 МБ)</string>
@@ -46,4 +46,22 @@
     <string name="settings_instrument_paused">Пауза</string>
     <string name="settings_instrument_delay">Затримка тексту</string>
     <string name="settings_instrument_delay_desc">Компенсує затримку звуку CarPlay для всіх пісень. Від 0 до 5000 мс із кроком 50 мс. Застосовується одразу без перепідключення.</string>
+    <string name="settings_instrument_output">Вміст приладів</string>
+    <string name="settings_instrument_map">Карта</string>
+    <string name="settings_instrument_map_desc">Окремий відеопотік карти iPhone. Вибір або ввімкнення карти діє з наступного підключення CarPlay. Час перепідключення обираєте ви. Текст перемикається одразу. Спочатку зупиніть OP та інші програми виведення.</string>
+    <string name="settings_instrument_wait_map">Очікування карти iPhone; перепідключіться, якщо ввімкнули її в цьому сеансі</string>
+    <string name="settings_floating_lyrics_title">Плаваючий текст CarPlay</string>
+    <string name="settings_floating_lyrics_enable">Показувати плаваючий текст</string>
+    <string name="settings_floating_lyrics_desc">Під час відтворення показує синхронний текст або назву пісні та стан пошуку. Дозвіл накладання не потрібен. Використовує спільну затримку тексту.</string>
+    <string name="settings_floating_lyrics_next">Показувати наступний рядок</string>
+    <string name="settings_floating_lyrics_lock">Переміщення після утримання</string>
+    <string name="settings_floating_lyrics_lock_desc">Утримуйте панель і переміщуйте. Звичайні дотики й жести проходять до CarPlay. Вимкніть для негайного переміщення.</string>
+    <string name="settings_floating_lyrics_opacity">Непрозорість тла</string>
+    <string name="settings_floating_lyrics_x">Горизонтальне положення</string>
+    <string name="settings_floating_lyrics_y">Вертикальне положення</string>
+    <string name="settings_lyrics_and_instrument">Текст і прилади</string>
+    <string name="settings_lyrics_and_instrument_desc">Плаваючий текст, виведення на прилади та спільна синхронізація в одному місці.</string>
+    <string name="settings_lyrics_shared">Джерело та синхронізація тексту</string>
+    <string name="settings_floating_lyrics_animation">Анімація зміни рядків</string>
+    <string name="settings_floating_lyrics_animation_desc">Наступний рядок піднімається та збільшується за 250 мс. Діє відразу; при зміні пісні, перемотуванні та перетягуванні оновлюється без анімації.</string>
 </resources>
