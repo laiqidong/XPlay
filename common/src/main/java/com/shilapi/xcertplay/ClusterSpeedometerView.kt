@@ -5,7 +5,6 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
-import android.graphics.Typeface
 import android.view.View
 import com.shilapi.xcertplay.airplay.ClusterSpeedometerOverlay
 
@@ -86,13 +85,13 @@ internal class ClusterSpeedometerView(
     private val speedPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
         textAlign = Paint.Align.CENTER
-        typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+        typeface = AppFonts.medium(context)
     }
 
     private val unitPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.argb(210, 220, 220, 225)
         textAlign = Paint.Align.CENTER
-        typeface = Typeface.create("sans-serif", Typeface.NORMAL)
+        typeface = AppFonts.regular(context)
     }
 
     private val rect = RectF()

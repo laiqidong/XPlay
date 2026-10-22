@@ -4,7 +4,6 @@ import com.shilapi.xcertplay.host.R
 
 import android.content.Context
 import android.graphics.Color
-import android.graphics.Typeface
 import android.view.Gravity
 import android.view.View
 import android.widget.ImageView
@@ -26,7 +25,7 @@ internal class ConnectionWaitingView(context: Context, onBack: () -> Unit) : Fra
         setText(R.string.connection_loading)
         textSize = TITLE_SIZE_SP
         gravity = Gravity.CENTER
-        typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+        typeface = AppFonts.medium(context)
         accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
         setSingleLine(true)
         gravity = Gravity.END or Gravity.CENTER_VERTICAL

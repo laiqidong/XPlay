@@ -3,7 +3,6 @@ package com.shilapi.xcertplay.settings
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.InsetDrawable
 import android.view.Gravity
@@ -27,10 +26,10 @@ object SettingsWidgets {
 
     private fun TextView.applyTextStyle(context: Context, theme: SettingsTheme, bold: Boolean = false) {
         if (theme.isOverlay) {
-            typeface = if (bold) Typeface.DEFAULT_BOLD else Typeface.DEFAULT
+            typeface = if (bold) com.shilapi.xcertplay.AppFonts.medium(context) else com.shilapi.xcertplay.AppFonts.regular(context)
             includeFontPadding = false
         } else {
-            typeface = Typeface.create(if (bold) "sans-serif-medium" else "sans-serif", Typeface.NORMAL)
+            typeface = if (bold) com.shilapi.xcertplay.AppFonts.medium(context) else com.shilapi.xcertplay.AppFonts.regular(context)
             gravity = Gravity.CENTER_VERTICAL
             setLineSpacing(theme.dp(context, 3).toFloat(), 1f)
         }

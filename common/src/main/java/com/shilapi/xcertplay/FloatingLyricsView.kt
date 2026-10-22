@@ -41,10 +41,8 @@ internal class FloatingLyricsView(context: Context) : View(context) {
     private val edgePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
     private val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val imagePaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
-    private val currentTypeface = Typeface.Builder(context.assets, FONT_ASSET)
-        .setWeight(500).setFontVariationSettings("'wght' 500").build()
-    private val nextTypeface = Typeface.Builder(context.assets, FONT_ASSET)
-        .setWeight(400).setFontVariationSettings("'wght' 400").build()
+    private val currentTypeface = AppFonts.medium(context)
+    private val nextTypeface = AppFonts.regular(context)
     private val backgroundPath = Path()
     private val backdrop = FloatingLyricsBackdrop(this) { invalidate() }
     var videoSource: (() -> View?)?
@@ -345,7 +343,6 @@ internal class FloatingLyricsView(context: Context) : View(context) {
         private const val WIDTH_QUANTUM_DP = 16f
         private const val WIDTH_HOLD_DP = 32f
         private const val TRANSITION_MILLIS = 250L
-        private const val FONT_ASSET = "fonts/NotoSansSC-VF.ttf"
         private const val VERTICAL_PADDING_DP = 18f
         private const val MAX_WIDTH_FRACTION = .72f
         private const val MATERIAL_HOLD_MILLIS = 600L

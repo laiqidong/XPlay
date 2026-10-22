@@ -38,7 +38,7 @@ internal class SafeAreaEditorView(
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = palette.overlayPrimaryText
         textSize = 15f * density * resources.configuration.fontScale
-        typeface = android.graphics.Typeface.MONOSPACE
+        typeface = AppFonts.regular(context)
     }
 
     private var rect: SafeAreaRect? = null

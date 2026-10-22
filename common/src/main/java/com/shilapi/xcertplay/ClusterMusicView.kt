@@ -8,7 +8,6 @@ import android.graphics.RectF
 import android.graphics.Path
 import android.graphics.LinearGradient
 import android.graphics.Shader
-import android.graphics.Typeface
 import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
@@ -30,7 +29,7 @@ internal class ClusterMusicView(context: Context) : View(context) {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
     private val textPaint = android.text.TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE
-        typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+        typeface = AppFonts.medium(context)
     }
 
     init { visibility = GONE; importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }

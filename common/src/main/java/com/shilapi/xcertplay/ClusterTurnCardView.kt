@@ -5,7 +5,6 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
-import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -44,16 +43,16 @@ internal class ClusterTurnCardView(context: Context) : View(context) {
     private val badgePaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val badgeTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.WHITE; textAlign = Paint.Align.CENTER
-        typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+        typeface = AppFonts.medium(context)
     }
     private val distancePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.WHITE; typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+        color = Color.WHITE; typeface = AppFonts.medium(context)
     }
     private val roadPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.argb(179, 199, 199, 204); typeface = Typeface.create("sans-serif", Typeface.NORMAL)
+        color = Color.argb(179, 199, 199, 204); typeface = AppFonts.regular(context)
     }
     private val infoPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.argb(224, 235, 235, 240); typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+        color = Color.argb(224, 235, 235, 240); typeface = AppFonts.medium(context)
     }
     private val rect = RectF()
     private var glyph: Drawable? = null

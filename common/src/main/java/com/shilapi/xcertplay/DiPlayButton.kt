@@ -3,7 +3,6 @@ package com.shilapi.xcertplay
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
-import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
 import android.graphics.drawable.StateListDrawable
@@ -25,7 +24,7 @@ internal class DiPlayButton(context: Context) : Button(context) {
     init {
         isAllCaps = false
         stateListAnimator = null
-        typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+        typeface = AppFonts.medium(context)
     }
 
     /** [overlay] picks the in-car menu colours instead of the app chrome colours. */

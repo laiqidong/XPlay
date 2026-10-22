@@ -23,7 +23,6 @@ import android.graphics.RenderEffect
 import android.graphics.Shader
 import android.graphics.Matrix
 import android.graphics.SurfaceTexture
-import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
@@ -4359,7 +4358,7 @@ class CarPlayHostActivity : ComponentActivity() {
         this.text = text
         textSize = sizeSp
         setTextColor(color)
-        typeface = if (bold) Typeface.DEFAULT_BOLD else Typeface.DEFAULT
+        typeface = if (bold) AppFonts.medium(this@CarPlayHostActivity) else AppFonts.regular(this@CarPlayHostActivity)
         includeFontPadding = false
     }
 

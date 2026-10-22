@@ -1,7 +1,6 @@
 package com.shilapi.xcertplay
 
 import android.content.Context
-import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Handler
 import android.view.View
@@ -32,7 +31,7 @@ internal class FpsCounterOverlay(
     private val density = context.resources.displayMetrics.density
 
     val view = TextView(context).apply {
-        typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+        typeface = AppFonts.semibold(context)
         textSize = 14f
         setLineSpacing(0f, 1.1f)
         val horizontal = (10 * density).toInt()

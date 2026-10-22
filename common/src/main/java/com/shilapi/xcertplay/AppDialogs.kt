@@ -5,7 +5,6 @@ import android.app.Dialog
 import android.content.Context
 import android.content.DialogInterface
 import android.content.res.ColorStateList
-import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.ContextThemeWrapper
@@ -108,7 +107,7 @@ private class AppPanelDialog(
             setPadding(dp(PANEL_INSET_DP), dp(PANEL_INSET_DP), dp(PANEL_INSET_DP), dp(PANEL_INSET_DP))
             background = panelBackground()
         }
-        heading?.let { panel.addView(text(it, 24f).apply { setTypeface(typeface, Typeface.BOLD) }) }
+        heading?.let { panel.addView(text(it, 24f).apply { typeface = AppFonts.semibold(context) }) }
         val contents = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
         body?.let { contents.addView(text(it, 17f, true).apply { setPadding(0, dp(PANEL_GAP_DP), 0, dp(PANEL_GAP_DP)) }) }
         custom?.let { supplied ->

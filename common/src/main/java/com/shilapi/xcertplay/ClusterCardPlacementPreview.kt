@@ -22,6 +22,7 @@ internal class ClusterCardPlacementPreview(context: Context, private val mode: M
     private val small = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.rgb(255, 179, 71) }
     private val smallWindow = Paint().apply { color = Color.argb(38, 255, 179, 71) }
     private val label = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        typeface = AppFonts.regular(context)
         color = Color.WHITE
         textSize = 13f * resources.displayMetrics.scaledDensity
     }

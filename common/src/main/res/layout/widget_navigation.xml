@@ -24,6 +24,7 @@
         android:orientation="vertical">
 
         <TextView
+            android:fontFamily="@font/pingfang"
             android:id="@+id/widget_distance"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -33,6 +34,7 @@
             android:textStyle="bold" />
 
         <TextView
+            android:fontFamily="@font/pingfang"
             android:id="@+id/widget_road"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -42,6 +44,7 @@
             android:textSize="17sp" />
 
         <TextView
+            android:fontFamily="@font/pingfang"
             android:id="@+id/widget_eta"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -50,6 +53,7 @@
             android:textSize="14sp" />
 
         <TextView
+            android:fontFamily="@font/pingfang"
             android:id="@+id/widget_song"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

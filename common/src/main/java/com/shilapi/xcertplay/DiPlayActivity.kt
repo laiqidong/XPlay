@@ -15,7 +15,6 @@ import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.BitmapFactory
 import android.graphics.Color
-import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.RippleDrawable
@@ -3220,7 +3219,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         body.addView(label(getString(R.string.usage_access_lets_diplay_follow_the_instrument_theme_and_m), 15, MUTED))
         body.addView(label(getString(R.string.s_1_connect_a_computer_with_adb_installed_to_the_car_using), 16, TEXT))
         body.addView(label(command, 16, TEXT).apply {
-            typeface = android.graphics.Typeface.MONOSPACE
+            typeface = AppFonts.regular(this@DiPlayActivity)
             setTextIsSelectable(true)
             setPadding(0, dp(16), 0, dp(16))
         })
@@ -3356,7 +3355,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         val adbCmd = UsbPermissionSetup.manualCommand(packageName)
         body.addView(label(getString(R.string.manual_grant_cmd_hint), 14, MUTED).apply { setPadding(0, dp(12), 0, dp(6)) })
         body.addView(label(adbCmd, 13, TEXT).apply {
-            typeface = Typeface.MONOSPACE
+            typeface = AppFonts.regular(this@DiPlayActivity)
             setTextIsSelectable(true)
             setPadding(dp(8), dp(8), dp(8), dp(8))
             setBackgroundColor(BUTTON)
@@ -5136,7 +5135,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         val body = column().apply { setPadding(dp(24), dp(12), dp(24), dp(12)) }
         body.addView(label(getString(R.string.diagnostic_report_copy_hint), 14, MUTED))
         body.addView(label(report, 13, TEXT).apply {
-            typeface = Typeface.MONOSPACE
+            typeface = AppFonts.regular(this@DiPlayActivity)
             setTextIsSelectable(true)
         })
         appDialogBuilder().setTitle(getString(R.string.view_diagnostic_report))
@@ -5626,7 +5625,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     private fun label(value: String, size: Int, color: Int, bold: Boolean = false, centreGlyphs: Boolean = false) =
         (if (centreGlyphs) HeaderTitleView(this) else TextView(this)).apply {
         text = value; textSize = size.toFloat(); setTextColor(color); gravity = Gravity.CENTER_VERTICAL
-        typeface = if (bold) Typeface.create("sans-serif-medium", Typeface.NORMAL) else Typeface.create("sans-serif", Typeface.NORMAL)
+        typeface = if (bold) AppFonts.medium(this@DiPlayActivity) else AppFonts.regular(this@DiPlayActivity)
         setLineSpacing(dp(3).toFloat(), 1f)
     }
     private fun headerIconSize(compact: Boolean) = dp(if (compact) 20 else 24)
@@ -5673,7 +5672,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         isAllCaps = false; textSize = 18f; setTextColor(if (primary) ON_ACCENT else TEXT)
         setSingleLine(false)
         maxLines = Int.MAX_VALUE
-        typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+        typeface = AppFonts.medium(this@DiPlayActivity)
         background = android.graphics.drawable.RippleDrawable(ColorStateList.valueOf(RIPPLE), buttonShape(if (primary) ACCENT else BUTTON, if (primary) ACCENT else BORDER), null)
         setPadding(dp(16), 0, dp(16), 0); minHeight = dp(56); stateListAnimator = null
         compoundDrawablePadding = dp(12)

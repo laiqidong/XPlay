@@ -46,3 +46,6 @@ release-signing.properties
 # Local car release pointer (machine-specific build record).
 /artifacts/releases/latest-car-build.json
 /artifacts/releases/latest-car-build.json.tmp
+
+# Local system fonts supplied from this Mac for local car builds.
+/common/src/main/res/font/pingfang_*.otf
