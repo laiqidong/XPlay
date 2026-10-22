@@ -37,7 +37,7 @@
     <string name="settings_instrument_offline">オンライン検索が無効でキャッシュもありません</string>
     <string name="settings_instrument_network_error">歌詞の通信に失敗しました。後で再試行します</string>
     <string name="settings_instrument_wait_progress">正確な再生位置を待機中</string>
-    <string name="settings_instrument_intro">イントロ</string>
+    <string name="settings_instrument_intro">...</string>
     <string name="settings_instrument_no_lyrics">一致する同期歌詞がありません</string>
     <string name="settings_instrument_delay">歌詞の遅延</string>
     <string name="settings_instrument_delay_desc">CarPlay の音声遅延に合わせ、全曲の歌詞を遅らせます。0～5000 ミリ秒、50 ミリ秒単位。再接続せず即時反映します。</string>
@@ -60,4 +60,9 @@
     <string name="settings_lyrics_category_desc">CarPlayのフローティング歌詞、文字サイズ、切り替え、位置、ソース、キャッシュ、遅延を設定します。</string>
     <string name="settings_instrument_map_category">メーターマップ</string>
     <string name="settings_instrument_map_category_desc">メーターマップの配信、認証、自動開始、状態、復元を設定します。</string>
+    <string name="settings_lyrics_lead">歌詞切り替えを先行</string>
+    <string name="settings_lyrics_lead_desc">行単位の歌詞を0〜1500ミリ秒早く表示します。50ミリ秒刻み、初期値0は無効。音声遅延とは別で、歌い終わりを検出する機能ではありません。すぐに反映されます。</string>
+    <string name="settings_lyrics_source_status">歌詞ソース · %1$s</string>
+    <string name="settings_lyrics_netease">NetEase Music</string>
+    <string name="settings_lyrics_unknown_source">未記録</string>
 </resources>

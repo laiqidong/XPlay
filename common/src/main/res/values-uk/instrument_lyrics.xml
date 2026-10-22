@@ -37,7 +37,7 @@
     <string name="settings_instrument_offline">Онлайн-пошук вимкнено, кешу немає</string>
     <string name="settings_instrument_network_error">Помилка мережі; повтор пізніше</string>
     <string name="settings_instrument_wait_progress">Очікування достовірної позиції відтворення</string>
-    <string name="settings_instrument_intro">Вступ</string>
+    <string name="settings_instrument_intro">...</string>
     <string name="settings_instrument_no_lyrics">Відповідного синхронного тексту немає</string>
     <string name="settings_instrument_delay">Затримка тексту</string>
     <string name="settings_instrument_delay_desc">Компенсує затримку звуку CarPlay для всіх пісень. Від 0 до 5000 мс із кроком 50 мс. Застосовується одразу без перепідключення.</string>
@@ -60,4 +60,9 @@
     <string name="settings_lyrics_category_desc">Налаштування плаваючого тексту CarPlay, розміру, анімації, положення, джерел, кешу й затримки.</string>
     <string name="settings_instrument_map_category">Карта приладів</string>
     <string name="settings_instrument_map_category_desc">Налаштування карти приладів, авторизації, автозапуску, стану та відновлення.</string>
+    <string name="settings_lyrics_lead">Раннє перемикання рядків</string>
+    <string name="settings_lyrics_lead_desc">Показує рядок на 0–1500 мс раніше, крок 50 мс. Типово 0 — вимкнено. Незалежно від затримки аудіо; не визначає кінець співу. Діє відразу.</string>
+    <string name="settings_lyrics_source_status">Джерело тексту · %1$s</string>
+    <string name="settings_lyrics_netease">NetEase Music</string>
+    <string name="settings_lyrics_unknown_source">Не записано</string>
 </resources>

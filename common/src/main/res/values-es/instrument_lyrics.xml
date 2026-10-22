@@ -37,7 +37,7 @@
     <string name="settings_instrument_offline">Búsqueda en línea desactivada y sin caché</string>
     <string name="settings_instrument_network_error">Error de red; se reintentará más tarde</string>
     <string name="settings_instrument_wait_progress">Esperando una posición de reproducción fiable</string>
-    <string name="settings_instrument_intro">Introducción instrumental</string>
+    <string name="settings_instrument_intro">...</string>
     <string name="settings_instrument_no_lyrics">No hay letra sincronizada coincidente</string>
     <string name="settings_instrument_delay">Retraso de letras</string>
     <string name="settings_instrument_delay_desc">Compensa la latencia de audio de CarPlay retrasando las letras de todas las canciones. De 0 a 5000 ms en pasos de 50 ms. Se aplica sin reconectar.</string>
@@ -60,4 +60,9 @@
     <string name="settings_lyrics_category_desc">Configura las letras flotantes de CarPlay, tamaño, transiciones, posición, fuentes, caché y retraso.</string>
     <string name="settings_instrument_map_category">Mapa del cuadro</string>
     <string name="settings_instrument_map_category_desc">Configura la proyección del mapa, autorización, inicio automático, estado y restauración.</string>
+    <string name="settings_lyrics_lead">Adelantar el cambio de verso</string>
+    <string name="settings_lyrics_lead_desc">Adelanta la siguiente línea 0–1500 ms, en pasos de 50 ms. El valor 0 lo desactiva. Independiente del retraso de audio; no detecta el fin del canto. Se aplica al instante.</string>
+    <string name="settings_lyrics_source_status">Fuente de letras · %1$s</string>
+    <string name="settings_lyrics_netease">NetEase Music</string>
+    <string name="settings_lyrics_unknown_source">Sin registrar</string>
 </resources>

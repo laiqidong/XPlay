@@ -56,7 +56,9 @@ internal object InstrumentLyrics {
     private var anchor = 0L
     private var anchorAt = 0L
     private var progressAt = 0L
-    private var lastLookup = 0L
+    private var nextLookupAt = 0L
+    private var networkFailures = 0
+    @Volatile var lyricSource = ""; private set
     private var clockKnown = false
     private var launching = false
     private var pendingInteractiveStart = false
@@ -82,7 +84,7 @@ internal object InstrumentLyrics {
         info = CarPlayNowPlaying(); clockKnown = false
         boundSink = null; mapRenderer?.close(); mapRenderer = null
         floatingSnapshot = FloatingSnapshot(); floatingObservers.toList().forEach { it(floatingSnapshot) }
-        lyricState = "waiting_song"; stopOutput(); main.removeCallbacks(tick); changed()
+        lyricState = "waiting_song"; lyricSource = ""; stopOutput(); main.removeCallbacks(tick); main.removeCallbacks(lyricBoundary); changed()
     }
     fun update(next: CarPlayNowPlaying) = main.post {
         if (!attached) return@post
@@ -104,7 +106,7 @@ internal object InstrumentLyrics {
             InstrumentSong(it, next.artist.orEmpty(), next.album.orEmpty(), next.durationMillis ?: 0)
         }
         if (selected != song) {
-            repository?.cancel(); song = selected; lines = emptyList(); lyricState = "waiting_song"
+            repository?.cancel(); song = selected; lines = emptyList(); lyricState = "waiting_song"; lyricSource = ""; networkFailures = 0; nextLookupAt = 0
             if (selected != null) requestLyrics()
         }
         drawState(); changed()
@@ -112,6 +114,10 @@ internal object InstrumentLyrics {
     private fun position(now: Long): Long = (anchor + if (info.playing) (now - anchorAt).coerceAtLeast(0) else 0)
         .coerceIn(0, info.durationMillis?.coerceAtLeast(0) ?: Long.MAX_VALUE)
 
+    fun timingChanged(c: Context) = main.post {
+        initialize(c); floatingMotionEpoch++; drawState(); floatingStyleChanged(); changed()
+    }
+    fun mapSettingsChanged(c: Context) = main.post { initialize(c); refresh(); syncMap(); changed() }
     fun settingsChanged(c: Context) = main.post {
         initialize(c)
         floatingMotionEpoch++
@@ -201,11 +207,11 @@ internal object InstrumentLyrics {
     fun rematch() = main.post {
         val c = context ?: return@post
         val key = song?.key ?: return@post
-        repository?.cancel()
-        java.io.File(c.cacheDir, "instrument-lyrics/$key.lrc").delete()
+        repository?.forget(key)
+        networkFailures = 0; nextLookupAt = 0; lyricSource = ""
         lines = emptyList(); requestLyrics()
     }
-    fun clearCache(c: Context) { initialize(c); repository?.clear(); main.post { lines = emptyList(); lyricState = "cache_cleared"; drawState(); changed() } }
+    fun clearCache(c: Context) { initialize(c); repository?.clear(); main.post { lines = emptyList(); lyricSource = ""; networkFailures = 0; nextLookupAt = 0; lyricState = "cache_cleared"; requestLyrics(); drawState(); changed() } }
     fun cacheBytes(c: Context): Long { initialize(c); return repository?.bytes() ?: 0 }
     private fun requestLyrics() {
         val selected = song ?: return
@@ -214,22 +220,41 @@ internal object InstrumentLyrics {
         val repo = repository ?: return
         val ticket = repo.generation
         val online = InstrumentLyricsSettings.online(c)
-        lyricState = "searching"; lastLookup = SystemClock.elapsedRealtime()
+        lyricState = "searching"; nextLookupAt = 0; drawState(); changed()
         lookup.execute {
             val result = repo.find(selected, online, ticket)
             main.post {
                 if (repo.generation != ticket || selected != song || !attached) return@post
-                lines = result.lines; lyricState = result.status; drawState(); changed()
+                lines = result.lines; lyricState = result.status; lyricSource = result.source
+                if (result.status == "network_error") networkFailures++ else networkFailures = 0
+                val retry = if (result.status == "network_error") (30000L * (1L shl (networkFailures - 1).coerceIn(0, 4))).coerceAtMost(300000)
+                    else result.retryAfterMillis
+                nextLookupAt = if (retry > 0) SystemClock.elapsedRealtime() + retry else 0
+                drawState(); changed()
             }
         }
+    }
+    private val lyricBoundary = Runnable { drawState() }
+    private fun cueTime(index: Int, c: Context): Long {
+        val line = lines[index]
+        val lead = if (index > 0 && line.text.isNotBlank()) minOf(InstrumentLyricsSettings.lead(c).toLong(),
+            (line.time - lines[index - 1].time).coerceAtLeast(0) / 2) else 0L
+        return line.time - lead
     }
     private fun drawState() {
         val c = context ?: return
         val now = SystemClock.elapsedRealtime()
-        val trusted = clockKnown && (!info.playing || now - progressAt < 15000)
-        val index = if (trusted && needsLyrics(c))
-            lines.indexOfLast { it.time <= position(now) - InstrumentLyricsSettings.delay(c) } else -1
-        val next = if (trusted && needsLyrics(c) && index + 1 in lines.indices) lines[index + 1].text else ""
+        val trusted = attached && clockKnown && (!info.playing || now - progressAt < 15000)
+        val effectivePosition = position(now) - InstrumentLyricsSettings.delay(c)
+        var index = -1
+        if (trusted && needsLyrics(c)) {
+            var low = 0; var high = lines.lastIndex
+            while (low <= high) {
+                val middle = (low + high) ushr 1
+                if (cueTime(middle, c) <= effectivePosition) { index = middle; low = middle + 1 } else high = middle - 1
+            }
+        }
+        val next = if (trusted && needsLyrics(c)) (index + 1..lines.lastIndex).firstOrNull { lines[it].text.isNotBlank() }?.let { lines[it].text }.orEmpty() else ""
         val chinese = repository?.chinese
         fun simplified(value: String) = chinese?.simplified(value) ?: value
         val night = c.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK !=
@@ -243,13 +268,19 @@ internal object InstrumentLyrics {
             !trusted -> com.shilapi.xcertplay.host.R.string.settings_instrument_wait_progress
             else -> com.shilapi.xcertplay.host.R.string.settings_instrument_intro
         }
+        val timeline = trusted && lines.isNotEmpty()
         val floating = FloatingSnapshot(
-            if (hasLine) simplified(lines[index].text) else simplified(info.title.orEmpty()),
-            if (hasLine) simplified(next) else c.getString(statusResource), night,
+            if (hasLine) simplified(lines[index].text) else if (timeline) "..." else simplified(info.title.orEmpty()),
+            if (timeline) simplified(next) else c.getString(statusResource), night,
             attached && InstrumentLyricsSettings.floating(c) && info.playing && !info.title.isNullOrBlank(),
-            status = !hasLine, songKey = song?.key.orEmpty(), lineIndex = index, motionEpoch = floatingMotionEpoch)
+            status = !timeline, songKey = song?.key.orEmpty(), lineIndex = index, motionEpoch = floatingMotionEpoch)
         if (floating != floatingSnapshot) {
             floatingSnapshot = floating; floatingObservers.toList().forEach { it(floating) }
+        }
+        main.removeCallbacks(lyricBoundary)
+        if (attached && trusted && info.playing && needsLyrics(c) && index + 1 in lines.indices) {
+            val wait = (cueTime(index + 1, c) - effectivePosition).coerceAtLeast(1)
+            main.postDelayed(lyricBoundary, wait)
         }
     }
     private var ticks = 0
@@ -259,7 +290,9 @@ internal object InstrumentLyrics {
             refresh(); drawState()
             if (++ticks % 10 == 0) {
                 if (server != null) pollWorker()
-                if (lyricState == "network_error" && SystemClock.elapsedRealtime() - lastLookup > 60000) requestLyrics()
+                val c = context
+                if (c != null && info.playing && needsLyrics(c) && InstrumentLyricsSettings.online(c) &&
+                    nextLookupAt > 0 && SystemClock.elapsedRealtime() >= nextLookupAt) requestLyrics()
                 changed()
             }
             main.postDelayed(this, 200)

@@ -1,6 +1,7 @@
 package com.shilapi.xcertplay
 
 import android.graphics.Bitmap
+import android.graphics.Rect
 import android.graphics.RectF
 import android.os.Handler
 import android.os.Looper
@@ -33,6 +34,7 @@ internal class FloatingLyricsBackdrop(private val owner: View, private val chang
             return (luminance / 32).toFloat()
         }
     }
+    var region: RectF? = null
     var source: (() -> View?)? = null
     var frame: Frame? = null; private set
     private val main = Handler(Looper.getMainLooper())
@@ -56,12 +58,24 @@ internal class FloatingLyricsBackdrop(private val owner: View, private val chang
     private fun capture() {
         val video = source?.invoke() ?: return
         if (!video.isAttachedToWindow || video.width <= 0 || video.height <= 0) return
-        val width = minOf(SAMPLE_WIDTH, video.width)
-        val height = (video.height.toDouble() * width / video.width).roundToInt().coerceIn(1, SAMPLE_WIDTH)
         val location = IntArray(2); val origin = IntArray(2)
         video.getLocationOnScreen(location); owner.getLocationOnScreen(origin)
         val x = (location[0] - origin[0]).toFloat(); val y = (location[1] - origin[1]).toFloat()
         val bounds = RectF(x, y, x + video.width, y + video.height)
+        var crop: Rect? = null
+        if (video is SurfaceView) region?.let { card ->
+            val area = RectF(card)
+            // Overscan supplies neighbouring pixels to the blur instead of smearing the card edge.
+            val overscan = video.width.toFloat() / SAMPLE_WIDTH * RADIUS * 3
+            area.inset(-overscan, -overscan)
+            if (area.intersect(bounds)) {
+                crop = Rect(kotlin.math.floor(area.left - x).toInt(), kotlin.math.floor(area.top - y).toInt(),
+                    kotlin.math.ceil(area.right - x).toInt(), kotlin.math.ceil(area.bottom - y).toInt())
+                crop?.let { bounds.set(x + it.left, y + it.top, x + it.right, y + it.bottom) }
+            }
+        }
+        val width = (SAMPLE_WIDTH * bounds.width() / video.width).roundToInt().coerceIn(1, SAMPLE_WIDTH)
+        val height = (width * bounds.height() / bounds.width()).roundToInt().coerceIn(1, SAMPLE_WIDTH)
         val ticket = generation
         busy = true
         fun complete(bitmap: Bitmap?) {
@@ -83,7 +97,7 @@ internal class FloatingLyricsBackdrop(private val owner: View, private val chang
             is SurfaceView -> {
                 val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
                 try {
-                    PixelCopy.request(video, bitmap, { result ->
+                    PixelCopy.request(video, crop, bitmap, { result ->
                         if (result == PixelCopy.SUCCESS) complete(bitmap)
                         else { bitmap.recycle(); complete(null) }
                     }, main)

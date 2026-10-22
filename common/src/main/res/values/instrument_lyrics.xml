@@ -37,7 +37,7 @@
     <string name="settings_instrument_offline">Offline lookup disabled; no cached lyrics</string>
     <string name="settings_instrument_network_error">Lyric network request failed; retry later</string>
     <string name="settings_instrument_wait_progress">Waiting for a reliable playback position</string>
-    <string name="settings_instrument_intro">Instrumental intro</string>
+    <string name="settings_instrument_intro">...</string>
     <string name="settings_instrument_no_lyrics">No matching synchronized lyrics</string>
     <string name="settings_instrument_delay">Lyric delay</string>
     <string name="settings_instrument_delay_desc">Compensates for CarPlay audio latency by delaying lyrics for all songs. Range: 0–5000 ms, step: 50 ms. Applies immediately without reconnecting.</string>
@@ -60,4 +60,9 @@
     <string name="settings_lyrics_category_desc">Configure CarPlay floating lyrics, font size, transitions, position, sources, cache and delay.</string>
     <string name="settings_instrument_map_category">Instrument map</string>
     <string name="settings_instrument_map_category_desc">Configure the instrument map, authorization, automatic start, status and restoration.</string>
+    <string name="settings_lyrics_lead">Advance lyric transitions</string>
+    <string name="settings_lyrics_lead_desc">Optional for line-timed lyrics: show the next line 0–1500 ms early, in 50 ms steps. Default 0 disables it. Separate from audio delay; does not detect when singing ends. Applies immediately.</string>
+    <string name="settings_lyrics_source_status">Lyric source · %1$s</string>
+    <string name="settings_lyrics_netease">NetEase Music</string>
+    <string name="settings_lyrics_unknown_source">Not recorded</string>
 </resources>

@@ -5326,6 +5326,37 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             }
             toggle(card, getString(R.string.settings_instrument_online), getString(R.string.settings_instrument_online_desc),
                 InstrumentLyricsSettings.online(this)) { InstrumentLyricsSettings.save(this, "online", it) }
+            val status = label("", 16, MUTED)
+            card.addView(status)
+            lyricStatusRemoval?.invoke()
+            val removeStatus = InstrumentLyrics.observe {
+                val source = when (InstrumentLyrics.lyricSource) {
+                    "netease" -> getString(R.string.settings_lyrics_netease)
+                    "lrclib" -> "LRCLIB"
+                    else -> getString(R.string.settings_lyrics_unknown_source)
+                }
+                val state = when (InstrumentLyrics.lyricState) {
+                    "searching" -> R.string.settings_instrument_searching
+                    "matched" -> R.string.settings_instrument_matched
+                    "cached" -> R.string.settings_instrument_cached
+                    "network_error" -> R.string.settings_instrument_network_error
+                    "offline" -> R.string.settings_instrument_offline
+                    "not_found" -> R.string.settings_instrument_no_lyrics
+                    "waiting_duration" -> R.string.settings_instrument_wait_progress
+                    else -> R.string.settings_instrument_wait_song
+                }
+                status.text = getString(state) + "\n" + getString(R.string.settings_lyrics_source_status, source) +
+                    "\n" + getString(R.string.settings_instrument_cache) + " · " +
+                    android.text.format.Formatter.formatShortFileSize(this, InstrumentLyrics.cacheBytes(this))
+            }
+            lyricStatusRemoval = removeStatus
+            status.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
+                override fun onViewAttachedToWindow(v: View) = Unit
+                override fun onViewDetachedFromWindow(v: View) {
+                    removeStatus()
+                    if (lyricStatusRemoval === removeStatus) lyricStatusRemoval = null
+                }
+            })
             action(R.string.settings_instrument_rematch) { InstrumentLyrics.rematch() }
             card.addView(button(getString(R.string.settings_instrument_delay) + " · " + InstrumentLyricsSettings.delay(this) + " ms", false) {
                 val delays = (0..100).map { it * 50 }
@@ -5335,10 +5366,19 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                     }.setNegativeButton(R.string.cancel, null).show()
             }, matchButton(0, SETTINGS_RAIL_ROW_HEIGHT_DP))
             card.addView(label(getString(R.string.settings_instrument_delay_desc), 16, MUTED))
+            card.addView(button(getString(R.string.settings_lyrics_lead) + " · " + InstrumentLyricsSettings.lead(this) + " ms", false) {
+                val values = (0..30).map { it * 50 }
+                appDialogBuilder().setTitle(R.string.settings_lyrics_lead)
+                    .setSingleChoiceItems(values.map { "$it ms" }.toTypedArray(), values.indexOf(InstrumentLyricsSettings.lead(this))) { dialog, which ->
+                        InstrumentLyricsSettings.saveLead(this, values[which]); dialog.dismiss(); render()
+                    }.setNegativeButton(R.string.cancel, null).show()
+            }, matchButton(0, SETTINGS_RAIL_ROW_HEIGHT_DP))
+            card.addView(label(getString(R.string.settings_lyrics_lead_desc), 16, MUTED))
             action(R.string.settings_instrument_cache_clear) { InstrumentLyrics.clearCache(this) }
         }
     }
 
+    private var lyricStatusRemoval: (() -> Unit)? = null
     private var instrumentStatusRemoval: (() -> Unit)? = null
 
     private fun instrumentMapSection(content: LinearLayout) {

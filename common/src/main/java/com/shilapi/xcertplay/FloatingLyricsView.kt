@@ -24,6 +24,11 @@ import android.view.HapticFeedbackConstants
 internal class FloatingLyricsView(context: Context) : View(context) {
     private data class TextFrame(val current: StaticLayout, val next: StaticLayout?, val gap: Float,
         val width: Float, val height: Float)
+    private data class LayoutKey(val current: String, val next: String?, val status: Boolean,
+        val font: Float, val width: Int, val height: Int, val density: Float)
+    private var layoutKey: LayoutKey? = null
+    private var cachedTextFrame: TextFrame? = null
+    private var layoutSong = ""
     private var lastTextFrame: TextFrame? = null
     private var pendingFrom: TextFrame? = null
     private var animationFrom: TextFrame? = null
@@ -89,7 +94,7 @@ internal class FloatingLyricsView(context: Context) : View(context) {
     }
     override fun onDetachedFromWindow() {
         cancelPendingDrag()
-        stopTransition(); lastTextFrame = null
+        stopTransition(); lastTextFrame = null; cachedTextFrame = null; layoutKey = null
         backdrop.setActive(false)
         removeObserver?.invoke(); removeObserver = null
         snapshot = InstrumentLyrics.FloatingSnapshot(); box.setEmpty(); dragging = false
@@ -106,30 +111,44 @@ internal class FloatingLyricsView(context: Context) : View(context) {
         val maximum = (minOf(width - 2 * margin, width * MAX_WIDTH_FRACTION) - 2 * padding).coerceAtLeast(1f)
         val font = InstrumentLyricsSettings.floatingValue(context, "font").coerceIn(80, 140) / 100f
         val nextText = snapshot.next.takeIf { (snapshot.status || InstrumentLyricsSettings.floatingNext(context)) && it.isNotBlank() }
-        val measure = TextPaint(Paint.ANTI_ALIAS_FLAG).apply { typeface = currentTypeface }
-        measure.textSize = FONT_DP * density * font
-        val currentWidth = measure.measureText(snapshot.current)
-        measure.typeface = nextTypeface
-        measure.textSize = NEXT_FONT_DP * density * font
-        val nextWidth = nextText?.let(measure::measureText) ?: 0f
-        val available = kotlin.math.ceil(maxOf(currentWidth, nextWidth).coerceIn(1f, maximum)).toInt()
-        fun layout(text: String, size: Float, color: Int, fontTypeface: Typeface, maxLines: Int = 1): StaticLayout {
-            val paint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply { textSize = size * density * font; this.color = color; typeface = fontTypeface }
-            return StaticLayout.Builder.obtain(text, 0, text.length, paint, available)
-                .setAlignment(Layout.Alignment.ALIGN_CENTER).setIncludePad(false).setMaxLines(maxLines)
-                .setBreakStrategy(Layout.BREAK_STRATEGY_HIGH_QUALITY).setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NONE)
-                .setEllipsize(TextUtils.TruncateAt.END).build()
+        val key = LayoutKey(snapshot.current, nextText, snapshot.status, font, width, height, density)
+        val target = cachedTextFrame.takeIf { layoutKey == key } ?: run {
+            val currentSize = if (snapshot.status) STATUS_TITLE_DP else FONT_DP
+            val nextSize = if (snapshot.status) STATUS_DETAIL_DP else NEXT_FONT_DP
+            val measure = TextPaint(Paint.ANTI_ALIAS_FLAG).apply { typeface = currentTypeface; textSize = currentSize * density * font }
+            val currentWidth = measure.measureText(snapshot.current)
+            measure.typeface = nextTypeface; measure.textSize = nextSize * density * font
+            val nextWidth = nextText?.let(measure::measureText) ?: 0f
+            // Preview text may not stretch a short current line across the screen.
+            val desired = maxOf(currentWidth, minOf(nextWidth, currentWidth * 1.15f))
+            val minimum = minOf(MIN_CONTENT_DP * density, maximum)
+            val quantum = WIDTH_QUANTUM_DP * density
+            var contentWidth = (kotlin.math.ceil(desired / quantum) * quantum).coerceIn(minimum, maximum)
+            val previous = cachedTextFrame
+            if (layoutSong == snapshot.songKey && layoutKey?.status == snapshot.status &&
+                layoutKey?.width == width && layoutKey?.height == height && previous != null &&
+                kotlin.math.abs(contentWidth + 2 * padding - previous.width) < WIDTH_HOLD_DP * density) {
+                contentWidth = (previous.width - 2 * padding).coerceIn(minimum, maximum)
+            }
+            val available = kotlin.math.ceil(contentWidth).toInt()
+            fun layout(text: String, size: Float, typeface: Typeface, maxLines: Int = 1): StaticLayout {
+                val paint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply { textSize = size * density * font; this.typeface = typeface }
+                return StaticLayout.Builder.obtain(text, 0, text.length, paint, available)
+                    .setAlignment(Layout.Alignment.ALIGN_CENTER).setIncludePad(false).setMaxLines(maxLines)
+                    .setBreakStrategy(Layout.BREAK_STRATEGY_HIGH_QUALITY).setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NONE)
+                    .setEllipsize(TextUtils.TruncateAt.END).build()
+            }
+            val twoLinesFit = !snapshot.status && height - 2 * margin - 2 * verticalPadding >=
+                (2 * currentSize + (if (nextText != null) nextSize + LINE_GAP_DP else 0f)) * density * font * 1.25f
+            val current = layout(snapshot.current, currentSize, currentTypeface, if (twoLinesFit) 2 else 1)
+            val next = nextText?.let { layout(it, nextSize, nextTypeface) }
+            val gap = if (next != null) LINE_GAP_DP * density else 0f
+            TextFrame(current, next, gap, (available + 2 * padding).coerceAtMost(width.toFloat()),
+                (current.height + (next?.height ?: 0) + gap + 2 * verticalPadding).coerceAtMost(height.toFloat())).also {
+                    cachedTextFrame = it; layoutKey = key; layoutSong = snapshot.songKey
+                }
         }
-        val primary = if (snapshot.night) Color.WHITE else Color.rgb(25, 29, 35)
-        val secondary = if (snapshot.night) Color.rgb(190, 198, 210) else Color.rgb(85, 94, 107)
-        val twoLinesFit = height - 2 * margin - 2 * verticalPadding >=
-            (2 * FONT_DP + (if (nextText != null) NEXT_FONT_DP + LINE_GAP_DP else 0f)) * density * font * 1.25f
-        val current = layout(snapshot.current, FONT_DP, primary, currentTypeface, if (twoLinesFit) 2 else 1)
-        val next = nextText?.let { layout(it, NEXT_FONT_DP, secondary, nextTypeface) }
-        val gap = if (next != null) LINE_GAP_DP * density else 0f
-        val target = TextFrame(current, next, gap,
-            (available + 2 * padding).coerceAtMost(width.toFloat()),
-            (current.height + (next?.height ?: 0) + gap + 2 * verticalPadding).coerceAtMost(height.toFloat()))
+        val current = target.current; val next = target.next; val gap = target.gap
         pendingFrom?.let { source ->
             pendingFrom = null; animationFrom = source; animationProgress = 0f
             animation = ValueAnimator.ofFloat(0f, 1f).apply {
@@ -157,6 +176,7 @@ internal class FloatingLyricsView(context: Context) : View(context) {
         val y = topMargin.coerceAtMost((height - boxHeight).coerceAtLeast(0f)) + roomY *
             (dragY ?: InstrumentLyricsSettings.floatingValue(context, "y")).coerceIn(0, 100) / 100f
         box.set(x, y, x + boxWidth, y + boxHeight)
+        backdrop.region = RectF(box)
         val light = materialIsLight()
         current.paint.color = if (light) Color.rgb(25, 29, 35) else Color.WHITE
         next?.paint?.color = if (light) Color.rgb(85, 94, 107) else Color.rgb(190, 198, 210)
@@ -181,7 +201,7 @@ internal class FloatingLyricsView(context: Context) : View(context) {
             backdrop.frame?.let { frame ->
                 if (!frame.bitmap.isRecycled) {
                     imagePaint.alpha = 255
-                    canvas.drawBitmap(frame.bitmap, null, frame.bounds, imagePaint)
+                    canvas.drawBitmap(frame.bitmap, null, if (frame.bounds.contains(box)) frame.bounds else box, imagePaint)
                 }
             }
             canvas.drawRect(box, background)
@@ -244,11 +264,11 @@ internal class FloatingLyricsView(context: Context) : View(context) {
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        stopTransition(); lastTextFrame = null
+        stopTransition(); lastTextFrame = null; cachedTextFrame = null; layoutKey = null
     }
 
     private fun materialIsLight(): Boolean {
-        val brightness = backdrop.frame?.brightness(box)
+        val brightness = backdrop.frame?.let { it.brightness(if (it.bounds.contains(box)) box else it.bounds) }
         val previous = lightMaterial
         val target = when {
             brightness == null -> !snapshot.night
@@ -319,6 +339,11 @@ internal class FloatingLyricsView(context: Context) : View(context) {
         return dragging
     }
     companion object {
+        private const val STATUS_TITLE_DP = 32f
+        private const val STATUS_DETAIL_DP = 26f
+        private const val MIN_CONTENT_DP = 180f
+        private const val WIDTH_QUANTUM_DP = 16f
+        private const val WIDTH_HOLD_DP = 32f
         private const val TRANSITION_MILLIS = 250L
         private const val FONT_ASSET = "fonts/NotoSansSC-VF.ttf"
         private const val VERTICAL_PADDING_DP = 18f

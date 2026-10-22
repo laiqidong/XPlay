@@ -37,7 +37,7 @@
     <string name="settings_instrument_offline">已关闭在线查询，且无缓存歌词</string>
     <string name="settings_instrument_network_error">歌词网络请求失败，将稍后重试</string>
     <string name="settings_instrument_wait_progress">等待可靠的播放进度</string>
-    <string name="settings_instrument_intro">前奏</string>
+    <string name="settings_instrument_intro">...</string>
     <string name="settings_instrument_no_lyrics">未找到匹配的同步歌词</string>
     <string name="settings_instrument_delay">歌词延迟</string>
     <string name="settings_instrument_delay_desc">补偿 CarPlay 音频延迟，所有歌曲的歌词统一延后显示。范围 0–5000 毫秒，每步 50 毫秒。立即生效，无需重连。</string>
@@ -60,4 +60,9 @@
     <string name="settings_lyrics_category_desc">配置 CarPlay 悬浮歌词、字号、切换动画、位置、来源、缓存和延迟。</string>
     <string name="settings_instrument_map_category">仪表地图</string>
     <string name="settings_instrument_map_category_desc">配置仪表地图投放、授权、自动启动、状态和恢复。</string>
+    <string name="settings_lyrics_lead">提前切句</string>
+    <string name="settings_lyrics_lead_desc">普通逐行歌词可提前 0–1500 毫秒显示下一句，每步 50 毫秒；默认 0 表示关闭。与音频延迟独立，不代表准确识别唱完时刻。立即生效。</string>
+    <string name="settings_lyrics_source_status">歌词来源 · %1$s</string>
+    <string name="settings_lyrics_netease">网易云音乐</string>
+    <string name="settings_lyrics_unknown_source">未记录</string>
 </resources>

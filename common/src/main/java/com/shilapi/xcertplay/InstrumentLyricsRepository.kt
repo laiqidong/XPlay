@@ -10,12 +10,12 @@ import java.net.URLEncoder
 import java.security.MessageDigest
 
 internal data class InstrumentSong(val title: String, val artist: String, val album: String, val duration: Long) {
-    val key: String get() = MessageDigest.getInstance("SHA-256")
+    val key: String by lazy { MessageDigest.getInstance("SHA-256")
         .digest("$title\u0000$artist\u0000$album\u0000$duration".toByteArray())
-        .joinToString("") { "%02x".format(it) }
+        .joinToString("") { "%02x".format(it) } }
 }
 internal data class InstrumentLyricLine(val time: Long, val text: String)
-internal data class InstrumentLyricResult(val lines: List<InstrumentLyricLine>, val status: String)
+internal data class InstrumentLyricResult(val lines: List<InstrumentLyricLine>, val status: String, val source: String = "", val retryAfterMillis: Long = 0)
 
 /** Bounded HTTPS lookup. No Apple credentials, audio, location or device identifiers are sent. */
 internal class InstrumentLyricsRepository(context: Context) {
@@ -29,26 +29,40 @@ internal class InstrumentLyricsRepository(context: Context) {
     fun bytes(): Long = directory.listFiles()?.sumOf { it.length() } ?: 0L
     @Synchronized fun clear() { cancel(); directory.listFiles()?.forEach { it.delete() } }
 
+    fun forget(key: String) { cancel(); synchronized(this) {
+        for (suffix in listOf(".lrc", ".json", ".miss")) File(directory, key + suffix).delete()
+    } }
     fun find(song: InstrumentSong, online: Boolean, ticket: Long): InstrumentLyricResult {
         val file = File(directory, song.key + ".lrc")
-        if (file.isFile && file.length() <= MAX_BYTES) {
-            val lines = parse(file.readText())
-            if (lines.isNotEmpty()) {
-                file.setLastModified(System.currentTimeMillis())
-                return InstrumentLyricResult(lines, "cached")
-            }
+        val cached = runCatching {
+            if (file.isFile && file.length() <= MAX_BYTES) parse(file.readText()) else emptyList()
+        }.getOrDefault(emptyList())
+        if (cached.any { it.text.isNotBlank() }) {
+            file.setLastModified(System.currentTimeMillis())
+            val metadata = File(directory, song.key + ".json")
+            val source = runCatching {
+                metadata.takeIf { it.length() in 1..4096 }?.readText()?.let(::JSONObject)?.optString("source").orEmpty()
+            }.getOrDefault("")
+            if (metadata.isFile) metadata.setLastModified(System.currentTimeMillis())
+            return InstrumentLyricResult(cached, "cached", source)
         }
         if (!online) return InstrumentLyricResult(emptyList(), "offline")
         if (song.duration <= 0) return InstrumentLyricResult(emptyList(), "waiting_duration")
+        val miss = File(directory, song.key + ".miss")
+        val missAge = System.currentTimeMillis() - miss.lastModified()
+        if (miss.isFile && missAge in 0 until MISS_TTL)
+            return InstrumentLyricResult(emptyList(), "not_found", retryAfterMillis = MISS_TTL - missAge)
         val deadline = android.os.SystemClock.elapsedRealtime() + 30000
         var networkFailure = false
         fun query(base: String, fields: Map<String, String>): String? {
-            if (ticket != generation || android.os.SystemClock.elapsedRealtime() >= deadline) return null
+            if (ticket != generation) return null
+            if (android.os.SystemClock.elapsedRealtime() >= deadline) { networkFailure = true; return null }
             val params = fields.entries.joinToString("&") { (k, v) -> "$k=${URLEncoder.encode(v, "UTF-8")}" }
             val conn = URL("$base?$params").openConnection() as HttpURLConnection
             connection = conn
             try {
-                conn.connectTimeout = 3500; conn.readTimeout = 3500
+                val remaining = (deadline - android.os.SystemClock.elapsedRealtime()).coerceIn(1, 3500).toInt()
+                conn.connectTimeout = remaining; conn.readTimeout = remaining
                 conn.instanceFollowRedirects = false
                 conn.setRequestProperty("User-Agent", "XPlay-InstrumentLyrics/1.1")
                 if (base.startsWith("https://music.163.com/")) conn.setRequestProperty("Referer", "https://music.163.com/")
@@ -103,39 +117,71 @@ internal class InstrumentLyricsRepository(context: Context) {
                     objects(item.optJSONArray("artists")).map { it.optString("name") },
                     item.optJSONObject("album")?.optString("name").orEmpty(), item.optLong("duration", -1))
             }
-            val selected = matcher.select(song, candidates) ?: return null
-            val lyrics = query("https://music.163.com/api/song/lyric", mapOf("id" to selected.id,
-                "lv" to "-1", "kv" to "-1", "tv" to "-1"))?.let(::JSONObject) ?: return null
-            check(lyrics.optInt("code") == 200)
-            return lyrics.optJSONObject("lrc")?.optString("lyric")?.takeIf { parse(it).isNotEmpty() }
+            val remaining = candidates.toMutableList()
+            repeat(3) {
+                val selected = matcher.select(song, remaining) ?: return null
+                val lyrics = query("https://music.163.com/api/song/lyric", mapOf("id" to selected.id,
+                    "lv" to "-1", "kv" to "-1", "tv" to "-1"))?.let(::JSONObject)
+                if (lyrics != null) {
+                    check(lyrics.optInt("code") == 200)
+                    lyrics.optJSONObject("lrc")?.optString("lyric")?.takeIf { parse(it).any { line -> line.text.isNotBlank() } }
+                        ?.let { return it }
+                }
+                remaining.removeAll { it.id == selected.id }
+            }
+            return null
         }
         fun safely(provider: () -> String?): String? = try { provider() }
             catch (_: Exception) { networkFailure = true; null }
         return try {
-            val raw = (safely(::netease) ?: safely(::lrclib)).orEmpty()
+            var source = "netease"
+            val raw = (safely(::netease) ?: run { source = "lrclib"; safely(::lrclib) }).orEmpty()
             val lines = parse(raw)
             if (ticket != generation) return InstrumentLyricResult(emptyList(), "cancelled")
-            if (lines.isEmpty()) InstrumentLyricResult(emptyList(), if (networkFailure) "network_error" else "not_found")
+            if (lines.none { it.text.isNotBlank() }) {
+                if (!networkFailure) runCatching { synchronized(this) {
+                    if (ticket == generation) { directory.mkdirs(); miss.writeText("not_found"); trimCache() }
+                } }
+                InstrumentLyricResult(emptyList(), if (networkFailure) "network_error" else "not_found",
+                    retryAfterMillis = if (networkFailure) 0 else MISS_TTL)
+            }
             else {
-                synchronized(this) {
+                runCatching { synchronized(this) {
                     if (ticket == generation) {
                         directory.mkdirs()
+                        miss.delete()
                         val temp = File(directory, song.key + ".tmp")
                         temp.writeText(raw)
                         if (!temp.renameTo(file)) temp.delete()
-                        var total = bytes()
-                        directory.listFiles()?.sortedBy { it.lastModified() }?.forEach {
-                            if (total > CACHE_BYTES) { val size = it.length(); if (it.delete()) total -= size }
-                        }
+                        val metadata = File(directory, song.key + ".json.tmp")
+                        metadata.writeText(JSONObject().put("source", source).toString())
+                        if (!metadata.renameTo(File(directory, song.key + ".json"))) metadata.delete()
+                        trimCache()
                     }
-                }
-                InstrumentLyricResult(lines, "matched")
+                } }
+                InstrumentLyricResult(lines, "matched", source)
             }
         } catch (_: Exception) { InstrumentLyricResult(emptyList(), "network_error") }
     }
 
+    private fun trimCache() {
+        val now = System.currentTimeMillis()
+        directory.listFiles()?.filter { it.extension == "miss" && now - it.lastModified() > MISS_TTL }?.forEach { it.delete() }
+        var files = directory.listFiles()?.toList().orEmpty()
+        var total = files.sumOf { it.length() }
+        for (oldest in files.sortedBy { it.lastModified() }) {
+            if (total <= CACHE_BYTES && files.size <= MAX_CACHE_FILES) break
+            val group = files.filter { it.name.substringBefore('.') == oldest.name.substringBefore('.') }
+            for (file in group) file.delete()
+            files = files.filter { it.exists() }
+            total = files.sumOf { it.length() }
+        }
+    }
+
     companion object {
+        private const val MISS_TTL = 6L * 60 * 60 * 1000
         private const val MAX_BYTES = 1_048_576
+        private const val MAX_CACHE_FILES = 2000
         private const val CACHE_BYTES = 50L * 1024 * 1024
         fun parse(raw: String): List<InstrumentLyricLine> {
             if (raw.length > MAX_BYTES) return emptyList()
@@ -148,7 +194,10 @@ internal class InstrumentLyricsRepository(context: Context) {
                     val fraction = m.groupValues[3].padEnd(3, '0').take(3).toLongOrNull() ?: 0
                     InstrumentLyricLine((m.groupValues[1].toLong() * 60000 + m.groupValues[2].toLong() * 1000 + fraction - offset).coerceAtLeast(0), text)
                 }
-            }.sortedBy { it.time }.distinct().toList()
+            }.sortedBy { it.time }.groupBy { it.time }.map { (time, entries) ->
+                // Sources expose original text first; never let a duplicate translation or blank overwrite it.
+                InstrumentLyricLine(time, entries.firstOrNull { it.text.isNotBlank() }?.text.orEmpty())
+            }.toList()
         }
     }
 }

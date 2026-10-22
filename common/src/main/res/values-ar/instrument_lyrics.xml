@@ -37,7 +37,7 @@
     <string name="settings_instrument_offline">البحث عبر الإنترنت معطل ولا توجد كلمات مخزنة</string>
     <string name="settings_instrument_network_error">فشل طلب الشبكة؛ ستتم المحاولة لاحقًا</string>
     <string name="settings_instrument_wait_progress">بانتظار موضع تشغيل موثوق</string>
-    <string name="settings_instrument_intro">مقدمة موسيقية</string>
+    <string name="settings_instrument_intro">...</string>
     <string name="settings_instrument_no_lyrics">لم يتم العثور على كلمات متزامنة مطابقة</string>
     <string name="settings_instrument_delay">تأخير الكلمات</string>
     <string name="settings_instrument_delay_desc">يعوض تأخر صوت CarPlay بتأخير كلمات جميع الأغاني. النطاق 0–5000 مللي ثانية بخطوات 50 مللي ثانية. يطبق فورًا دون إعادة الاتصال.</string>
@@ -60,4 +60,9 @@
     <string name="settings_lyrics_category_desc">إعداد كلمات CarPlay العائمة وحجم الخط والحركة والموضع والمصادر والتخزين والتأخير.</string>
     <string name="settings_instrument_map_category">خريطة العدادات</string>
     <string name="settings_instrument_map_category_desc">إعداد عرض خريطة العدادات والتفويض والبدء التلقائي والحالة والاستعادة.</string>
+    <string name="settings_lyrics_lead">تقديم انتقال الكلمات</string>
+    <string name="settings_lyrics_lead_desc">يعرض السطر التالي مبكراً بمقدار 0–1500 مللي ثانية بخطوات 50. القيمة 0 توقفه. مستقل عن تأخير الصوت ولا يحدد نهاية الغناء. يطبق فوراً.</string>
+    <string name="settings_lyrics_source_status">مصدر الكلمات · %1$s</string>
+    <string name="settings_lyrics_netease">NetEase Music</string>
+    <string name="settings_lyrics_unknown_source">غير مسجل</string>
 </resources>

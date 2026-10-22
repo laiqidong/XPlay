@@ -39,12 +39,18 @@ internal object InstrumentLyricsSettings {
     fun delay(c: Context) = prefs(c).getInt("delay_ms", 0).coerceIn(0, 5000)
     fun saveDelay(c: Context, value: Int) {
         prefs(c).edit().putInt("delay_ms", value.coerceIn(0, 5000)).apply()
-        InstrumentLyrics.settingsChanged(c)
+        InstrumentLyrics.timingChanged(c)
+    }
+    fun lead(c: Context) = prefs(c).getInt("lead_ms", 0).coerceIn(0, 1500)
+    fun saveLead(c: Context, value: Int) {
+        prefs(c).edit().putInt("lead_ms", value.coerceIn(0, 1500)).apply()
+        InstrumentLyrics.timingChanged(c)
     }
     fun save(c: Context, key: String, value: Boolean) {
         require(key in setOf("enabled", "auto", "online", "lane", "floating", "floating_next", "floating_locked", "floating_animation"))
         prefs(c).edit().putBoolean(key, value).apply()
         if (key in setOf("floating_next", "floating_locked", "floating_animation")) InstrumentLyrics.floatingStyleChanged()
+        else if (key in setOf("enabled", "auto", "lane")) InstrumentLyrics.mapSettingsChanged(c)
         else InstrumentLyrics.settingsChanged(c)
     }
 }
