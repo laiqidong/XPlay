@@ -29,7 +29,7 @@ class SettingsTheme private constructor(
             textPrimary = palette.primaryText,
             textSecondary = palette.secondaryText,
             accent = palette.accent,
-            accentTrack = palette.accentTrack,
+            accentTrack = android.graphics.Color.rgb(48, 209, 88),
             trackOff = palette.trackOff,
             buttonText = palette.onAccent,
             ripple = palette.ripple,

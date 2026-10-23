@@ -153,9 +153,16 @@ internal class ConnectionWaitingView(hostContext: Context, onBack: () -> Unit) :
             super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         }
     }
+    private var wallpaper: SettingsBackdrop? = null
+    private var wallpaperNight: Boolean? = null
+
     fun applyPalette(night: Boolean) {
         val palette = DiPlayPalette.settings(night)
-        setBackgroundColor(palette.background)
+        if (wallpaper == null || wallpaperNight != night) {
+            wallpaper = SettingsBackdrop(context, night)
+            wallpaperNight = night
+        }
+        wallpaper?.install(this, fullBlur = true)
         progress.color = palette.accent
         title.setTextColor(palette.primaryText)
         stage.setTextColor(palette.secondaryText)

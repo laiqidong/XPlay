@@ -1,10 +1,17 @@
 package com.shilapi.xcertplay
 
+import android.content.Context
+import android.renderscript.Allocation
+import android.renderscript.Element
+import android.renderscript.RenderScript
+import android.renderscript.ScriptIntrinsicBlur
 import android.graphics.Bitmap
 import android.graphics.Rect
 import android.graphics.RectF
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
+import android.util.Log
 import android.view.PixelCopy
 import android.view.SurfaceView
 import android.view.TextureView
@@ -15,6 +22,7 @@ import kotlin.math.roundToInt
 /** Samples only the underlying video, never the lyrics or a whole-window screenshot.
  * Downsampled frames stay in memory, with at most one capture/blur in flight per owner.
  */
+@Suppress("DEPRECATION")
 internal class FloatingLyricsBackdrop(private val owner: View, private val changed: () -> Unit) {
     data class Frame(val bitmap: Bitmap, val bounds: RectF) {
         // Sample the already blurred video under the card, not the theme or a fixed tint.
@@ -41,23 +49,37 @@ internal class FloatingLyricsBackdrop(private val owner: View, private val chang
     private var active = false
     private var busy = false
     private var generation = 0L
+    private var refreshMillis = FAST_REFRESH_MILLIS
+    private var activeAt = 0L
+    private var deliveredFrames = 0L
+    private var reportState = ""
+    private var reportedAt = 0L
+    private fun report(state: String, detail: String = "") {
+        val now = SystemClock.elapsedRealtime()
+        if (state != reportState || now - reportedAt >= 10000) {
+            reportState = state; reportedAt = now
+            Log.i("XPlayLyricsBlur", "$state $detail".trim())
+        }
+    }
     private val tick = object : Runnable {
         override fun run() {
             if (!active) return
+            val started = SystemClock.elapsedRealtime()
             if (!busy && owner.isShown && owner.windowVisibility == View.VISIBLE) capture()
-            main.postDelayed(this, REFRESH_MILLIS)
+            main.postDelayed(this, (refreshMillis - (SystemClock.elapsedRealtime() - started)).coerceAtLeast(1))
         }
     }
     fun setActive(value: Boolean) {
         if (active == value) return
         active = value; generation++
+        if (value) { activeAt = SystemClock.elapsedRealtime(); deliveredFrames = 0; refreshMillis = FAST_REFRESH_MILLIS }
         main.removeCallbacks(tick)
         if (value) main.post(tick)
-        else { frame?.bitmap?.recycle(); frame = null }
+        else { frame = null; report("inactive") }
     }
     private fun capture() {
-        val video = source?.invoke() ?: return
-        if (!video.isAttachedToWindow || video.width <= 0 || video.height <= 0) return
+        val video = source?.invoke() ?: run { report("source_missing"); return }
+        if (!video.isAttachedToWindow || video.width <= 0 || video.height <= 0) { report("source_not_ready"); return }
         val location = IntArray(2); val origin = IntArray(2)
         video.getLocationOnScreen(location); owner.getLocationOnScreen(origin)
         val x = (location[0] - origin[0]).toFloat(); val y = (location[1] - origin[1]).toFloat()
@@ -77,33 +99,58 @@ internal class FloatingLyricsBackdrop(private val owner: View, private val chang
         val width = (SAMPLE_WIDTH * bounds.width() / video.width).roundToInt().coerceIn(1, SAMPLE_WIDTH)
         val height = (width * bounds.height() / bounds.width()).roundToInt().coerceIn(1, SAMPLE_WIDTH)
         val ticket = generation
+        val captureStarted = SystemClock.elapsedRealtime()
+        val profile = captureStarted - reportedAt >= 10000 || reportState.isEmpty()
         busy = true
         fun complete(bitmap: Bitmap?) {
             if (bitmap == null || ticket != generation || !active) {
                 bitmap?.recycle(); busy = false; return
             }
+            val captureMillis = SystemClock.elapsedRealtime() - captureStarted
             worker.execute {
-                val result = runCatching { blur(bitmap) }.getOrNull()
+                val started = SystemClock.elapsedRealtime()
+                var detailBefore = 0; var detailAfter = 0
+                val result = runCatching {
+                    if (profile) detailBefore = bitmapDetail(bitmap)
+                    blurFast(bitmap, owner.context.applicationContext)
+                    if (profile) detailAfter = bitmapDetail(bitmap)
+                    bitmap
+                }.getOrNull()
+                val backend = if (nativeUnavailable) "kotlin" else "native"
+                val elapsed = SystemClock.elapsedRealtime() - started
                 main.post {
                     busy = false
                     if (result != null && active && ticket == generation && owner.isAttachedToWindow) {
-                        frame?.bitmap?.recycle(); frame = Frame(result, bounds); changed()
-                    } else bitmap.recycle()
+                        // Published bitmaps may still be referenced by hardware rendering; let GC retire them.
+                        frame = Frame(result, bounds)
+                        deliveredFrames++
+                        refreshMillis = if (backend == "kotlin") FALLBACK_REFRESH_MILLIS
+                            else if (captureMillis > 24 || elapsed > 24) SLOW_REFRESH_MILLIS else FAST_REFRESH_MILLIS
+                        val fps = deliveredFrames * 1000f / (SystemClock.elapsedRealtime() - activeAt).coerceAtLeast(1)
+                        report("ready source=${video.javaClass.simpleName} sample=${result.width}x${result.height} radius=$RADIUS backend=$backend",
+                            "capture_ms=$captureMillis blur_ms=$elapsed fps=${String.format(java.util.Locale.ROOT, "%.1f", fps)} detail_before=$detailBefore detail_after=$detailAfter")
+                        if (elapsed > 100) Log.w("XPlayLyricsBlur", "slow_blur_ms=$elapsed")
+                        changed()
+                    } else { bitmap.recycle(); if (result == null) report("blur_failed") }
                 }
             }
         }
         when (video) {
-            is TextureView -> complete(runCatching { video.getBitmap(width, height) }.getOrNull())
+            is TextureView -> {
+                val bitmap = runCatching { video.getBitmap(width, height) }.getOrNull()
+                if (bitmap == null) report("texture_copy_failed")
+                complete(bitmap)
+            }
             is SurfaceView -> {
                 val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
                 try {
                     PixelCopy.request(video, crop, bitmap, { result ->
                         if (result == PixelCopy.SUCCESS) complete(bitmap)
-                        else { bitmap.recycle(); complete(null) }
+                        else { report("pixel_copy_failed code=$result"); bitmap.recycle(); complete(null) }
                     }, main)
-                } catch (_: Exception) { bitmap.recycle(); complete(null) }
+                } catch (error: Exception) { report("pixel_copy_exception type=${error.javaClass.simpleName}"); bitmap.recycle(); complete(null) }
             }
-            else -> complete(null)
+            else -> { report("unsupported_source type=${video.javaClass.simpleName}"); complete(null) }
         }
     }
 
@@ -111,14 +158,75 @@ internal class FloatingLyricsBackdrop(private val owner: View, private val chang
         private const val SAMPLE_WIDTH = 320
         private const val RADIUS = 8
         private const val KERNEL_SIZE = RADIUS * 2 + 1
-        private const val REFRESH_MILLIS = 350L
+        private const val FAST_REFRESH_MILLIS = 50L
+        private const val SLOW_REFRESH_MILLIS = 83L
+        private const val FALLBACK_REFRESH_MILLIS = 120L
+        // Confined to the single worker; reuse its context, script and bounded allocations.
+        private var nativeBlur: NativeBlur? = null
+        private var nativeUnavailable = false
         private val worker = Executors.newSingleThreadExecutor { task ->
             Thread(task, "xplay-lyric-backdrop").apply { isDaemon = true }
         }
-        private fun blur(bitmap: Bitmap): Bitmap {
+        private fun bitmapDetail(bitmap: Bitmap): Int {
+            val pixels = IntArray(bitmap.width * bitmap.height)
+            bitmap.getPixels(pixels, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+            return detail(pixels, bitmap.width)
+        }
+        private fun blurFast(bitmap: Bitmap, context: Context) {
+            if (!nativeUnavailable) {
+                try {
+                    val engine = nativeBlur ?: NativeBlur(context).also { nativeBlur = it }
+                    engine.apply(bitmap)
+                    return
+                } catch (error: Exception) {
+                    Log.w("XPlayLyricsBlur", "native_unavailable type=${error.javaClass.simpleName}")
+                    runCatching { nativeBlur?.close() }; nativeBlur = null; nativeUnavailable = true
+                }
+            }
+            blur(bitmap) { _, _ -> }
+        }
+        private class NativeBlur(context: Context) : AutoCloseable {
+            private val rs = RenderScript.create(context)
+            private val script = ScriptIntrinsicBlur.create(rs, Element.U8_4(rs)).apply {
+                // Intrinsic Gaussian radius differs from two box passes; approximate the existing softness.
+                setRadius((RADIUS * 2f).coerceAtMost(25f))
+            }
+            private var input: Allocation? = null
+            private var output: Allocation? = null
+            private var width = 0
+            private var height = 0
+            fun apply(bitmap: Bitmap) {
+                if (input == null || width != bitmap.width || height != bitmap.height) {
+                    input?.destroy(); output?.destroy(); input = null; output = null
+                    input = Allocation.createFromBitmap(rs, bitmap, Allocation.MipmapControl.MIPMAP_NONE, Allocation.USAGE_SCRIPT)
+                    output = Allocation.createTyped(rs, input!!.type)
+                    width = bitmap.width; height = bitmap.height
+                } else input!!.copyFrom(bitmap)
+                script.setInput(input)
+                script.forEach(output)
+                output!!.copyTo(bitmap)
+            }
+            override fun close() { input?.destroy(); output?.destroy(); script.destroy(); rs.destroy() }
+        }
+        private fun detail(pixels: IntArray, width: Int): Int {
+            if (width < 2) return 0
+            var sum = 0L; var count = 0
+            val stride = (pixels.size / 512).coerceAtLeast(1)
+            for (index in 0 until pixels.size - 1 step stride) {
+                if (index % width == width - 1) continue
+                val a = pixels[index]; val b = pixels[index + 1]
+                sum += kotlin.math.abs(((a ushr 16) and 255) - ((b ushr 16) and 255)) +
+                    kotlin.math.abs(((a ushr 8) and 255) - ((b ushr 8) and 255)) +
+                    kotlin.math.abs((a and 255) - (b and 255))
+                count++
+            }
+            return if (count > 0) (sum / (count * 3)).toInt() else 0
+        }
+        private fun blur(bitmap: Bitmap, diagnostics: (Int, Int) -> Unit): Bitmap {
             val width = bitmap.width; val height = bitmap.height
             val input = IntArray(width * height); val temp = IntArray(input.size)
             bitmap.getPixels(input, 0, width, 0, 0, width, height)
+            val detailBefore = detail(input, width)
             // Two separable box passes, bounded to the small sample; never touch full-size video.
             repeat(2) {
                 for (y in 0 until height) {
@@ -150,6 +258,7 @@ internal class FloatingLyricsBackdrop(private val owner: View, private val chang
                     }
                 }
             }
+            diagnostics(detailBefore, detail(input, width))
             bitmap.setPixels(input, 0, width, 0, 0, width, height)
             return bitmap
         }

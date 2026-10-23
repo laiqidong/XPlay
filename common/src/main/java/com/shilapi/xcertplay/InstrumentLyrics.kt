@@ -254,12 +254,22 @@ internal object InstrumentLyrics {
                 if (cueTime(middle, c) <= effectivePosition) { index = middle; low = middle + 1 } else high = middle - 1
             }
         }
-        val next = if (trusted && needsLyrics(c)) (index + 1..lines.lastIndex).firstOrNull { lines[it].text.isNotBlank() }?.let { lines[it].text }.orEmpty() else ""
+        val nextIndex = if (trusted && needsLyrics(c)) (index + 1..lines.lastIndex).firstOrNull { lines[it].text.isNotBlank() } else null
+        val next = nextIndex?.let { lines[it].text }.orEmpty()
+        val timeline = trusted && lines.isNotEmpty()
+        val previousIndex = if (timeline && index >= 0) (index downTo 0).firstOrNull { lines[it].text.isNotBlank() } else null
+        val blank = timeline && (index < 0 || lines[index].text.isBlank())
+        val blankStarted = if (index >= 0) cueTime(index, c) else 0L
+        val blankDuration = nextIndex?.let { cueTime(it, c) - blankStarted } ?: Long.MAX_VALUE
+        val holdPrevious = blank && previousIndex != null &&
+            (blankDuration <= 8000L || effectivePosition - blankStarted < 3000L)
+        val displayIndex = if (!blank && timeline) index else previousIndex.takeIf { holdPrevious } ?: -1
+        val previewSoon = nextIndex != null && cueTime(nextIndex, c) - effectivePosition <= 5000L
         val chinese = repository?.chinese
         fun simplified(value: String) = chinese?.simplified(value) ?: value
         val night = c.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK !=
             android.content.res.Configuration.UI_MODE_NIGHT_NO
-        val hasLine = trusted && index >= 0 && lines[index].text.isNotBlank()
+        val hasLine = displayIndex >= 0
         val statusResource = when {
             lyricState == "searching" -> com.shilapi.xcertplay.host.R.string.settings_instrument_searching
             lyricState == "network_error" -> com.shilapi.xcertplay.host.R.string.settings_instrument_network_error
@@ -268,18 +278,22 @@ internal object InstrumentLyrics {
             !trusted -> com.shilapi.xcertplay.host.R.string.settings_instrument_wait_progress
             else -> com.shilapi.xcertplay.host.R.string.settings_instrument_intro
         }
-        val timeline = trusted && lines.isNotEmpty()
         val floating = FloatingSnapshot(
-            if (hasLine) simplified(lines[index].text) else if (timeline) "..." else simplified(info.title.orEmpty()),
-            if (timeline) simplified(next) else c.getString(statusResource), night,
+            if (hasLine) simplified(lines[displayIndex].text) else simplified(info.title.orEmpty()),
+            if (hasLine || (timeline && previewSoon)) simplified(next) else if (timeline) simplified(info.artist.orEmpty()) else c.getString(statusResource), night,
             attached && InstrumentLyricsSettings.floating(c) && info.playing && !info.title.isNullOrBlank(),
-            status = !timeline, songKey = song?.key.orEmpty(), lineIndex = index, motionEpoch = floatingMotionEpoch)
+            status = !hasLine, songKey = song?.key.orEmpty(), lineIndex = displayIndex, motionEpoch = floatingMotionEpoch)
         if (floating != floatingSnapshot) {
             floatingSnapshot = floating; floatingObservers.toList().forEach { it(floating) }
         }
         main.removeCallbacks(lyricBoundary)
         if (attached && trusted && info.playing && needsLyrics(c) && index + 1 in lines.indices) {
-            val wait = (cueTime(index + 1, c) - effectivePosition).coerceAtLeast(1)
+            var boundary = cueTime(index + 1, c)
+            if (blank && blankDuration > 8000L && previousIndex != null && effectivePosition < blankStarted + 3000L)
+                boundary = minOf(boundary, blankStarted + 3000L)
+            if (!hasLine && nextIndex != null && effectivePosition < cueTime(nextIndex, c) - 5000L)
+                boundary = minOf(boundary, cueTime(nextIndex, c) - 5000L)
+            val wait = (boundary - effectivePosition).coerceAtLeast(1)
             main.postDelayed(lyricBoundary, wait)
         }
     }

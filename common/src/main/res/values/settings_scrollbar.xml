@@ -1,0 +1,17 @@
+<resources>
+    <dimen name="settings_scrollbar_width">3dp</dimen>
+    <dimen name="settings_scrollbar_radius">1.5dp</dimen>
+    <dimen name="settings_scrollbar_min_length">24dp</dimen>
+    <style name="SettingsScrollLight">
+        <item name="android:scrollbarThumbVertical">@drawable/settings_scrollbar_light</item>
+        <item name="android:scrollbarTrackVertical">@null</item>
+        <item name="android:scrollbarSize">@dimen/settings_scrollbar_width</item>
+        <item name="android:scrollbarStyle">insideOverlay</item>
+        <item name="android:fadeScrollbars">true</item>
+        <item name="android:scrollbarDefaultDelayBeforeFade">600</item>
+        <item name="android:scrollbarFadeDuration">250</item>
+    </style>
+    <style name="SettingsScrollDark" parent="SettingsScrollLight">
+        <item name="android:scrollbarThumbVertical">@drawable/settings_scrollbar_dark</item>
+    </style>
+</resources>

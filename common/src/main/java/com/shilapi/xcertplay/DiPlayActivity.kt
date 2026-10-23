@@ -104,6 +104,8 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             if (CarPlayBackgroundSession.hasSession()) openProjection() else openCarHome()
         }
     }
+    private var settingsBackdrop: SettingsBackdrop? = null
+    private var settingsBackdropNight: Boolean? = null
     private var appNight = true
     override val currentAppNight: Boolean get() = appNight
     private var palette = DiPlayPalette.DARK
@@ -610,7 +612,11 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             "settings" -> !SettingsLayoutPreferences.isActive(this)
             else -> true
         }
-        val scroll = ScrollView(this).apply { setBackgroundColor(BG); isFillViewport = true; clipToPadding = false }
+        if (page == "settings" && (settingsBackdrop == null || settingsBackdropNight != appNight)) {
+            settingsBackdrop = SettingsBackdrop(this, appNight)
+            settingsBackdropNight = appNight
+        }
+        val scroll = ScrollView(if (page == "settings") settingsScrollContext() else this).apply { setBackgroundColor(if (page == "settings") Color.TRANSPARENT else BG); isFillViewport = true; clipToPadding = false }
         rootScroll = scroll
         val content = column()
         scroll.addView(content)
@@ -640,6 +646,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             }
             scroll
         }
+        if (page == "settings") settingsBackdrop?.install(root)
         // Keep the background full screen, but all controls inside the camera and
         // visible system/keyboard bounds. Insets are physical pixels, not scaled dp.
         val baseLeft = root.paddingLeft
@@ -865,14 +872,16 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         content.addView(card, LinearLayout.LayoutParams(-1, -2))
     }
 
+    private fun settingsScrollContext() = android.view.ContextThemeWrapper(this,
+        if (appNight) R.style.SettingsScrollDark else R.style.SettingsScrollLight)
+
     // Only the category scrolls, so the rail keeps showing where the driver is.
     private fun expandedSettingsShell(header: View, categoryScroll: ScrollView): LinearLayout = row().apply {
-        setBackgroundColor(BG)
         val sidebar = column().apply {
-            setBackgroundColor(if (appNight) Color.rgb(43, 40, 40) else Color.rgb(236, 236, 236))
+            background = settingsBackdrop?.frost(this)
             setPadding(dp(SETTINGS_SIDEBAR_INSET_DP), dp(SETTINGS_CONTENT_INSET_DP),
                 dp(SETTINGS_SIDEBAR_INSET_DP), 0)
-            addView(ScrollView(this@DiPlayActivity).apply {
+            addView(ScrollView(settingsScrollContext()).apply {
                 addView(column().apply {
                     setPadding(0, 0, 0, dp(SETTINGS_SIDEBAR_INSET_DP))
                     addView(settingsRail())
@@ -888,7 +897,11 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             }
         }
         addView(sidebar, LinearLayout.LayoutParams(
-            dp(SettingsLayoutPolicy.railWidthDp(resources.configuration.fontScale)), -1))
+            dp(SettingsLayoutPolicy.railWidthDp(resources.configuration.fontScale)), -1).apply {
+                marginStart = dp(SETTINGS_CONTENT_INSET_DP)
+                topMargin = dp(SETTINGS_CONTENT_INSET_DP)
+                bottomMargin = dp(SETTINGS_CONTENT_INSET_DP)
+            })
         addView(column().apply {
             setPadding(dp(SETTINGS_CONTENT_INSET_DP), dp(SETTINGS_CONTENT_INSET_DP),
                 dp(SETTINGS_CONTENT_INSET_DP), 0)
@@ -924,24 +937,24 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             isClickable = true
             isFocusable = true
             isSelected = selected
-            foreground = focusRing(12)
+            foreground = focusRing((SETTINGS_RAIL_ROW_HEIGHT_DP * SETTINGS_CONTROL_RADIUS_RATIO).roundToInt())
             contentDescription = description
             background = android.graphics.drawable.RippleDrawable(
                 ColorStateList.valueOf(RIPPLE),
                 GradientDrawable().apply {
-                    setColor(if (selected) RAIL_SELECTED else Color.TRANSPARENT)
-                    cornerRadius = dp(12).toFloat()
-                    if (selected) setStroke(dp(1), RAIL_SELECTED_BORDER)
+                    setColor(if (selected) { if (appNight) 0x40FFFFFF else 0x66FFFFFF } else Color.TRANSPARENT)
+                    cornerRadius = dp(SETTINGS_RAIL_ROW_HEIGHT_DP) * SETTINGS_CONTROL_RADIUS_RATIO
+                    // Selection uses a translucent fill over the shared wallpaper.
                 },
                 null,
             )
             setPadding(dp(8), 0, dp(12), 0)
             addView(ImageView(this@DiPlayActivity).apply {
                 setImageResource(icon)
-                imageTintList = ColorStateList.valueOf(if (selected) Color.WHITE else TEXT)
+                imageTintList = ColorStateList.valueOf(TEXT)
                 importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             }, LinearLayout.LayoutParams(dp(26), dp(26)).apply { marginEnd = dp(12) })
-            addView(label(title, 16, if (selected) Color.WHITE else TEXT, true,
+            addView(label(title, 16, TEXT, true,
                 centreGlyphs = usesChineseGlyphAlignment(resources.configuration.locales[0].language, title)),
                 LinearLayout.LayoutParams(0, -1, 1f))
             setOnClickListener { click() }
@@ -5621,7 +5634,12 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         }
         parent.addView(button, matchButton(0, 60)); parent.addView(space(12))
     }
-    private fun card() = column().apply { background = rounded(SURFACE, BORDER); setPadding(dp(24), dp(24), dp(24), dp(24)) }
+    private fun card() = column().apply {
+        background = if (page == "settings") settingsBackdrop?.frost(this) else rounded(SURFACE, BORDER)
+        val horizontal = if (page == "settings") SettingsBackdrop.CARD_INSET_DP else 24
+        val vertical = if (page == "settings") SettingsBackdrop.CARD_VERTICAL_INSET_DP else 24
+        setPadding(dp(horizontal), dp(vertical), dp(horizontal), dp(vertical))
+    }
     private fun column() = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(-1, -2) }
     private fun row() = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(-1, -2) }
     private class HeaderTitleView(context: android.content.Context) : TextView(context) {
@@ -5687,7 +5705,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         (layoutCornerRadius() / resources.displayMetrics.density).roundToInt(),
     )
 
-    private fun button(title: String, primary: Boolean, click: () -> Unit) = SettingButton(this, MUTED, ACCENT, page == "settings").apply {
+    private fun button(title: String, primary: Boolean, click: () -> Unit) = SettingButton(this, MUTED, if (page == "settings") MUTED else ACCENT, page == "settings").apply {
         isAllCaps = false; textSize = 18f; setTextColor(if (primary) ON_ACCENT else TEXT)
         setSingleLine(false)
         maxLines = Int.MAX_VALUE
@@ -6032,7 +6050,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     private val BG get() = chromePalette.background
     private val SURFACE get() = chromePalette.surface
     private val BUTTON get() = chromePalette.button
-    private val BORDER get() = chromePalette.outline
+    private val BORDER get() = if (page == "settings") { if (appNight) 0x38FFFFFF else 0x26000000 } else chromePalette.outline
     private val ACCENT get() = chromePalette.accent
     private val ON_ACCENT get() = chromePalette.onAccent
     private val RAIL_SELECTED get() = chromePalette.railSelected

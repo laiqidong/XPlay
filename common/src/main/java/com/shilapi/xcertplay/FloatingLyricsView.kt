@@ -14,7 +14,6 @@ import android.graphics.Typeface
 import android.text.Layout
 import android.text.StaticLayout
 import android.text.TextPaint
-import android.text.TextUtils
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
@@ -68,6 +67,7 @@ internal class FloatingLyricsView(context: Context) : View(context) {
             performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
         }
     }
+    private var metadataTransition = false
     private fun cancelPendingDrag() { pendingDrag = false; removeCallbacks(beginLongDrag) }
 
     init { visibility = GONE; importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }
@@ -77,11 +77,14 @@ internal class FloatingLyricsView(context: Context) : View(context) {
             val previous = snapshot
             val advances = it != previous && previous.visible && it.visible && !previous.status && !it.status &&
                 it.songKey.isNotBlank() && it.songKey == previous.songKey && it.motionEpoch == previous.motionEpoch &&
-                it.lineIndex == previous.lineIndex + 1 && previous.next == it.current &&
+                it.lineIndex > previous.lineIndex && previous.next == it.current &&
                 InstrumentLyricsSettings.floatingAnimation(context) && !dragging && animation?.isRunning != true
             if (it != previous) {
                 stopTransition()
-                pendingFrom = lastTextFrame.takeIf { advances }
+                metadataTransition = it.songKey == previous.songKey && it.motionEpoch == previous.motionEpoch &&
+                    it.visible && previous.visible && it.status != previous.status &&
+                    InstrumentLyricsSettings.floatingAnimation(context) && !dragging
+                pendingFrom = lastTextFrame.takeIf { advances || metadataTransition }
             } else { stopTransition(); lastTextFrame = null }
             snapshot = it
             backdrop.setActive(it.visible)
@@ -117,8 +120,10 @@ internal class FloatingLyricsView(context: Context) : View(context) {
             val currentWidth = measure.measureText(snapshot.current)
             measure.typeface = nextTypeface; measure.textSize = nextSize * density * font
             val nextWidth = nextText?.let(measure::measureText) ?: 0f
-            // Preview text may not stretch a short current line across the screen.
-            val desired = maxOf(currentWidth, minOf(nextWidth, currentWidth * 1.15f))
+            // Reserve the next lyric at the current font size before it scrolls upward.
+            measure.typeface = currentTypeface; measure.textSize = currentSize * density * font
+            val promotedWidth = nextText?.let(measure::measureText) ?: 0f
+            val desired = maxOf(currentWidth, nextWidth, promotedWidth)
             val minimum = minOf(MIN_CONTENT_DP * density, maximum)
             val quantum = WIDTH_QUANTUM_DP * density
             var contentWidth = (kotlin.math.ceil(desired / quantum) * quantum).coerceIn(minimum, maximum)
@@ -129,17 +134,33 @@ internal class FloatingLyricsView(context: Context) : View(context) {
                 contentWidth = (previous.width - 2 * padding).coerceIn(minimum, maximum)
             }
             val available = kotlin.math.ceil(contentWidth).toInt()
-            fun layout(text: String, size: Float, typeface: Typeface, maxLines: Int = 1): StaticLayout {
-                val paint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply { textSize = size * density * font; this.typeface = typeface }
-                return StaticLayout.Builder.obtain(text, 0, text.length, paint, available)
-                    .setAlignment(Layout.Alignment.ALIGN_CENTER).setIncludePad(false).setMaxLines(maxLines)
-                    .setBreakStrategy(Layout.BREAK_STRATEGY_HIGH_QUALITY).setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NONE)
-                    .setEllipsize(TextUtils.TruncateAt.END).build()
+            fun layout(text: String, size: Float, typeface: Typeface): StaticLayout {
+                fun build(points: Float): StaticLayout {
+                    val paint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply { textSize = points * density * font; this.typeface = typeface }
+                    return StaticLayout.Builder.obtain(text, 0, text.length, paint, available)
+                        .setAlignment(Layout.Alignment.ALIGN_CENTER).setIncludePad(false)
+                        .setBreakStrategy(Layout.BREAK_STRATEGY_HIGH_QUALITY)
+                        .setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NONE).build()
+                }
+                var points = size
+                var result = build(points)
+                // Keep normal lyrics large; exceptionally long lines shrink only slightly.
+                while (result.lineCount > 2 && points > size * .85f) {
+                    points = (points - 1f).coerceAtLeast(size * .85f)
+                    result = build(points)
+                }
+                // Preserve complete text even for unusually long lyrics instead of truncating it.
+                return result
             }
-            val twoLinesFit = !snapshot.status && height - 2 * margin - 2 * verticalPadding >=
-                (2 * currentSize + (if (nextText != null) nextSize + LINE_GAP_DP else 0f)) * density * font * 1.25f
-            val current = layout(snapshot.current, currentSize, currentTypeface, if (twoLinesFit) 2 else 1)
-            val next = nextText?.let { layout(it, nextSize, nextTypeface) }
+            var current = layout(snapshot.current, currentSize, currentTypeface)
+            var next = nextText?.let { layout(it, nextSize, nextTypeface) }
+            val textBudget = (height - 2 * margin - 2 * verticalPadding - LINE_GAP_DP * density).coerceAtLeast(1f)
+            val textHeight = current.height + (next?.height ?: 0)
+            if (textHeight > textBudget) {
+                val scale = textBudget / textHeight
+                current = layout(snapshot.current, currentSize * scale, currentTypeface)
+                next = nextText?.let { layout(it, nextSize * scale, nextTypeface) }
+            }
             val gap = if (next != null) LINE_GAP_DP * density else 0f
             TextFrame(current, next, gap, (available + 2 * padding).coerceAtMost(width.toFloat()),
                 (current.height + (next?.height ?: 0) + gap + 2 * verticalPadding).coerceAtMost(height.toFloat())).also {
@@ -183,7 +204,7 @@ internal class FloatingLyricsView(context: Context) : View(context) {
         if (opacity > 0f) {
             val hasBackdrop = backdrop.frame?.bitmap?.isRecycled == false
             // Keep the sampled colours; a very light neutral correction protects the text.
-            background.alpha = if (!hasBackdrop) 205 else if (light) 14 else 36
+            background.alpha = ((if (!hasBackdrop) 205 else if (light) 14 else 36) * opacity).toInt()
             val radius = minOf(CORNER_DP * density, box.height() / 2f, box.width() / 2f)
             for (step in SHADOW_STEPS downTo 1) {
                 val spread = step * density * .5f
@@ -192,7 +213,9 @@ internal class FloatingLyricsView(context: Context) : View(context) {
                 shadowPaint.alpha = (SHADOW_ALPHA * opacity).toInt()
                 canvas.drawRoundRect(shadow, radius + spread, radius + spread, shadowPaint)
             }
-            val layer = canvas.saveLayerAlpha(box, (opacity * 255).toInt())
+            // Backdrop blur replaces the sharp pixels. Fading this whole layer would reveal
+            // the original video again; only the neutral material tint uses opacity.
+            val layer = canvas.saveLayer(box, null)
             backgroundPath.reset()
             backgroundPath.addRoundRect(box, radius, radius, Path.Direction.CW)
             canvas.clipPath(backgroundPath)
@@ -237,7 +260,12 @@ internal class FloatingLyricsView(context: Context) : View(context) {
             layout.paint.color = oldColor; layout.paint.alpha = oldAlpha
             canvas.restoreToCount(saved)
         }
-        if (from != null) {
+        if (from != null && metadataTransition) {
+            drawLine(from.current, 0f, 1f, 1f - progress, primaryColor)
+            from.next?.let { drawLine(it, from.current.height + from.gap, 1f, 1f - progress, secondaryColor) }
+            drawLine(current, 0f, 1f, progress, primaryColor)
+            next?.let { drawLine(it, current.height + gap, 1f, progress, secondaryColor) }
+        } else if (from != null) {
             val oldNextTop = from.current.height + from.gap
             val promotedTop = interpolate(oldNextTop, 0f)
             drawLine(from.current, -progress * (from.current.height + from.gap), 1f, 1f - progress, primaryColor)
