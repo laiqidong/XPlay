@@ -7,30 +7,50 @@ import android.content.res.Configuration
 import android.content.res.Resources
 import android.os.Build
 import android.os.LocaleList
+import java.util.Locale
 
-/** XPlay follows the head unit language; retire overrides persisted by older versions. */
+/** App language defaults to the head unit; an explicit choice only changes XPlay UI. */
 object AppLocale {
     const val SYSTEM = "system"
+    val languages = listOf(SYSTEM, "en", "zh-CN", "zh-TW", "ja", "es", "ru", "uk", "ar")
 
-    @Suppress("UNUSED_PARAMETER")
-    fun preference(context: Context): String = SYSTEM
+    fun preference(context: Context): String = context.getSharedPreferences("diplay", Context.MODE_PRIVATE)
+        .getString("app_language", SYSTEM)?.takeIf { it in languages } ?: SYSTEM
 
-    fun wrap(context: Context): Context {
-        val prefs = context.getSharedPreferences("diplay", Context.MODE_PRIVATE)
-        if (prefs.contains("app_language") || prefs.contains("app_language_platform_migrated")) {
-            prefs.edit().remove("app_language").remove("app_language_platform_migrated").apply()
-        }
+    /** True when Android 13+ owns the resulting configuration update. */
+    fun save(context: Context, language: String): Boolean {
+        require(language in languages)
+        context.getSharedPreferences("diplay", Context.MODE_PRIVATE).edit().putString("app_language", language).apply()
         if (Build.VERSION.SDK_INT >= 33) {
+            val locales = if (language == SYSTEM) LocaleList.getEmptyLocaleList() else LocaleList.forLanguageTags(language)
             val manager = context.getSystemService(LocaleManager::class.java)
-            if (!manager.applicationLocales.isEmpty) manager.applicationLocales = LocaleList.getEmptyLocaleList()
+            if (manager.applicationLocales != locales) {
+                manager.applicationLocales = locales
+                return true
+            }
         }
-        return context
+        return false
     }
 
-    /** Restore system locales while retaining the current window/density configuration. */
+    private fun locales(context: Context): LocaleList {
+        val language = preference(context)
+        return if (language == SYSTEM) Resources.getSystem().configuration.locales
+            else LocaleList(Locale.forLanguageTag(language))
+    }
+
+    fun wrap(context: Context): Context {
+        val locales = locales(context)
+        if (context.resources.configuration.locales == locales) return context
+        return context.createConfigurationContext(Configuration(context.resources.configuration).apply {
+            setLocales(locales)
+            if (!locales.isEmpty) setLayoutDirection(locales[0])
+        })
+    }
+
+    /** Retain window/density configuration while applying the selected UI language. */
     @Suppress("DEPRECATION")
     fun enforce(context: Context): Boolean {
-        val locales = Resources.getSystem().configuration.locales
+        val locales = locales(context)
         val resources = context.resources
         if (resources.configuration.locales == locales) return false
         val configuration = Configuration(resources.configuration).apply {

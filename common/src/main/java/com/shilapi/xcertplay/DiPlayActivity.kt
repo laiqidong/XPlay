@@ -737,7 +737,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                 openCarHome()
                 finish()
             }
-            .setPositiveButton(R.string.settings_close_application) { _, _ -> closeApplication() }
+            .setDestructivePositiveButton(R.string.settings_close_application) { _, _ -> closeApplication() }
             .setNegativeButton(R.string.cancel, null)
             .show()
     }
@@ -1397,6 +1397,15 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     private fun buildDisplayAppearanceSection(content: LinearLayout) {
         filteredSection(content, SettingsSection.DISPLAY_APPEARANCE,
             getString(R.string.settings_appearance_group), R.drawable.ic_dp_display) { card ->
+            val languages = AppLocale.languages
+            choice(card, getString(R.string.language_app_language), listOf(
+                getString(R.string.language_system_default), "English", "简体中文", "繁體中文",
+                "日本語", "Español", "Русский", "Українська", "العربية",
+            ), languages.indexOf(AppLocale.preference(this)), reconnects = false,
+                description = getString(R.string.language_hint)) { index ->
+                val selected = languages[index]
+                if (selected != AppLocale.preference(this) && !AppLocale.save(this, selected)) recreate()
+            }
             val appearances = AppAppearance.entries
             choice(
                 card,

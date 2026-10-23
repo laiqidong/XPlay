@@ -34,6 +34,7 @@ internal fun Context.appDialog(): Dialog {
 internal class AppDialogBuilder(private val owner: Context) {
     private val builder = AlertDialog.Builder(owner, owner.appDialogTheme())
     private var cancelable = true
+    private var destructivePositive = false
     fun setTitle(value: CharSequence) = apply { builder.setTitle(value) }
     fun setTitle(value: Int) = apply { builder.setTitle(value) }
     fun setMessage(value: CharSequence) = apply { builder.setMessage(value) }
@@ -54,6 +55,10 @@ internal class AppDialogBuilder(private val owner: Context) {
     fun setNegativeButton(text: CharSequence, click: DialogInterface.OnClickListener?) = apply { builder.setNegativeButton(text, click) }
     fun setNeutralButton(text: CharSequence, click: DialogInterface.OnClickListener?) = apply { builder.setNeutralButton(text, click) }
     fun setPositiveButton(text: Int, click: DialogInterface.OnClickListener?) = apply { builder.setPositiveButton(text, click) }
+    fun setDestructivePositiveButton(text: Int, click: DialogInterface.OnClickListener?) = apply {
+        destructivePositive = true
+        builder.setPositiveButton(text, click)
+    }
     fun setNegativeButton(text: Int, click: DialogInterface.OnClickListener?) = apply { builder.setNegativeButton(text, click) }
     fun setNeutralButton(text: Int, click: DialogInterface.OnClickListener?) = apply { builder.setNeutralButton(text, click) }
     fun setItems(values: Array<out CharSequence>, click: DialogInterface.OnClickListener?) = apply { builder.setItems(values, click) }
@@ -82,7 +87,8 @@ internal class AppDialogBuilder(private val owner: Context) {
                 stateListAnimator = null
                 val primary = id == DialogInterface.BUTTON_POSITIVE
                 setTextColor(if (primary) colors.onAccent else colors.primaryText)
-                background = LiquidGlassStyle.button(this, night, if (primary) colors.accent else null, colors.ripple)
+                val tint = if (primary) { if (destructivePositive) colors.danger else colors.accent } else null
+                background = LiquidGlassStyle.button(this, night, tint, colors.ripple)
             }
         }
         arrangeNativeActions(this)

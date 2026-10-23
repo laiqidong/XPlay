@@ -45,7 +45,7 @@ internal class ButtonGlassDrawable(
         paint.alpha = opacity
         if (shader != null) canvas.drawRoundRect(rect, radius, radius, paint)
         fill.color = tint?.let { ColorUtils.setAlphaComponent(it, 220) }
-            ?: if (night) 0x407B8798 else 0x55FFFFFF
+            ?: if (night) 0x665F718A else 0x24405F88
         fill.alpha = Color.alpha(fill.color) * opacity / 255
         canvas.drawRoundRect(rect, radius, radius, fill)
         val stroke = owner.resources.displayMetrics.density * BUTTON_RIM_DP
@@ -53,7 +53,8 @@ internal class ButtonGlassDrawable(
         rim.strokeWidth = stroke
         rim.shader = LinearGradient(0f, rect.top, 0f, rect.bottom,
             intArrayOf(Color.argb(if (night) 100 else 155, 255, 255, 255),
-                Color.argb(if (night) 28 else 42, 0, 0, 0), Color.argb(45, 255, 255, 255)),
+                Color.argb(if (night) 45 else 60, 35, 54, 78),
+                if (night) Color.argb(45, 255, 255, 255) else Color.argb(45, 55, 77, 105)),
             floatArrayOf(0f, .6f, 1f), Shader.TileMode.CLAMP)
         rim.alpha = opacity
         canvas.drawRoundRect(edge, (radius - stroke / 2).coerceAtLeast(0f),
