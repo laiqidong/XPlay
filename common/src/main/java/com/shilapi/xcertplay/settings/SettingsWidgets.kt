@@ -22,6 +22,7 @@ import kotlin.math.roundToInt
 object SettingsWidgets {
     const val CARD_ROW_MIN_HEIGHT_DP = 80
     const val CARD_ROW_VERTICAL_PADDING_DP = 12
+    const val CARD_ROW_SUBTITLE_GAP_DP = 6
     private const val CARD_ROW_TEXT_GAP_DP = 16
 
     private fun TextView.applyTextStyle(context: Context, theme: SettingsTheme, bold: Boolean = false) {
@@ -154,7 +155,7 @@ object SettingsWidgets {
                 text = description
                 textSize = 14f
                 setTextColor(theme.textSecondary)
-                setPadding(0, theme.dp(context, 6), 0, 0)
+                setPadding(0, theme.dp(context, CARD_ROW_SUBTITLE_GAP_DP), 0, 0)
                 visibility = if (description.isBlank()) View.GONE else View.VISIBLE
                 applyTextStyle(context, theme)
             }

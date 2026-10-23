@@ -75,7 +75,7 @@ internal class ConnectionWaitingView(hostContext: Context, onBack: () -> Unit) :
         }
     }
     val stage = TextView(context).apply {
-        textSize = DETAIL_SIZE_SP
+        textSize = STAGE_SIZE_SP
         gravity = Gravity.CENTER
         typeface = AppFonts.regular(context)
         accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
@@ -189,6 +189,7 @@ internal class ConnectionWaitingView(hostContext: Context, onBack: () -> Unit) :
         const val BACK_MAX_WIDTH_DP = 360
         const val BACK_TEXT_SP = 28f
         const val COMPACT_BACK_TEXT_SP = 22f
+        const val STAGE_SIZE_SP = 18f
         const val DETAIL_SIZE_SP = 22f
         const val ACTION_TEXT_SP = 22f
         const val ACTION_HEIGHT_DP = 64

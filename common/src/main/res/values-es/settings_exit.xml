@@ -1,0 +1,5 @@
+<resources>
+    <string name="settings_exit_prompt">Elige cómo salir. Cerrar XPlay desconecta CarPlay.</string>
+    <string name="settings_close_application">Cerrar aplicación</string>
+    <string name="settings_exit_car_home">Inicio del coche</string>
+</resources>

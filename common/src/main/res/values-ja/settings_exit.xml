@@ -1,0 +1,5 @@
+<resources>
+    <string name="settings_exit_prompt">終了方法を選択してください。XPlay を終了すると CarPlay の接続が切断されます。</string>
+    <string name="settings_close_application">アプリを終了</string>
+    <string name="settings_exit_car_home">車載ホームへ</string>
+</resources>

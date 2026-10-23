@@ -286,8 +286,9 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (savedInstanceState == null && !intent.hasExtra("page") && CarPlayBackgroundSession.active) {
-            openProjection(); finish(); return
+        if (savedInstanceState == null && !intent.hasExtra("page") &&
+            !intent.getBooleanExtra(PhoneBluetoothReceiver.EXTRA_AUTO_CONNECT, false)) {
+            startActivity(ConnectionEntryPolicy.launchIntent(this)); finish(); return
         }
         // Retire work queued by older builds; XPlay updates are maintained in our own repository.
         runCatching { BackgroundUpdateScheduler.disable(applicationContext) }
@@ -352,8 +353,8 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         explicitSettingsEntryPending = false
         routeOnNextStart = false
         autoConnectOnNextResume = !intent.hasExtra("page")
-        if (!intent.hasExtra("page") && CarPlayBackgroundSession.active) {
-            openProjection(); finish(); return
+        if (!intent.hasExtra("page") && !intent.getBooleanExtra(PhoneBluetoothReceiver.EXTRA_AUTO_CONNECT, false)) {
+            startActivity(ConnectionEntryPolicy.launchIntent(this)); finish(); return
         }
         connectionSettingsReturnCategory = null
         page = intent.getStringExtra("page")?.let { if (it == "home") "settings" else it } ?: "settings"
@@ -740,8 +741,35 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
 
     private fun exitSettings() {
         cancelOverviewBack()
-        openProjection()
-        finish()
+        appDialogBuilder().setTitle(R.string.settings_exit)
+            .setMessage(R.string.settings_exit_prompt)
+            .setNeutralButton(R.string.settings_exit_car_home) { _, _ ->
+                openCarHome()
+                finish()
+            }
+            .setPositiveButton(R.string.settings_close_application) { _, _ -> closeApplication() }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private var applicationClosing = false
+    private fun closeApplication() {
+        if (applicationClosing) return
+        applicationClosing = true
+        startupHotspotCancelled = true
+        autoConnectOnNextResume = false
+        cancelOverviewBack()
+        CarPlayBackgroundSession.stop {
+            runOnUiThread {
+                stopService(Intent(this, com.shilapi.xcertplay.network.CarPlayVpnService::class.java))
+                stopService(Intent(this, DiPlaySessionService::class.java))
+                getSystemService(android.app.ActivityManager::class.java)?.appTasks?.forEach { task ->
+                    runCatching { task.finishAndRemoveTask() }
+                }
+                finishAndRemoveTask()
+                android.os.Process.killProcess(android.os.Process.myPid())
+            }
+        }
     }
 
     private fun handleOverviewBack() {
@@ -891,7 +919,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             if (p7Settings) {
                 val exitHeight = (SETTINGS_RAIL_ROW_HEIGHT_DP * resources.configuration.fontScale.coerceAtLeast(1f)).roundToInt()
                 addView(settingsRailAction(getString(R.string.settings_exit), R.drawable.ic_settings_exit,
-                    description = getString(R.string.settings_exit_to_carplay), click = ::exitSettings).apply {
+                    description = getString(R.string.settings_exit), click = ::exitSettings).apply {
                     tag = "settings_exit"
                 }, matchButton(0, exitHeight).apply { bottomMargin = dp(SETTINGS_SIDEBAR_INSET_DP) })
             }
@@ -2607,14 +2635,14 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         val methods = P7ConnectionMethod.entries
         val titles = listOf(R.string.settings_connection_hotspot, R.string.settings_connection_wifi, R.string.settings_connection_usb)
         choice(parent, getString(R.string.settings_connection_method), titles.map { getString(it) },
-            methods.indexOf(selected), reconnects = false) { index ->
+            methods.indexOf(selected), reconnects = false,
+            description = getString(R.string.settings_connection_applies_next)) { index ->
             startupHotspotCancelled = true
             pendingCarHotspotSetup = false
             methods[index].save(this)
             markReconnectNeeded()
             render()
         }
-        parent.addView(label(getString(R.string.settings_connection_applies_next), 14, MUTED))
         when (selected) {
             P7ConnectionMethod.USB -> addP7ConnectionAction(parent, wireless = false)
             P7ConnectionMethod.HOTSPOT -> p7HotspotConfiguration(parent)
@@ -2746,11 +2774,24 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     }
 
     private fun addP7ConnectionAction(parent: LinearLayout, wireless: Boolean, save: () -> Boolean = { true }) {
+        val actionHeight = dp((CONTROL_HEIGHT_DP * resources.configuration.fontScale.coerceAtLeast(1f)).roundToInt())
+        val actions = row().apply {
+            gravity = Gravity.CENTER_VERTICAL
+            isBaselineAligned = false
+        }
         connectButton = button(getString(R.string.connect_phone), true) {
             if (CarPlayBackgroundSession.hasSession()) openProjection()
             else if (save()) connect(wireless)
         }
-        parent.addView(connectButton, matchButton(0, CONTROL_HEIGHT_DP))
+        disconnectButton = button(getString(R.string.disconnect), false) {
+            disconnectButton?.isEnabled = false
+            CarPlayBackgroundSession.stop { runOnUiThread { refreshStatus() } }
+        }.apply { visibility = View.GONE }
+        actions.addView(connectButton, LinearLayout.LayoutParams(0, -1, 1f))
+        actions.addView(disconnectButton, LinearLayout.LayoutParams(0, -1, 1f).apply {
+            marginStart = dp(CONTROL_GAP_DP)
+        })
+        parent.addView(actions, LinearLayout.LayoutParams(-1, actionHeight))
     }
 
     private fun wirelessLinkControls(parent: LinearLayout) {
@@ -3020,7 +3061,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             }
             securityControl = button("", false) {
                 hideKeyboard()
-                val picker = android.app.Dialog(dialogContext).apply {
+                val picker = this@DiPlayActivity.appDialog().apply {
                     requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
                 }
                 val choices = column().apply {
@@ -3051,7 +3092,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                 picker.setContentView(AppDialogScrollView(dialogContext).apply { addView(choices) })
                 picker.show()
                 picker.window?.apply {
-                    setBackgroundDrawable(rounded(SURFACE, BORDER))
+                    setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
                     addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND)
                     setDimAmount(0.45f)
                     setLayout(minOf(dp(HOTSPOT_DIALOG_MAX_WIDTH_DP),
@@ -3072,7 +3113,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         val error = label("", 14, WARNING)
         error.accessibilityLiveRegion = View.ACCESSIBILITY_LIVE_REGION_POLITE
         fields.addView(error)
-        val dialog = android.app.Dialog(dialogContext).apply {
+        val dialog = this@DiPlayActivity.appDialog().apply {
             requestWindowFeature(android.view.Window.FEATURE_NO_TITLE)
             setCanceledOnTouchOutside(false)
         }
@@ -3111,7 +3152,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         dialog.setOnDismissListener { hideKeyboard() }
         dialog.show()
         dialog.window?.apply {
-            setBackgroundDrawable(rounded(SURFACE, BORDER))
+            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             addFlags(android.view.WindowManager.LayoutParams.FLAG_DIM_BEHIND)
             setDimAmount(0.45f)
             setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
@@ -5233,11 +5274,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         val target = channelButtons.getOrNull(index) ?: return
         target.isSelected = selected
         target.setTextColor(if (selected) ON_ACCENT else TEXT)
-        target.background = android.graphics.drawable.RippleDrawable(
-            ColorStateList.valueOf(RIPPLE),
-            buttonShape(if (selected) ACCENT else SURFACE, if (selected) ACCENT else BORDER, target.height),
-            null
-        )
+        target.background = LiquidGlassStyle.button(target, appNight, if (selected) ACCENT else null, RIPPLE)
     }
 
     private fun channelSelector(): ViewGroup {
@@ -5614,7 +5651,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
 
     // [announcesReconnect] labels a choice whose [save] reconnects by itself.
     private fun choice(parent: LinearLayout, title: String, options: List<String>, current: Int, reconnects: Boolean = true,
-        announcesReconnect: Boolean = reconnects, enabled: Boolean = true, save: (Int) -> Unit) {
+        announcesReconnect: Boolean = reconnects, enabled: Boolean = true, description: String? = null, save: (Int) -> Unit) {
         var selection = current
         val button = button("$title · ${options[selection]}", false) {}.apply { isEnabled = enabled }
         button.setOnClickListener {
@@ -5632,8 +5669,33 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                     }
                 }.setNegativeButton(getString(R.string.cancel), null).show()
         }
-        parent.addView(button, matchButton(0, 60)); parent.addView(space(12))
+        if (description != null && page == "settings") {
+            parent.addView(describedSettingRow(button, listOf(label(description, 14, MUTED))))
+        } else {
+            parent.addView(button, matchButton(0, CONTROL_HEIGHT_DP))
+            parent.addView(space(CONTROL_GAP_DP))
+        }
     }
+    /** Choice descriptions share the same text rhythm and row padding as Switch descriptions. */
+    private fun describedSettingRow(control: SettingButton, notes: List<TextView>) = column().apply {
+        tag = SETTINGS_DESCRIBED_ROW
+        gravity = Gravity.CENTER_VERTICAL
+        minimumHeight = dp(SettingsWidgets.CARD_ROW_MIN_HEIGHT_DP)
+        setPadding(0, dp(SettingsWidgets.CARD_ROW_VERTICAL_PADDING_DP),
+            0, dp(SettingsWidgets.CARD_ROW_VERTICAL_PADDING_DP))
+        control.setPaddingRelative(0, 0, 0, 0)
+        control.minHeight = 0
+        control.minimumHeight = 0
+        addView(control, LinearLayout.LayoutParams(-1, -2))
+        notes.forEachIndexed { index, note ->
+            note.textSize = 14f
+            note.setPadding(0, 0, 0, 0)
+            addView(note, LinearLayout.LayoutParams(-1, -2).apply {
+                topMargin = dp(if (index == 0) SettingsWidgets.CARD_ROW_SUBTITLE_GAP_DP else NOTE_LINE_GAP_DP)
+            })
+        }
+    }
+
     private fun card() = column().apply {
         background = if (page == "settings") settingsBackdrop?.frost(this) else rounded(SURFACE, BORDER)
         val horizontal = if (page == "settings") SettingsBackdrop.CARD_INSET_DP else 24
@@ -5641,7 +5703,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         setPadding(dp(horizontal), dp(vertical), dp(horizontal), dp(vertical))
     }
     private fun column() = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; layoutParams = LinearLayout.LayoutParams(-1, -2) }
-    private fun row() = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; layoutParams = LinearLayout.LayoutParams(-1, -2) }
+    private fun row() = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; isBaselineAligned = false; layoutParams = LinearLayout.LayoutParams(-1, -2) }
     private class HeaderTitleView(context: android.content.Context) : TextView(context) {
         private val glyphBounds = android.graphics.Rect()
 
@@ -5710,7 +5772,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         setSingleLine(false)
         maxLines = Int.MAX_VALUE
         typeface = AppFonts.medium(this@DiPlayActivity)
-        background = android.graphics.drawable.RippleDrawable(ColorStateList.valueOf(RIPPLE), buttonShape(if (primary) ACCENT else BUTTON, if (primary) ACCENT else BORDER), null)
+        background = LiquidGlassStyle.button(this, appNight, if (primary) ACCENT else null, RIPPLE)
         setPadding(dp(16), 0, dp(16), 0); minHeight = dp(56); stateListAnimator = null
         compoundDrawablePadding = dp(12)
         foreground = buttonFocusRing()
@@ -5729,7 +5791,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                     ColorDrawable(Color.TRANSPARENT), null)
             } else {
                 val shape = buttonShape(if (primary) ACCENT else BUTTON, if (primary) ACCENT else BORDER, height)
-                background = android.graphics.drawable.RippleDrawable(ColorStateList.valueOf(RIPPLE), shape, null)
+                background = LiquidGlassStyle.button(this, appNight, if (primary) ACCENT else null, RIPPLE)
                 foreground = focusRing((shape.cornerRadius / resources.displayMetrics.density).roundToInt())
             }
         }
@@ -5744,11 +5806,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         minimumWidth = dp(48)
         minimumHeight = dp(48)
         stateListAnimator = null
-        background = android.graphics.drawable.RippleDrawable(
-            ColorStateList.valueOf(RIPPLE),
-            buttonShape(BUTTON, BORDER),
-            null,
-        )
+        background = LiquidGlassStyle.button(this, appNight, null, RIPPLE)
         foreground = buttonFocusRing()
         setOnClickListener { click() }
     }
@@ -5869,15 +5927,37 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
      * and the last item adds nothing to the card's own padding.
      */
     private fun normalizeSpacing(container: LinearLayout, isCard: Boolean = true) {
-        if (container.orientation != LinearLayout.VERTICAL) return
+        if (container.orientation != LinearLayout.VERTICAL || container.tag == SETTINGS_DESCRIBED_ROW) return
         for (i in container.childCount - 1 downTo 0) {
             if (container.getChildAt(i).tag == SPACER || container.getChildAt(i).tag == SETTINGS_ROW_DIVIDER) container.removeViewAt(i)
+        }
+        // Normalize every choice + following description, including legacy builders.
+        var rowIndex = 0
+        while (rowIndex < container.childCount) {
+            val control = container.getChildAt(rowIndex)
+            if (control is SettingButton && control.isSettingRow) {
+                val notes = mutableListOf<TextView>()
+                var nextIndex = rowIndex + 1
+                while (nextIndex < container.childCount) {
+                    val note = container.getChildAt(nextIndex)
+                    if (note !is TextView || note is Button || note is EditText) break
+                    notes.add(note)
+                    nextIndex++
+                }
+                if (notes.isNotEmpty()) {
+                    container.removeView(control)
+                    notes.forEach(container::removeView)
+                    container.addView(describedSettingRow(control, notes), rowIndex)
+                }
+            }
+            rowIndex++
         }
         fun isNote(view: View?) = view is TextView && view !is Button
         fun isToggleRow(view: View?) = view is LinearLayout && view.orientation == LinearLayout.HORIZONTAL &&
             (0 until view.childCount).any { view.getChildAt(it) is Switch }
         fun isControl(view: View?) = view is Button || isToggleRow(view)
-        fun isSettingRow(view: View?) = isToggleRow(view) || view is SettingButton && view.isSettingRow
+        fun isSettingRow(view: View?) = view?.tag == SETTINGS_DESCRIBED_ROW ||
+            isToggleRow(view) || view is SettingButton && view.isSettingRow
         var previous: View? = null
         var last: View? = null
         var noteFollowsButton = false
@@ -6113,9 +6193,10 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         private const val SETTINGS_HEADER_COMPACT_HEIGHT_DP = 44
         private const val SETTINGS_RAIL_GAP_DP = 4
         private const val SETTINGS_CARD_RADIUS_DP = 16
-        private const val SETTINGS_CONTROL_RADIUS_RATIO = 0.22f
+        private const val SETTINGS_CONTROL_RADIUS_RATIO = LiquidGlassStyle.CONTROL_RADIUS_RATIO
         private const val OVERVIEW_BACK_DOUBLE_PRESS_MS = 350L
         private const val SETTINGS_BLOCK_GAP_DP = 16
+        private const val SETTINGS_DESCRIBED_ROW = "settings_described_row"
         private const val SETTINGS_ROW_DIVIDER = "settings_row_divider"
         private const val SETTINGS_ROW_DIVIDER_DP = 1
         private const val SETTINGS_OVERVIEW_COMPACT_INSET_DP = 12

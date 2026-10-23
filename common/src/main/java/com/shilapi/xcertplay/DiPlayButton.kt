@@ -16,6 +16,9 @@ internal enum class DiPlayButtonKind { PRIMARY, SECONDARY, DANGER, TONAL_DANGER 
  * The corner radius follows the control height, as in `DiPlayActivity.buttonShape`.
  */
 internal class DiPlayButton(context: Context) : Button(context) {
+    var glassBackground: android.graphics.drawable.Drawable? = null
+        set(value) { field = value; repaint() }
+
     private var kind = DiPlayButtonKind.SECONDARY
     private var palette: DiPlayPalette? = null
     private var overlay = false
@@ -46,22 +49,18 @@ internal class DiPlayButton(context: Context) : Button(context) {
         val density = resources.displayMetrics.density
         val fill: Int
         val text: Int
-        val stroke: Int
         when (kind) {
             DiPlayButtonKind.PRIMARY -> {
                 fill = if (overlay) palette.overlayAccent else palette.accent
                 text = if (overlay) palette.overlayOnAccent else palette.onAccent
-                stroke = fill
             }
             DiPlayButtonKind.SECONDARY -> {
                 fill = if (overlay) palette.overlayTrackOff else palette.button
                 text = if (overlay) palette.overlayPrimaryText else palette.primaryText
-                stroke = if (overlay) fill else palette.outline
             }
             DiPlayButtonKind.DANGER -> {
                 fill = palette.overlayDanger
                 text = Color.WHITE
-                stroke = fill
             }
             DiPlayButtonKind.TONAL_DANGER -> {
                 val surface = if (overlay) palette.overlayBackground else palette.surface
@@ -69,21 +68,20 @@ internal class DiPlayButton(context: Context) : Button(context) {
                 text = if (ColorUtils.calculateLuminance(surface) < 0.5)
                     ColorUtils.blendARGB(palette.overlayDanger, Color.WHITE, 0.40f)
                 else palette.overlayDanger
-                stroke = ColorUtils.blendARGB(surface, palette.overlayDanger, 0.48f)
             }
         }
         val controlHeight = if (height > 0) height else minHeight
-        val radius = if (compactCorners) controlHeight * 0.22f else minOf(24f * density, controlHeight * 20f / 56)
+        val radius = controlHeight * LiquidGlassStyle.CONTROL_RADIUS_RATIO
         setTextColor(text)
-        background = RippleDrawable(
-            ColorStateList.valueOf(palette.ripple),
-            GradientDrawable().apply {
-                setColor(fill)
-                cornerRadius = radius
-                if (!compactCorners) setStroke((1 * density).toInt().coerceAtLeast(1), stroke)
-            },
-            null,
-        )
+        val night = ColorUtils.calculateLuminance(palette.background) < .5
+        val tint = when (kind) {
+            DiPlayButtonKind.PRIMARY, DiPlayButtonKind.DANGER, DiPlayButtonKind.TONAL_DANGER -> fill
+            DiPlayButtonKind.SECONDARY -> null
+        }
+        background = if (glassBackground != null) RippleDrawable(
+            ColorStateList.valueOf(palette.ripple), glassBackground,
+            GradientDrawable().apply { setColor(Color.WHITE); cornerRadius = radius },
+        ) else LiquidGlassStyle.button(this, night, tint, palette.ripple)
         // Remote and D-pad users need to see where they are; touch mode never shows it.
         foreground = StateListDrawable().apply {
             addState(intArrayOf(android.R.attr.state_focused), GradientDrawable().apply {

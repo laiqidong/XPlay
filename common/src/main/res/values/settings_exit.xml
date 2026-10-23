@@ -1,0 +1,5 @@
+<resources>
+    <string name="settings_exit_prompt">Choose an exit action. Closing XPlay disconnects CarPlay.</string>
+    <string name="settings_close_application">Close app</string>
+    <string name="settings_exit_car_home">Car home</string>
+</resources>

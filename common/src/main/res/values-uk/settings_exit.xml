@@ -1,0 +1,5 @@
+<resources>
+    <string name="settings_exit_prompt">Виберіть дію. Закриття XPlay від’єднає CarPlay.</string>
+    <string name="settings_close_application">Закрити застосунок</string>
+    <string name="settings_exit_car_home">Головний екран авто</string>
+</resources>

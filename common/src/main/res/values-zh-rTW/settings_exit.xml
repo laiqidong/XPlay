@@ -1,0 +1,5 @@
+<resources>
+    <string name="settings_exit_prompt">請選擇退出方式。關閉 XPlay 將中斷 CarPlay 連線。</string>
+    <string name="settings_close_application">關閉應用程式</string>
+    <string name="settings_exit_car_home">回車機</string>
+</resources>

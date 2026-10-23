@@ -23,7 +23,15 @@ private fun Context.dialogNight() = (this as? AppAppearanceOwner)?.currentAppNig
 internal fun Context.appDialogTheme(): Int = if (dialogNight()) R.style.Theme_Xcertplay_Dialog_Dark else R.style.Theme_Xcertplay_Dialog_Light
 internal fun Context.appDialogContext(): Context = ContextThemeWrapper(this, appDialogTheme())
 internal fun Context.appDialogBuilder() = AppDialogBuilder(this)
-internal fun Context.appDialog(): Dialog = Dialog(this, appDialogTheme())
+internal fun Context.appDialog(): Dialog {
+    val night = dialogNight()
+    return object : Dialog(this, appDialogTheme()) {
+        override fun onStart() {
+            super.onStart()
+            LiquidGlassStyle.dialog(this, night)
+        }
+    }
+}
 
 /** Keeps the existing callback contract while owning every visible part of the dialog. */
 internal class AppDialogBuilder(private val owner: Context) {
@@ -90,7 +98,8 @@ private class AppPanelDialog(
     private val multiClick: DialogInterface.OnMultiChoiceClickListener?,
     private val actions: Map<Int, Pair<CharSequence, DialogInterface.OnClickListener?>>,
 ) : AlertDialog(owner, owner.appDialogTheme()) {
-    private val colors = DiPlayPalette.of(owner.dialogNight())
+    private val night = owner.dialogNight()
+    private val colors = DiPlayPalette.of(night)
     private val buttons = mutableMapOf<Int, Button>()
     private var choices: ListView? = null
     private fun dp(value: Int) = (value * context.resources.displayMetrics.density).toInt()
@@ -184,6 +193,7 @@ private class AppPanelDialog(
         if (confirmActions.isNotEmpty()) {
             val actionRow = LinearLayout(context).apply {
                 orientation = LinearLayout.HORIZONTAL
+                isBaselineAligned = false
                 gravity = Gravity.CENTER_VERTICAL
             }
             confirmActions.forEachIndexed { index, control ->
@@ -203,6 +213,11 @@ private class AppPanelDialog(
             setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
         }
     }
+    override fun onStart() {
+        super.onStart()
+        LiquidGlassStyle.dialog(this, night)
+    }
+
     override fun show() {
         super.show()
         val metrics = context.resources.displayMetrics

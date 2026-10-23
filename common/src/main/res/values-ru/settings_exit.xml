@@ -1,0 +1,5 @@
+<resources>
+    <string name="settings_exit_prompt">Выберите действие. Закрытие XPlay отключит CarPlay.</string>
+    <string name="settings_close_application">Закрыть приложение</string>
+    <string name="settings_exit_car_home">Главный экран авто</string>
+</resources>

@@ -1,0 +1,5 @@
+<resources>
+    <string name="settings_exit_prompt">اختر طريقة الخروج. سيؤدي إغلاق XPlay إلى قطع اتصال CarPlay.</string>
+    <string name="settings_close_application">إغلاق التطبيق</string>
+    <string name="settings_exit_car_home">شاشة السيارة</string>
+</resources>
