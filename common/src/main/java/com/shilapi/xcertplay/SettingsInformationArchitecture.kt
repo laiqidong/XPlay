@@ -60,15 +60,15 @@ internal object SettingsInformationArchitecture {
     val P7_UNAVAILABLE_SECTIONS = setOf(SettingsSection.CLUSTER_MAP, SettingsSection.AMBIENT_LIGHTING,
         SettingsSection.BYD_NAVIGATION)
 
-    fun categories(p7: Boolean): List<SettingsCategory> =
-        SettingsCategory.entries.filter { !p7 || it !in setOf(SettingsCategory.OVERVIEW, SettingsCategory.VEHICLE) }
+    fun categories(@Suppress("UNUSED_PARAMETER") p7: Boolean): List<SettingsCategory> =
+        SettingsCategory.entries.filter { it !in setOf(SettingsCategory.OVERVIEW, SettingsCategory.VEHICLE) }
 
-    fun category(category: SettingsCategory, p7: Boolean): SettingsCategory =
-        if (p7) when (category) {
+    fun category(category: SettingsCategory, @Suppress("UNUSED_PARAMETER") p7: Boolean): SettingsCategory =
+        when (category) {
             SettingsCategory.OVERVIEW -> SettingsCategory.CONNECTION
             SettingsCategory.VEHICLE -> SettingsCategory.NAVIGATION
             else -> category
-        } else category
+        }
 
     fun sections(category: SettingsCategory, p7: Boolean): Set<SettingsSection> =
         sectionsByCategory.getValue(category).let { sections ->

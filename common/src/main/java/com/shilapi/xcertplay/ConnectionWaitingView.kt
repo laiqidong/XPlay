@@ -129,6 +129,18 @@ internal class ConnectionWaitingView(hostContext: Context, onBack: () -> Unit) :
     }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        // A configuration update can change the wrapped context's density after construction.
+        // The title is fitted on every measurement; refresh secondary text with the same metrics
+        // rather than leaving its old pixel size behind.
+        fun TextView.refreshTextSize(sizeSp: Float) {
+            val pixels = android.util.TypedValue.applyDimension(android.util.TypedValue.COMPLEX_UNIT_SP,
+                sizeSp, context.resources.displayMetrics)
+            if (kotlin.math.abs(textSize - pixels) > .1f)
+                setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, pixels)
+        }
+        stage.refreshTextSize(STAGE_SIZE_SP)
+        help.refreshTextSize(DETAIL_SIZE_SP)
+        for (button in listOf(connect, recovery, retry)) button.refreshTextSize(ACTION_TEXT_SP)
         val availableWidth = (MeasureSpec.getSize(widthMeasureSpec) - paddingLeft - paddingRight).coerceAtLeast(1)
         val availableHeight = (MeasureSpec.getSize(heightMeasureSpec) - paddingTop - paddingBottom).coerceAtLeast(1)
         val roomy = availableWidth >= dp(ROOMY_WIDTH_DP) && availableHeight >= dp(ROOMY_HEIGHT_DP)
