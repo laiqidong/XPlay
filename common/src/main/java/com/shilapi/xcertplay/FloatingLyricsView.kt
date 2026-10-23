@@ -28,6 +28,7 @@ internal class FloatingLyricsView(context: Context) : View(context) {
     private var layoutKey: LayoutKey? = null
     private var cachedTextFrame: TextFrame? = null
     private var layoutSong = ""
+    private var marqueeStartedAt = android.os.SystemClock.uptimeMillis()
     private var lastTextFrame: TextFrame? = null
     private var pendingFrom: TextFrame? = null
     private var animationFrom: TextFrame? = null
@@ -80,6 +81,8 @@ internal class FloatingLyricsView(context: Context) : View(context) {
                 it.lineIndex > previous.lineIndex && previous.next == it.current &&
                 InstrumentLyricsSettings.floatingAnimation(context) && !dragging && animation?.isRunning != true
             if (it != previous) {
+                if (it.current != previous.current || it.next != previous.next || it.songKey != previous.songKey)
+                    marqueeStartedAt = android.os.SystemClock.uptimeMillis()
                 stopTransition()
                 metadataTransition = it.songKey == previous.songKey && it.motionEpoch == previous.motionEpoch &&
                     it.visible && previous.visible && it.status != previous.status &&
@@ -120,10 +123,7 @@ internal class FloatingLyricsView(context: Context) : View(context) {
             val currentWidth = measure.measureText(snapshot.current)
             measure.typeface = nextTypeface; measure.textSize = nextSize * density * font
             val nextWidth = nextText?.let(measure::measureText) ?: 0f
-            // Reserve the next lyric at the current font size before it scrolls upward.
-            measure.typeface = currentTypeface; measure.textSize = currentSize * density * font
-            val promotedWidth = nextText?.let(measure::measureText) ?: 0f
-            val desired = maxOf(currentWidth, nextWidth, promotedWidth)
+            val desired = maxOf(currentWidth, nextWidth)
             val minimum = minOf(MIN_CONTENT_DP * density, maximum)
             val quantum = WIDTH_QUANTUM_DP * density
             var contentWidth = (kotlin.math.ceil(desired / quantum) * quantum).coerceIn(minimum, maximum)
@@ -135,32 +135,18 @@ internal class FloatingLyricsView(context: Context) : View(context) {
             }
             val available = kotlin.math.ceil(contentWidth).toInt()
             fun layout(text: String, size: Float, typeface: Typeface): StaticLayout {
-                fun build(points: Float): StaticLayout {
-                    val paint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply { textSize = points * density * font; this.typeface = typeface }
-                    return StaticLayout.Builder.obtain(text, 0, text.length, paint, available)
-                        .setAlignment(Layout.Alignment.ALIGN_CENTER).setIncludePad(false)
-                        .setBreakStrategy(Layout.BREAK_STRATEGY_HIGH_QUALITY)
-                        .setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NONE).build()
+                val singleLine = text.replace(Regex("[\\r\\n]+"), " ")
+                val paint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
+                    textSize = size * density * font; this.typeface = typeface
                 }
-                var points = size
-                var result = build(points)
-                // Keep normal lyrics large; exceptionally long lines shrink only slightly.
-                while (result.lineCount > 2 && points > size * .85f) {
-                    points = (points - 1f).coerceAtLeast(size * .85f)
-                    result = build(points)
-                }
-                // Preserve complete text even for unusually long lyrics instead of truncating it.
-                return result
+                // Lay out the complete line; the card clips and scrolls overflow without resizing type.
+                val textWidth = kotlin.math.ceil(maxOf(available.toFloat(), paint.measureText(singleLine))).toInt() + 1
+                return StaticLayout.Builder.obtain(singleLine, 0, singleLine.length, paint, textWidth)
+                    .setAlignment(Layout.Alignment.ALIGN_CENTER).setIncludePad(false).setMaxLines(1)
+                    .setHyphenationFrequency(Layout.HYPHENATION_FREQUENCY_NONE).build()
             }
-            var current = layout(snapshot.current, currentSize, currentTypeface)
-            var next = nextText?.let { layout(it, nextSize, nextTypeface) }
-            val textBudget = (height - 2 * margin - 2 * verticalPadding - LINE_GAP_DP * density).coerceAtLeast(1f)
-            val textHeight = current.height + (next?.height ?: 0)
-            if (textHeight > textBudget) {
-                val scale = textBudget / textHeight
-                current = layout(snapshot.current, currentSize * scale, currentTypeface)
-                next = nextText?.let { layout(it, nextSize * scale, nextTypeface) }
-            }
+            val current = layout(snapshot.current, currentSize, currentTypeface)
+            val next = nextText?.let { layout(it, nextSize, nextTypeface) }
             val gap = if (next != null) LINE_GAP_DP * density else 0f
             TextFrame(current, next, gap, (available + 2 * padding).coerceAtMost(width.toFloat()),
                 (current.height + (next?.height ?: 0) + gap + 2 * verticalPadding).coerceAtMost(height.toFloat())).also {
@@ -250,7 +236,24 @@ internal class FloatingLyricsView(context: Context) : View(context) {
         fun drawLine(layout: StaticLayout, top: Float, scale: Float, alpha: Float, color: Int) {
             if (alpha <= 0f) return
             val saved = canvas.save()
-            canvas.translate(box.centerX() - layout.width * scale / 2f, box.top + verticalPadding + top)
+            val viewport = (box.width() - 2 * padding).coerceAtLeast(1f)
+            val overflow = (layout.width * scale - viewport).coerceAtLeast(0f)
+            var left = box.centerX() - layout.width * scale / 2f
+            if (overflow > 1f) {
+                val travelMillis = overflow / (MARQUEE_SPEED_DP * density) * 1000f
+                val cycleMillis = 2 * MARQUEE_HOLD_MILLIS + 2 * travelMillis
+                val elapsed = ((android.os.SystemClock.uptimeMillis() - marqueeStartedAt).toFloat() % cycleMillis)
+                val offset = when {
+                    elapsed < MARQUEE_HOLD_MILLIS -> 0f
+                    elapsed < MARQUEE_HOLD_MILLIS + travelMillis ->
+                        overflow * (elapsed - MARQUEE_HOLD_MILLIS) / travelMillis
+                    elapsed < 2 * MARQUEE_HOLD_MILLIS + travelMillis -> overflow
+                    else -> overflow * (1f - (elapsed - 2 * MARQUEE_HOLD_MILLIS - travelMillis) / travelMillis)
+                }
+                left = box.left + padding - offset
+                if (!dragging) postInvalidateOnAnimation()
+            }
+            canvas.translate(left, box.top + verticalPadding + top)
             canvas.scale(scale, scale)
             val oldColor = layout.paint.color
             val oldAlpha = layout.paint.alpha
@@ -365,6 +368,8 @@ internal class FloatingLyricsView(context: Context) : View(context) {
         return dragging
     }
     companion object {
+        private const val MARQUEE_SPEED_DP = 36f
+        private const val MARQUEE_HOLD_MILLIS = 1200f
         private const val STATUS_TITLE_DP = 32f
         private const val STATUS_DETAIL_DP = 26f
         private const val MIN_CONTENT_DP = 180f
