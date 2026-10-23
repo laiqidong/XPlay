@@ -95,6 +95,7 @@ internal object CarPlayBackgroundSession {
     fun clear(expected: CarPlayController? = null, keepOwner: Boolean = false) {
         if (expected != null && controller !== expected) return
         P7CarPlayData.stopSession()
+        P7HfpSessionGuard.disconnected()
         controller = null
         sink = null
         if (!keepOwner) { stopAction = null; owner = null }

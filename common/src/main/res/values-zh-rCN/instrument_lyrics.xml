@@ -26,7 +26,7 @@
     <string name="settings_instrument_lane">隐藏原车车道提示</string>
     <string name="settings_instrument_lane_desc">可选。停止后恢复当前缓存状态；无缓存时等待原车后续更新。</string>
     <string name="settings_instrument_online">在线查询歌词</string>
-    <string name="settings_instrument_online_desc">优先查询网易云音乐，未匹配时尝试 LRCLIB。发送歌名、歌手、专辑和时长。车机需要联网，缓存歌词可离线使用。</string>
+    <string name="settings_instrument_online_desc">依次查询网易云音乐、QQ 音乐、酷狗和 LRCLIB，未匹配或失败时自动尝试下一来源。发送歌名、歌手、专辑和时长。车机需要联网，缓存歌词可离线使用。</string>
     <string name="settings_instrument_rematch">重新匹配当前歌曲</string>
     <string name="settings_instrument_cache_clear">清除歌词缓存</string>
     <string name="settings_instrument_cache">歌词缓存（上限 50 MB）</string>
@@ -65,4 +65,6 @@
     <string name="settings_lyrics_source_status">歌词来源 · %1$s</string>
     <string name="settings_lyrics_netease">网易云音乐</string>
     <string name="settings_lyrics_unknown_source">未记录</string>
+    <string name="settings_lyrics_qqmusic">QQ 音乐</string>
+    <string name="settings_lyrics_kugou">酷狗音乐</string>
 </resources>

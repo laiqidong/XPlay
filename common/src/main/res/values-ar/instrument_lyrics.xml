@@ -26,7 +26,7 @@
     <string name="settings_instrument_lane">إخفاء إرشادات المسار الأصلية</string>
     <string name="settings_instrument_lane_desc">اختياري. يستعيد الحالة الحديثة المحفوظة أو ينتظر تحديث السيارة التالي.</string>
     <string name="settings_instrument_online">البحث عن الكلمات عبر الإنترنت</string>
-    <string name="settings_instrument_online_desc">يبحث في NetEase Music أولاً ثم LRCLIB. يرسل اسم الأغنية والفنان والألبوم والمدة. يتطلب الإنترنت؛ تعمل الكلمات المخزنة دون اتصال.</string>
+    <string name="settings_instrument_online_desc">يبحث بالترتيب في NetEase Music ثم QQ Music ثم Kugou ثم LRCLIB. يرسل اسم الأغنية والفنان والألبوم والمدة. يتطلب الإنترنت؛ تعمل الكلمات المخزنة دون اتصال.</string>
     <string name="settings_instrument_rematch">إعادة مطابقة الأغنية الحالية</string>
     <string name="settings_instrument_cache_clear">مسح ذاكرة الكلمات</string>
     <string name="settings_instrument_cache">ذاكرة الكلمات (حتى 50 ميغابايت)</string>
@@ -65,4 +65,6 @@
     <string name="settings_lyrics_source_status">مصدر الكلمات · %1$s</string>
     <string name="settings_lyrics_netease">NetEase Music</string>
     <string name="settings_lyrics_unknown_source">غير مسجل</string>
+    <string name="settings_lyrics_qqmusic">QQ Music</string>
+    <string name="settings_lyrics_kugou">Kugou</string>
 </resources>

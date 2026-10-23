@@ -130,6 +130,7 @@ internal class FloatingLyricsView(context: Context) : View(context) {
             val previous = cachedTextFrame
             if (layoutSong == snapshot.songKey && layoutKey?.status == snapshot.status &&
                 layoutKey?.width == width && layoutKey?.height == height && previous != null &&
+                previous.width - 2 * padding >= minOf(desired, maximum) &&
                 kotlin.math.abs(contentWidth + 2 * padding - previous.width) < WIDTH_HOLD_DP * density) {
                 contentWidth = (previous.width - 2 * padding).coerceIn(minimum, maximum)
             }
@@ -237,9 +238,11 @@ internal class FloatingLyricsView(context: Context) : View(context) {
             if (alpha <= 0f) return
             val saved = canvas.save()
             val viewport = (box.width() - 2 * padding).coerceAtLeast(1f)
-            val overflow = (layout.width * scale - viewport).coerceAtLeast(0f)
+            // StaticLayout includes alignment space; only the actual glyph advance can overflow.
+            val lineWidth = if (layout.lineCount > 0) layout.getLineWidth(0) * scale else 0f
+            val overflow = (lineWidth - viewport).coerceAtLeast(0f)
             var left = box.centerX() - layout.width * scale / 2f
-            if (overflow > 1f) {
+            if (overflow > MARQUEE_OVERFLOW_TOLERANCE_DP * density && from == null && !dragging) {
                 val travelMillis = overflow / (MARQUEE_SPEED_DP * density) * 1000f
                 val cycleMillis = 2 * MARQUEE_HOLD_MILLIS + 2 * travelMillis
                 val elapsed = ((android.os.SystemClock.uptimeMillis() - marqueeStartedAt).toFloat() % cycleMillis)
@@ -250,8 +253,8 @@ internal class FloatingLyricsView(context: Context) : View(context) {
                     elapsed < 2 * MARQUEE_HOLD_MILLIS + travelMillis -> overflow
                     else -> overflow * (1f - (elapsed - 2 * MARQUEE_HOLD_MILLIS - travelMillis) / travelMillis)
                 }
-                left = box.left + padding - offset
-                if (!dragging) postInvalidateOnAnimation()
+                left = box.left + padding - layout.getLineLeft(0) * scale - offset
+                postInvalidateOnAnimation()
             }
             canvas.translate(left, box.top + verticalPadding + top)
             canvas.scale(scale, scale)
@@ -368,6 +371,7 @@ internal class FloatingLyricsView(context: Context) : View(context) {
         return dragging
     }
     companion object {
+        private const val MARQUEE_OVERFLOW_TOLERANCE_DP = 2f
         private const val MARQUEE_SPEED_DP = 36f
         private const val MARQUEE_HOLD_MILLIS = 1200f
         private const val STATUS_TITLE_DP = 32f

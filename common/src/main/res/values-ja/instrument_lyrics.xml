@@ -26,7 +26,7 @@
     <string name="settings_instrument_lane">純正の車線案内を非表示</string>
     <string name="settings_instrument_lane_desc">任意。停止時に新しい保存状態を復元し、保存がなければ純正の次の更新を待ちます。</string>
     <string name="settings_instrument_online">オンラインで歌詞を検索</string>
-    <string name="settings_instrument_online_desc">NetEase Music を優先し、見つからない場合は LRCLIB を検索します。曲名、アーティスト、アルバム、長さを送信します。通信が必要です。キャッシュはオフラインで使用できます。</string>
+    <string name="settings_instrument_online_desc">NetEase Music、QQ Music、Kugou、LRCLIB の順に検索します。曲名、アーティスト、アルバム、長さを送信します。通信が必要です。キャッシュはオフラインで使用できます。</string>
     <string name="settings_instrument_rematch">現在の曲を再検索</string>
     <string name="settings_instrument_cache_clear">歌詞キャッシュを削除</string>
     <string name="settings_instrument_cache">歌詞キャッシュ（最大 50 MB）</string>
@@ -65,4 +65,6 @@
     <string name="settings_lyrics_source_status">歌詞ソース · %1$s</string>
     <string name="settings_lyrics_netease">NetEase Music</string>
     <string name="settings_lyrics_unknown_source">未記録</string>
+    <string name="settings_lyrics_qqmusic">QQ Music</string>
+    <string name="settings_lyrics_kugou">Kugou</string>
 </resources>

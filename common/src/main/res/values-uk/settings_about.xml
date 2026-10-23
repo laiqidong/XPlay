@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_about_summary">Приймач CarPlay для головних пристроїв Android: дротове та бездротове підключення, плаваючі тексти пісень та інтеграція з автомобілем.</string>
+    <string name="settings_about_origins_title">Особлива подяка</string>
+    <string name="settings_about_origins_description">XPlay — модифікована версія DiPlay зі змінами інтерфейсу та адаптацією для автомобіля. Під час адаптації використано досвід OP-CarPlay. Дякуємо авторам та учасникам обох проєктів.</string>
+</resources>

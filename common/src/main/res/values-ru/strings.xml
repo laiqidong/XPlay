@@ -247,7 +247,7 @@
     <string name="location">Местоположение</string>
     <string name="longest_height">Наибольшая высота</string>
     <string name="looking_for_your_paired_iphone">Поиск связанного iPhone…</string>
-    <string name="made_possible_by_open_source">Реализовано благодаря открытому коду</string>
+    <string name="made_possible_by_open_source">Сторонние лицензии</string>
     <string name="make_diplay_feel_right_for_your_car">Сделайте XPlay удобным для вашего автомобиля.</string>
     <string name="manual_hotspot">Ручная точка доступа</string>
     <string name="manual_mode_match_the_cluster_theme_here_the_map_cannot_fo">Ручной режим: настройте тему комбинации здесь. Карта не может следовать видимости карточек без доступа к использованию.</string>
@@ -295,7 +295,7 @@
     <string name="preparing_mfi_authentication">Подготовка аутентификации MFi</string>
     <string name="ready">Готово</string>
     <string name="ready_when_you_are">Готово, когда вы будете готовы</string>
-    <string name="receiver_based_on_xcertplay_licensed_under_gpl_3_0_diplay">Приёмник на базе xcertplay, лицензирован по GPL-3.0. Интерфейс XPlay следует дизайну DiAuto, лицензированному по AGPL-3.0.\n\nВключает AndroidX, Bouncy Castle, JmDNS и SLF4J. Исходный код и уведомления о лицензиях прилагаются к этому выпуску.\n\nCarPlay и значок CarPlay принадлежат Apple Inc. XPlay — независимый проект.</string>
+    <string name="receiver_based_on_xcertplay_licensed_under_gpl_3_0_diplay">Приёмник на базе xcertplay, лицензирован по GPL-3.0. Текущий интерфейс переработан для XPlay. Историческая атрибуция исходного интерфейса: DiAuto (AGPL-3.0).\n\nВключает AndroidX, Bouncy Castle, JmDNS и SLF4J.\n\nCarPlay и значок CarPlay принадлежат Apple Inc. XPlay — независимый проект.</string>
     <string name="reconnecting_to_your_iphone">Переподключение к iPhone…</string>
     <string name="remote">Удалённый</string>
     <string name="remote_server_address_contains_u_0000">Адрес удалённого сервера содержит U+0000</string>

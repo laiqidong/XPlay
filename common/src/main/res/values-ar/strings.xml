@@ -247,7 +247,7 @@
     <string name="location">الموقع</string>
     <string name="longest_height">أقصى ارتفاع</string>
     <string name="looking_for_your_paired_iphone">جارٍ البحث عن iPhone المقترن…</string>
-    <string name="made_possible_by_open_source">ممكن بفضل المصدر المفتوح</string>
+    <string name="made_possible_by_open_source">إشعارات الجهات الخارجية</string>
     <string name="make_diplay_feel_right_for_your_car">اجعل XPlay مناسبًا لسيارتك.</string>
     <string name="manual_hotspot">نقطة اتصال يدوية</string>
     <string name="manual_mode_match_the_cluster_theme_here_the_map_cannot_fo">الوضع اليدوي: طابق سمة لوحة العدادات هنا. لا تستطيع الخريطة اتباع مرئيات البطاقة دون إذن الوصول للاستخدام.</string>
@@ -295,7 +295,7 @@
     <string name="preparing_mfi_authentication">جارٍ تجهيز مصادقة MFi</string>
     <string name="ready">جاهز</string>
     <string name="ready_when_you_are">جاهز عندما تكون مستعداً</string>
-    <string name="receiver_based_on_xcertplay_licensed_under_gpl_3_0_diplay">مستقبل مبني على xcertplay، مرخّص بموجب GPL-3.0. تتبع واجهة XPlay تصميم DiAuto، مرخّص بموجب AGPL-3.0.\n\nيتضمن AndroidX وBouncy Castle وJmDNS وSLF4J. يرافق هذا الإصدار الشفرة المصدر وإشعارات الترخيص.\n\n‏CarPlay وأيقونة CarPlay ملك لشركة Apple Inc. XPlay مشروع مستقل.</string>
+    <string name="receiver_based_on_xcertplay_licensed_under_gpl_3_0_diplay">مستقبل مبني على xcertplay، مرخّص بموجب GPL-3.0. أُعيد تصميم الواجهة الحالية لـ XPlay. نسبة الواجهة الأصلية تاريخيًا: DiAuto ‏(AGPL-3.0).\n\nيتضمن AndroidX وBouncy Castle وJmDNS وSLF4J.\n\n‏CarPlay وأيقونة CarPlay ملك لشركة Apple Inc. XPlay مشروع مستقل.</string>
     <string name="reconnecting_to_your_iphone">جارٍ إعادة الاتصال بـ iPhone…</string>
     <string name="remote">عن بُعد</string>
     <string name="remote_server_address_contains_u_0000">عنوان الخادم البعيد يحتوي على U+0000</string>

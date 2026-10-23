@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_about_summary">適用於 Android 車機的 CarPlay 接收端，支援有線與無線連線、懸浮歌詞和車輛適配。</string>
+    <string name="settings_about_origins_title">特別鳴謝</string>
+    <string name="settings_about_origins_description">XPlay 基於 DiPlay 修改，調整介面與車機使用體驗；車輛適配參考了 OP-CarPlay 專案。感謝兩個專案的作者及貢獻者。</string>
+</resources>

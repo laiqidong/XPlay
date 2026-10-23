@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_about_summary">An Android CarPlay receiver with wired and wireless connections, floating lyrics and vehicle integration.</string>
+    <string name="settings_about_origins_title">Special thanks</string>
+    <string name="settings_about_origins_description">XPlay is a modified version of DiPlay, with interface and vehicle adaptations. OP-CarPlay informed the vehicle integration work. Thanks to the authors and contributors of both projects.</string>
+</resources>

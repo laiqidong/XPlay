@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_p7_hfp_guard">Disconnect original hands-free in CarPlay (experimental)</string>
+    <string name="settings_p7_hfp_guard_description">Disconnects this iPhone’s original Bluetooth hands-free connection while CarPlay is active and restores it on exit. Keeps Bluetooth and music audio enabled. Unavailable with vehicle Bluetooth audio. Applies at the next CarPlay connection.</string>
+    <string name="settings_p7_a2dp_guard">Disconnect Bluetooth music in CarPlay (experimental)</string>
+    <string name="settings_p7_a2dp_guard_description">Disconnects this iPhone’s original Bluetooth music connection while CarPlay is active and restores it on exit. Keeps Bluetooth enabled. Independent of the hands-free switch. Unavailable with vehicle Bluetooth audio. Applies at the next CarPlay connection.</string>
+</resources>

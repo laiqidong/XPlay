@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_about_summary">مستقبل CarPlay لوحدات Android في السيارة، يدعم الاتصال السلكي واللاسلكي وكلمات الأغاني العائمة والتكامل مع السيارة.</string>
+    <string name="settings_about_origins_title">شكر خاص</string>
+    <string name="settings_about_origins_description">XPlay نسخة معدلة من DiPlay مع تحسينات للواجهة وتجربة الاستخدام في السيارة. واستُخدم OP-CarPlay مرجعًا للتكامل مع السيارة. شكرًا لمؤلفي المشروعين والمساهمين فيهما.</string>
+</resources>

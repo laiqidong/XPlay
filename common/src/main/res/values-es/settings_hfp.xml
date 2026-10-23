@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_p7_hfp_guard">Desconectar manos libres en CarPlay (experimental)</string>
+    <string name="settings_p7_hfp_guard_description">Desconecta el manos libres original de este iPhone durante CarPlay y lo restaura al salir. Mantiene Bluetooth y música. No se aplica con audio por Bluetooth del vehículo. Se aplica en la próxima conexión CarPlay.</string>
+    <string name="settings_p7_a2dp_guard">Desconectar música Bluetooth en CarPlay (experimental)</string>
+    <string name="settings_p7_a2dp_guard_description">Desconecta la música Bluetooth original de este iPhone durante CarPlay y la restaura al salir. Mantiene Bluetooth y es independiente del manos libres. No se aplica con audio por Bluetooth del vehículo. Se aplica en la próxima conexión CarPlay.</string>
+</resources>

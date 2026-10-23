@@ -247,7 +247,7 @@
     <string name="location">Ubicación</string>
     <string name="longest_height">Altura máxima</string>
     <string name="looking_for_your_paired_iphone">Buscando tu iPhone emparejado…</string>
-    <string name="made_possible_by_open_source">Hecho posible por el código abierto</string>
+    <string name="made_possible_by_open_source">Avisos de terceros</string>
     <string name="make_diplay_feel_right_for_your_car">Haz que XPlay encaje con tu coche.</string>
     <string name="manual_hotspot">Punto de acceso manual</string>
     <string name="manual_mode_match_the_cluster_theme_here_the_map_cannot_fo">Modo manual: ajusta aquí el tema del cuadro. El mapa no puede seguir la visibilidad de las tarjetas sin el permiso de uso.</string>
@@ -295,7 +295,7 @@
     <string name="preparing_mfi_authentication">Preparando autenticación MFi</string>
     <string name="ready">Listo</string>
     <string name="ready_when_you_are">Listo cuando tú lo estés</string>
-    <string name="receiver_based_on_xcertplay_licensed_under_gpl_3_0_diplay">Receptor basado en xcertplay, con licencia GPL-3.0. La interfaz de XPlay sigue el diseño de DiAuto, con licencia AGPL-3.0.\n\nIncluye AndroidX, Bouncy Castle, JmDNS y SLF4J. El código fuente y los avisos de licencia acompañan a esta versión.\n\nCarPlay y el icono de CarPlay pertenecen a Apple Inc. XPlay es un proyecto independiente.</string>
+    <string name="receiver_based_on_xcertplay_licensed_under_gpl_3_0_diplay">Receptor basado en xcertplay, con licencia GPL-3.0. La interfaz actual se ha rediseñado para XPlay. Atribución histórica de la interfaz original: DiAuto (AGPL-3.0).\n\nIncluye AndroidX, Bouncy Castle, JmDNS y SLF4J.\n\nCarPlay y el icono de CarPlay pertenecen a Apple Inc. XPlay es un proyecto independiente.</string>
     <string name="reconnecting_to_your_iphone">Reconectando con tu iPhone…</string>
     <string name="remote">Remoto</string>
     <string name="remote_server_address_contains_u_0000">La dirección del servidor remoto contiene U+0000</string>

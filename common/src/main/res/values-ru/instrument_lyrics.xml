@@ -26,7 +26,7 @@
     <string name="settings_instrument_lane">Скрыть штатные подсказки полос</string>
     <string name="settings_instrument_lane_desc">Необязательно. При остановке восстанавливается свежий снимок или ожидается обновление автомобиля.</string>
     <string name="settings_instrument_online">Искать текст в интернете</string>
-    <string name="settings_instrument_online_desc">Сначала поиск в NetEase Music, затем в LRCLIB. Отправляются название, исполнитель, альбом и длительность. Нужен интернет; кэш работает офлайн.</string>
+    <string name="settings_instrument_online_desc">Поиск по порядку: NetEase Music, QQ Music, Kugou, LRCLIB. Отправляются название, исполнитель, альбом и длительность. Нужен интернет; кэш работает офлайн.</string>
     <string name="settings_instrument_rematch">Повторно найти текущую песню</string>
     <string name="settings_instrument_cache_clear">Очистить кэш текстов</string>
     <string name="settings_instrument_cache">Кэш текстов (до 50 МБ)</string>
@@ -65,4 +65,6 @@
     <string name="settings_lyrics_source_status">Источник текста · %1$s</string>
     <string name="settings_lyrics_netease">NetEase Music</string>
     <string name="settings_lyrics_unknown_source">Не записан</string>
+    <string name="settings_lyrics_qqmusic">QQ Music</string>
+    <string name="settings_lyrics_kugou">Kugou</string>
 </resources>

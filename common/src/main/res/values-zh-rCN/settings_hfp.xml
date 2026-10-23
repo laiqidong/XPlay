@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_p7_hfp_guard">CarPlay 期间断开原车免提（实验性）</string>
+    <string name="settings_p7_hfp_guard_description">CarPlay 连接后断开此 iPhone 的原车蓝牙免提，退出后恢复。保留蓝牙开关和音乐通道；使用车辆蓝牙播放音频时不生效。下次连接 CarPlay 时应用。</string>
+    <string name="settings_p7_a2dp_guard">CarPlay 期间断开原车蓝牙音乐（实验性）</string>
+    <string name="settings_p7_a2dp_guard_description">CarPlay 连接后断开此 iPhone 的原车蓝牙音乐，退出后恢复。保留蓝牙总开关，与免提开关独立；使用车辆蓝牙播放音频时不生效。下次连接 CarPlay 时应用。</string>
+</resources>

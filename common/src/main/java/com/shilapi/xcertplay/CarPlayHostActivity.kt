@@ -4950,6 +4950,7 @@ class CarPlayHostActivity : ComponentActivity() {
                     }
                     activeAirPlaySession = session
                     CarPlayBackgroundSession.active = true
+                    P7HfpSessionGuard.connected(this@CarPlayHostActivity)
                     ConnectionEntryPolicy.markConnected(this@CarPlayHostActivity)
                     showConnectionHelp(null)
                     callPopupSessionReady = true
@@ -4994,6 +4995,7 @@ class CarPlayHostActivity : ComponentActivity() {
                     startupRetryBudget.disconnected()
                     activeAirPlaySession = null
                     CarPlayBackgroundSession.active = false
+                    P7HfpSessionGuard.disconnected()
                     callPopupSessionReady = false
                     updateCallPopupGuard()
                     if (menuOpen) {

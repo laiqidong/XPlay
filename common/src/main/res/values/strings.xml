@@ -256,7 +256,7 @@
     <string name="location">Location</string>
     <string name="longest_height">Longest height</string>
     <string name="looking_for_your_paired_iphone">Looking for your paired iPhone…</string>
-    <string name="made_possible_by_open_source">Made possible by open source</string>
+    <string name="made_possible_by_open_source">Third-party notices</string>
     <string name="make_diplay_feel_right_for_your_car">Make XPlay feel right for your car.</string>
     <string name="manual_hotspot">Manual hotspot</string>
     <string name="manual_mode_match_the_cluster_theme_here_the_map_cannot_fo">Manual mode: match the cluster theme here. The map cannot follow card visibility without Usage Access.</string>
@@ -304,7 +304,7 @@
     <string name="preparing_mfi_authentication">Preparing MFi authentication</string>
     <string name="ready">Ready</string>
     <string name="ready_when_you_are">Ready when you are</string>
-    <string name="receiver_based_on_xcertplay_licensed_under_gpl_3_0_diplay">Receiver based on xcertplay, licensed under GPL-3.0. XPlay’s interface follows DiAuto’s design, licensed under AGPL-3.0.\n\nIncludes AndroidX, Bouncy Castle, JmDNS and SLF4J. Source and license notices accompany this release.\n\nCarPlay and the CarPlay icon belong to Apple Inc. XPlay is an independent project.</string>
+    <string name="receiver_based_on_xcertplay_licensed_under_gpl_3_0_diplay">Receiver based on xcertplay, licensed under GPL-3.0. The current interface has been redesigned for XPlay. Historical upstream UI attribution: DiAuto (AGPL-3.0).\n\nIncludes AndroidX, Bouncy Castle, JmDNS and SLF4J.\n\nCarPlay and the CarPlay icon belong to Apple Inc. XPlay is an independent project.</string>
     <string name="reconnecting_to_your_iphone">Reconnecting to your iPhone…</string>
     <string name="remote">Remote</string>
     <string name="remote_server_address_contains_u_0000">Remote server address contains U+0000</string>

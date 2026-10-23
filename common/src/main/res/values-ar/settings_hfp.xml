@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_p7_hfp_guard">فصل مكالمات السيارة أثناء CarPlay (تجريبي)</string>
+    <string name="settings_p7_hfp_guard_description">يفصل اتصال المكالمات الأصلي لهذا iPhone أثناء CarPlay ويعيده عند الخروج. يبقي البلوتوث والموسيقى. لا يعمل عند تشغيل الصوت عبر بلوتوث السيارة. يسري عند اتصال CarPlay التالي.</string>
+    <string name="settings_p7_a2dp_guard">فصل موسيقى البلوتوث أثناء CarPlay (تجريبي)</string>
+    <string name="settings_p7_a2dp_guard_description">يفصل اتصال الموسيقى الأصلي لهذا iPhone أثناء CarPlay ويعيده عند الخروج. يبقي البلوتوث مفعلاً ومستقل عن مفتاح المكالمات. لا يعمل مع صوت بلوتوث السيارة. يسري عند اتصال CarPlay التالي.</string>
+</resources>

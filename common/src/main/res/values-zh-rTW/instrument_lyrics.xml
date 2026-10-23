@@ -26,7 +26,7 @@
     <string name="settings_instrument_lane">隱藏原車車道提示</string>
     <string name="settings_instrument_lane_desc">選用。停止後復原目前快取狀態；沒有快取時等待原車後續更新。</string>
     <string name="settings_instrument_online">線上查詢歌詞</string>
-    <string name="settings_instrument_online_desc">優先查詢網易雲音樂，未比對時嘗試 LRCLIB。傳送歌名、歌手、專輯與時長。車機需要連網，快取歌詞可離線使用。</string>
+    <string name="settings_instrument_online_desc">依序查詢網易雲音樂、QQ 音樂、酷狗和 LRCLIB，未比對或失敗時自動嘗試下一來源。傳送歌名、歌手、專輯與時長。車機需要連網，快取歌詞可離線使用。</string>
     <string name="settings_instrument_rematch">重新比對目前歌曲</string>
     <string name="settings_instrument_cache_clear">清除歌詞快取</string>
     <string name="settings_instrument_cache">歌詞快取（上限 50 MB）</string>
@@ -65,4 +65,6 @@
     <string name="settings_lyrics_source_status">歌詞來源 · %1$s</string>
     <string name="settings_lyrics_netease">網易雲音樂</string>
     <string name="settings_lyrics_unknown_source">未記錄</string>
+    <string name="settings_lyrics_qqmusic">QQ 音樂</string>
+    <string name="settings_lyrics_kugou">酷狗音樂</string>
 </resources>

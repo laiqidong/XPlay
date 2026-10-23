@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_p7_hfp_guard">Відключати гучний зв’язок у CarPlay (експериментально)</string>
+    <string name="settings_p7_hfp_guard_description">Відключає штатний гучний зв’язок цього iPhone під час CarPlay і відновлює після виходу. Bluetooth і музика зберігаються. Не діє під час відтворення через Bluetooth авто. Застосовується під час наступного підключення CarPlay.</string>
+    <string name="settings_p7_a2dp_guard">Відключати музику Bluetooth у CarPlay (експериментально)</string>
+    <string name="settings_p7_a2dp_guard_description">Відключає штатну музику Bluetooth цього iPhone під час CarPlay і відновлює після виходу. Bluetooth залишається ввімкненим. Незалежно від гучного зв’язку. Не діє з аудіо через Bluetooth авто. Застосовується під час наступного підключення CarPlay.</string>
+</resources>

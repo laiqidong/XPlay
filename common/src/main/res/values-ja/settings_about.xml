@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_about_summary">Android 車載機向けの CarPlay レシーバー。有線・無線接続、フローティング歌詞、車両連携に対応します。</string>
+    <string name="settings_about_origins_title">謝辞</string>
+    <string name="settings_about_origins_description">XPlay は DiPlay をベースに、画面と車載機での使い勝手を調整したプロジェクトです。車両連携では OP-CarPlay を参考にしました。両プロジェクトの作者と貢献者に感謝します。</string>
+</resources>

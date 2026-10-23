@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_p7_hfp_guard">CarPlay 中は車両のハンズフリーを切断（実験的機能）</string>
+    <string name="settings_p7_hfp_guard_description">CarPlay 接続中はこの iPhone の車両ハンズフリーを切断し、終了時に復元します。Bluetooth と音楽接続は維持します。車両 Bluetooth 音声の使用時は無効です。次回の CarPlay 接続時に適用します。</string>
+    <string name="settings_p7_a2dp_guard">CarPlay 中は車両の Bluetooth 音楽を切断（実験的機能）</string>
+    <string name="settings_p7_a2dp_guard_description">CarPlay 接続中はこの iPhone の車両 Bluetooth 音楽接続を切断し、終了時に復元します。Bluetooth は維持し、ハンズフリー設定とは独立しています。車両 Bluetooth 音声の使用時は無効です。次回の CarPlay 接続時に適用します。</string>
+</resources>

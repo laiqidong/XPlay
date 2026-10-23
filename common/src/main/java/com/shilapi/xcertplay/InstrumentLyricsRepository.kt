@@ -30,7 +30,7 @@ internal class InstrumentLyricsRepository(context: Context) {
     @Synchronized fun clear() { cancel(); directory.listFiles()?.forEach { it.delete() } }
 
     fun forget(key: String) { cancel(); synchronized(this) {
-        for (suffix in listOf(".lrc", ".json", ".miss")) File(directory, key + suffix).delete()
+        for (suffix in listOf(".lrc", ".json", ".miss", ".v2.miss")) File(directory, key + suffix).delete()
     } }
     fun find(song: InstrumentSong, online: Boolean, ticket: Long): InstrumentLyricResult {
         val file = File(directory, song.key + ".lrc")
@@ -48,24 +48,29 @@ internal class InstrumentLyricsRepository(context: Context) {
         }
         if (!online) return InstrumentLyricResult(emptyList(), "offline")
         if (song.duration <= 0) return InstrumentLyricResult(emptyList(), "waiting_duration")
-        val miss = File(directory, song.key + ".miss")
+        val miss = File(directory, song.key + ".v2.miss")
         val missAge = System.currentTimeMillis() - miss.lastModified()
         if (miss.isFile && missAge in 0 until MISS_TTL)
             return InstrumentLyricResult(emptyList(), "not_found", retryAfterMillis = MISS_TTL - missAge)
         val deadline = android.os.SystemClock.elapsedRealtime() + 30000
+        var providerDeadline = deadline
         var networkFailure = false
         fun query(base: String, fields: Map<String, String>): String? {
             if (ticket != generation) return null
-            if (android.os.SystemClock.elapsedRealtime() >= deadline) { networkFailure = true; return null }
+            if (android.os.SystemClock.elapsedRealtime() >= minOf(deadline, providerDeadline)) { networkFailure = true; return null }
             val params = fields.entries.joinToString("&") { (k, v) -> "$k=${URLEncoder.encode(v, "UTF-8")}" }
             val conn = URL("$base?$params").openConnection() as HttpURLConnection
             connection = conn
             try {
-                val remaining = (deadline - android.os.SystemClock.elapsedRealtime()).coerceIn(1, 3500).toInt()
+                val remaining = (minOf(deadline, providerDeadline) - android.os.SystemClock.elapsedRealtime()).coerceIn(1, 3500).toInt()
                 conn.connectTimeout = remaining; conn.readTimeout = remaining
                 conn.instanceFollowRedirects = false
                 conn.setRequestProperty("User-Agent", "XPlay-InstrumentLyrics/1.1")
-                if (base.startsWith("https://music.163.com/")) conn.setRequestProperty("Referer", "https://music.163.com/")
+                when (URL(base).host) {
+                    "music.163.com" -> conn.setRequestProperty("Referer", "https://music.163.com/")
+                    "c.y.qq.com" -> conn.setRequestProperty("Referer", "https://y.qq.com/")
+                    "lyrics.kugou.com" -> conn.setRequestProperty("Referer", "https://www.kugou.com/")
+                }
                 val code = conn.responseCode
                 if (code == 404) return null
                 check(code == 200)
@@ -73,7 +78,7 @@ internal class InstrumentLyricsRepository(context: Context) {
                     val buffer = java.io.ByteArrayOutputStream()
                     val chunk = ByteArray(8192)
                     while (true) {
-                        check(ticket == generation && android.os.SystemClock.elapsedRealtime() < deadline)
+                        check(ticket == generation && android.os.SystemClock.elapsedRealtime() < minOf(deadline, providerDeadline))
                         val count = input.read(chunk)
                         if (count < 0) break
                         check(buffer.size() + count <= MAX_BYTES)
@@ -131,11 +136,68 @@ internal class InstrumentLyricsRepository(context: Context) {
             }
             return null
         }
-        fun safely(provider: () -> String?): String? = try { provider() }
+        fun qqmusic(): String? {
+            val response = query("https://c.y.qq.com/soso/fcgi-bin/client_search_cp", mapOf(
+                "w" to "${matcher.searchTitle(song.title)} ${chinese.simplified(song.artist)}",
+                "format" to "json", "p" to "1", "n" to "30"))?.let(::JSONObject) ?: return null
+            check(response.optInt("code", -1) == 0)
+            val remaining = objects(response.optJSONObject("data")?.optJSONObject("song")?.optJSONArray("list"))
+                .map { item -> InstrumentSongMatcher.Candidate(item.optString("songmid"), item.optString("songname"),
+                    objects(item.optJSONArray("singer")).map { it.optString("name") },
+                    item.optString("albumname"), item.optLong("interval", -1) * 1000) }
+                .filter { it.id.isNotBlank() }.toMutableList()
+            repeat(3) {
+                val selected = matcher.select(song, remaining) ?: return null
+                val responseLyrics = query("https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg", mapOf(
+                    "songmid" to selected.id, "format" to "json", "nobase64" to "0"))?.let(::JSONObject)
+                if (responseLyrics != null) {
+                    check(responseLyrics.optInt("code", -1) == 0)
+                    val raw = runCatching { String(android.util.Base64.decode(responseLyrics.optString("lyric"),
+                        android.util.Base64.DEFAULT), Charsets.UTF_8) }.getOrDefault("")
+                    if (parse(raw).any { it.text.isNotBlank() }) return raw
+                }
+                remaining.removeAll { it.id == selected.id }
+            }
+            return null
+        }
+        fun kugou(): String? {
+            val response = query("https://lyrics.kugou.com/search", mapOf("ver" to "1", "man" to "yes",
+                "keyword" to "${matcher.searchTitle(song.title)} ${chinese.simplified(song.artist)}",
+                "duration" to song.duration.toString()))?.let(::JSONObject) ?: return null
+            check(response.optInt("status", -1) == 200)
+            val entries = objects(response.optJSONArray("candidates"))
+            val remaining = entries.map { item -> InstrumentSongMatcher.Candidate(item.optString("id"),
+                item.optString("song"), listOf(item.optString("singer")), "", item.optLong("duration", -1)) }
+                .filter { it.id.isNotBlank() }.toMutableList()
+            repeat(3) {
+                val selected = matcher.select(song, remaining) ?: return null
+                val key = entries.firstOrNull { it.optString("id") == selected.id }?.optString("accesskey").orEmpty()
+                if (key.isNotBlank()) {
+                    val downloaded = query("https://lyrics.kugou.com/download", mapOf("ver" to "1", "client" to "pc",
+                        "id" to selected.id, "accesskey" to key, "fmt" to "lrc", "charset" to "utf8"))?.let(::JSONObject)
+                    if (downloaded != null) {
+                        check(downloaded.optInt("status", -1) == 200)
+                        val raw = runCatching { String(android.util.Base64.decode(downloaded.optString("content"),
+                            android.util.Base64.DEFAULT), Charsets.UTF_8) }.getOrDefault("")
+                        if (parse(raw).any { it.text.isNotBlank() }) return raw
+                    }
+                }
+                remaining.removeAll { it.id == selected.id }
+            }
+            return null
+        }
+        fun safely(provider: () -> String?): String? = try {
+            // Reserve time for later sources when an earlier provider is slow or unavailable.
+            providerDeadline = minOf(deadline, android.os.SystemClock.elapsedRealtime() + 7000)
+            provider()
+        }
             catch (_: Exception) { networkFailure = true; null }
         return try {
             var source = "netease"
-            val raw = (safely(::netease) ?: run { source = "lrclib"; safely(::lrclib) }).orEmpty()
+            val raw = (safely(::netease)
+                ?: run { source = "qqmusic"; safely(::qqmusic) }
+                ?: run { source = "kugou"; safely(::kugou) }
+                ?: run { source = "lrclib"; safely(::lrclib) }).orEmpty()
             val lines = parse(raw)
             if (ticket != generation) return InstrumentLyricResult(emptyList(), "cancelled")
             if (lines.none { it.text.isNotBlank() }) {

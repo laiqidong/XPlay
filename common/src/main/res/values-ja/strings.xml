@@ -254,7 +254,7 @@
     <string name="location">位置情報</string>
     <string name="longest_height">最大高さ</string>
     <string name="looking_for_your_paired_iphone">ペアリング済みのiPhoneを探しています…</string>
-    <string name="made_possible_by_open_source">オープンソースに支えられています</string>
+    <string name="made_possible_by_open_source">サードパーティのライセンス</string>
     <string name="make_diplay_feel_right_for_your_car">車に合わせてXPlayを設定できます。</string>
     <string name="manual_hotspot">手動ホットスポット</string>
     <string name="manual_mode_match_the_cluster_theme_here_the_map_cannot_fo">手動モード：メーターのテーマに合わせて選んでください。使用状況へのアクセスがないと、地図カードの表示状態を自動で追跡できません。</string>
@@ -302,7 +302,7 @@
     <string name="preparing_mfi_authentication">MFi認証を準備しています</string>
     <string name="ready">準備完了</string>
     <string name="ready_when_you_are">いつでも接続できます</string>
-    <string name="receiver_based_on_xcertplay_licensed_under_gpl_3_0_diplay">レシーバーはGPL-3.0のxcertplayを基にしています。XPlayのインターフェースはAGPL-3.0のDiAutoの設計を参考にしています。\n\nAndroidX、Bouncy Castle、JmDNS、SLF4Jを使用しています。ソースコードとライセンスに関する表記はリリースに同梱されています。\n\nCarPlayおよびCarPlayアイコンはApple Inc.に帰属します。XPlayは独立したプロジェクトです。</string>
+    <string name="receiver_based_on_xcertplay_licensed_under_gpl_3_0_diplay">レシーバーはGPL-3.0のxcertplayを基にしています。現在の画面はXPlay向けに再設計されています。過去の上流UIの帰属：DiAuto（AGPL-3.0）。\n\nAndroidX、Bouncy Castle、JmDNS、SLF4Jを使用しています。\n\nCarPlayおよびCarPlayアイコンはApple Inc.に帰属します。XPlayは独立したプロジェクトです。</string>
     <string name="reconnecting_to_your_iphone">iPhoneに再接続しています…</string>
     <string name="remote">リモート</string>
     <string name="remote_server_address_contains_u_0000">サーバーアドレスにU+0000が含まれています</string>

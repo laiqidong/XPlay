@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_about_summary">Receptor CarPlay para unidades Android, con conexión por cable e inalámbrica, letras flotantes e integración con el vehículo.</string>
+    <string name="settings_about_origins_title">Agradecimientos especiales</string>
+    <string name="settings_about_origins_description">XPlay es una versión modificada de DiPlay con ajustes de interfaz e integración con el vehículo. OP-CarPlay sirvió de referencia para esta integración. Gracias a los autores y colaboradores de ambos proyectos.</string>
+</resources>

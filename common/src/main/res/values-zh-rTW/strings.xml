@@ -254,7 +254,7 @@
     <string name="location">位置</string>
     <string name="longest_height">較長邊</string>
     <string name="looking_for_your_paired_iphone">正在尋找已配對的 iPhone…</string>
-    <string name="made_possible_by_open_source">開源專案鳴謝</string>
+    <string name="made_possible_by_open_source">第三方授權說明</string>
     <string name="make_diplay_feel_right_for_your_car">依需求調整 XPlay 設定。</string>
     <string name="manual_hotspot">手動熱點</string>
     <string name="manual_mode_match_the_cluster_theme_here_the_map_cannot_fo">手動模式：在此處與儀表板主題相符。沒有使用存取權限時，地圖無法跟隨卡片顯示狀態。</string>
@@ -302,7 +302,7 @@
     <string name="preparing_mfi_authentication">正在準備 MFi 認證</string>
     <string name="ready">就緒</string>
     <string name="ready_when_you_are">一切就緒</string>
-    <string name="receiver_based_on_xcertplay_licensed_under_gpl_3_0_diplay">接收器以採用 GPL-3.0 授權的 xcertplay 為基礎。XPlay 介面沿用採用 AGPL-3.0 授權的 DiAuto 設計。\n\n專案包含 AndroidX、Bouncy Castle、JmDNS 和 SLF4J。本版本附有原始碼和授權聲明。\n\nCarPlay 和 CarPlay 圖示為 Apple Inc. 所有。XPlay 為獨立專案。</string>
+    <string name="receiver_based_on_xcertplay_licensed_under_gpl_3_0_diplay">接收器以採用 GPL-3.0 授權的 xcertplay 為基礎。目前介面已由 XPlay 重新設計。歷史上游介面歸屬：DiAuto（AGPL-3.0）。\n\n專案包含 AndroidX、Bouncy Castle、JmDNS 和 SLF4J。\n\nCarPlay 和 CarPlay 圖示為 Apple Inc. 所有。XPlay 為獨立專案。</string>
     <string name="reconnecting_to_your_iphone">正在重新連線 iPhone…</string>
     <string name="remote">遠端</string>
     <string name="remote_server_address_contains_u_0000">遠端伺服器位址包含 U+0000</string>

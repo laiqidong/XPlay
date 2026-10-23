@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_p7_hfp_guard">Отключать громкую связь в CarPlay (экспериментально)</string>
+    <string name="settings_p7_hfp_guard_description">Отключает штатную громкую связь этого iPhone во время CarPlay и восстанавливает при выходе. Bluetooth и музыка сохраняются. Не действует при выводе звука через Bluetooth автомобиля. Применяется при следующем подключении CarPlay.</string>
+    <string name="settings_p7_a2dp_guard">Отключать музыку Bluetooth в CarPlay (экспериментально)</string>
+    <string name="settings_p7_a2dp_guard_description">Отключает штатную музыку Bluetooth этого iPhone во время CarPlay и восстанавливает при выходе. Bluetooth остаётся включённым. Независимо от громкой связи. Не действует при выводе звука через Bluetooth автомобиля. Применяется при следующем подключении CarPlay.</string>
+</resources>

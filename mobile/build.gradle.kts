@@ -17,8 +17,8 @@ android {
         applicationId = "com.laiqidong.xplay"
         minSdk = 25
         targetSdk = 37
-        versionCode = 38
-        versionName = "0.2.19"
+        versionCode = 39
+        versionName = "1.0.0"
 
     }
 
@@ -40,7 +40,6 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix = ".hudtest"
-            versionNameSuffix = "-hud-test"
         }
         release {
             optimization {
