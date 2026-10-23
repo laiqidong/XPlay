@@ -46,10 +46,6 @@ import com.shilapi.xcertplay.airplay.CarPlayClusterDisplay
 import com.shilapi.xcertplay.airplay.CarPlayDisplayScale
 import com.shilapi.xcertplay.airplay.ClusterSpeedometerOverlay
 import com.shilapi.xcertplay.airplay.ClusterTurnCardOverlay
-import com.shilapi.xcertplay.backup.SettingsBackupCodec
-import com.shilapi.xcertplay.backup.SettingsBackupEndpoint
-import com.shilapi.xcertplay.backup.SettingsBackupServer
-import com.shilapi.xcertplay.backup.SettingsQrCode
 import com.shilapi.xcertplay.compat.closeCompat
 import com.shilapi.xcertplay.hud.BydAdbAccess
 import com.shilapi.xcertplay.hud.BydNavigationOutputs
@@ -169,11 +165,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     private var vehicleProbeOutcome: BydVehicleProbeOutcome? = null
     private var adbCheckGeneration = 0
     private var adbStatus: TextView? = null
-    @Volatile private var backupServer: SettingsBackupServer? = null
-    @Volatile private var backupEndpoint: SettingsBackupEndpoint? = null
-    /** The Settings category that opened the phone page, and the one to go back to. */
-    private var backupOpenedFrom = SettingsCategory.ABOUT
-    @Volatile private var backupSummary: String? = null
+    private var phoneTransferDialog: AlertDialog? = null
     private var carButtonCard: LinearLayout? = null
     private var bydAdbControls: LinearLayout? = null
     private var adbSwitchChangePending = false
@@ -324,7 +316,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         setupStep = savedInstanceState?.getInt("setup_step") ?: SetupGuide.STEP_CONNECTION
         setupFromSettings = savedInstanceState?.getBoolean("setup_from_settings") ?: false
         page = (savedInstanceState?.getString("page") ?: intent.getStringExtra("page") ?: "settings")
-            .let { if (it == "home") "settings" else it }
+            .let { if (it == "home" || it == "backup") "settings" else it }
         if (p7Settings && page in setOf("connection", "setup")) {
             page = "settings"
             settingsCategory = SettingsCategory.CONNECTION
@@ -341,7 +333,8 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         }
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (page != "settings" || settingsCategory != settingsHomeCategory) navigateBack()
+                if (p7Settings && page == "settings") returnToCarPlay()
+                else if (page != "settings" || settingsCategory != settingsHomeCategory) navigateBack()
                 else handleOverviewBack()
             }
         })
@@ -357,7 +350,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             startActivity(ConnectionEntryPolicy.launchIntent(this)); finish(); return
         }
         connectionSettingsReturnCategory = null
-        page = intent.getStringExtra("page")?.let { if (it == "home") "settings" else it } ?: "settings"
+        page = intent.getStringExtra("page")?.let { if (it == "home" || it == "backup") "settings" else it } ?: "settings"
         settingsCategory = settingsHomeCategory
         if (p7Settings && page in setOf("connection", "setup")) {
             page = "settings"
@@ -579,8 +572,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         applyWindowAppearance()
         // A pending assignment belongs to the widgets being replaced, never to another page.
         if (!appearanceOnly) cancelKeyLearning()
-        // The backup server lives only while its page is shown, however the driver left it.
-        if (page != "backup" && backupServer != null) stopBackupServer()
         val focusSnapshot = if (appearanceOnly) {
             currentFocus?.let { focused ->
                 FocusSnapshot(
@@ -642,7 +633,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                 "connection" -> connectionSetup(content)
                 "setup" -> setupGuide(content)
                 "settings" -> settingsCategoryContent(content)
-                "backup" -> backup(content)
                 else -> if (p7Settings) connectionSettings(content) else settingsOverview(content)
             }
             scroll
@@ -772,8 +762,14 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         }
     }
 
+    private fun returnToCarPlay() {
+        cancelOverviewBack()
+        openProjection()
+        finish()
+    }
+
     private fun handleOverviewBack() {
-        if (p7Settings) { exitSettings(); return }
+        if (p7Settings) { returnToCarPlay(); return }
         if (overviewBackPending || !CarPlayBackgroundSession.hasSession()) {
             openCarHome()
             return
@@ -788,11 +784,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         cancelOverviewBack()
         val returnCategory = connectionSettingsReturnCategory
         when {
-            page == "backup" -> {
-                stopBackupServer()
-                page = "settings"
-                settingsCategory = backupOpenedFrom
-            }
             page == "setup" && setupStep > SetupGuide.STEP_CONNECTION -> setupStep--
             page == "setup" -> { closeSetupGuide(); return }
             page == "connection" && returnCategory != null -> {
@@ -1320,7 +1311,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                 saveReportToDownloads()
             }.apply { isEnabled = !exportInProgress }
             card.addView(exportButton, matchButton(10, 60))
-            card.addView(button(getString(R.string.settings_report_on_phone), false) { openBackup(SettingsCategory.DIAGNOSTICS) }, matchButton(10, 60))
+            card.addView(button(getString(R.string.settings_report_on_phone), false) { openBackup() }, matchButton(10, 60))
             val destination = getString(R.string.reports_save_to_downloads_diplay)
             card.addView(label(destination + getString(R.string.nothing_is_sent_automatically_protocol_payloads_and_creden), 14, MUTED).apply { setPadding(0, dp(12), 0, 0) })
             toggle(card, getString(R.string.settings_fps_counter), getString(R.string.settings_fps_counter_description),
@@ -2092,113 +2083,21 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         }
     }
 
-    private fun openBackup(from: SettingsCategory = SettingsCategory.DIAGNOSTICS) {
-        backupOpenedFrom = from
-        page = "backup"
-        render()
-    }
-
-    private fun backup(content: LinearLayout) {
-        val preferredPrefix = when (AirPlayPersistence.loadWirelessHotspotMode(this)) {
-            WirelessHotspotMode.WIFI_P2P -> "p2p"
-            WirelessHotspotMode.LOCAL_ONLY_HOTSPOT -> "ap"
-            WirelessHotspotMode.MANUAL, WirelessHotspotMode.EXISTING_WIFI -> "wlan"
-        }
-        val addresses = SettingsBackupServer.addressCandidates(preferredPrefix)
-        // The same page serves both; opened from Diagnostics, it says what the driver came for.
-        val forReport = backupOpenedFrom == SettingsCategory.DIAGNOSTICS
-        content.addView(label(getString(if (forReport) R.string.settings_report_on_phone else R.string.backup_title), 40, TEXT, true))
-        var endpoint = backupEndpoint
-        if ((backupServer == null || endpoint == null) && addresses.isEmpty()) {
-            content.addView(space(SETTINGS_BLOCK_GAP_DP))
-            content.addView(label(getString(R.string.backup_no_network), 16, MUTED))
-            return
-        }
-        if (backupServer == null || endpoint == null) {
-            val created = SettingsBackupServer(
-                page = backupPageHtml(),
-                export = { SettingsBackupCodec.export(this, version()) },
-                import = { SettingsBackupCodec.import(this, it) },
-                report = { diagnosticReportText(applicationContext).toByteArray(Charsets.UTF_8) },
-                codePage = assets.open("settings-code.html").use { it.readBytes() },
-            )
-            created.onCodeEntryClosed = {
-                runOnUiThread {
-                    if (!isFinishing && !isDestroyed && backupServer === created) render()
-                }
-            }
-            created.onIdle = {
-                runOnUiThread {
-                    if (isFinishing || isDestroyed || backupServer !== created) return@runOnUiThread
-                    stopBackupServer()
-                    page = "settings"
-                    settingsCategory = backupOpenedFrom
-                    render()
-                }
-            }
-            created.onImported = { outcome ->
-                runOnUiThread {
-                    if (isFinishing || isDestroyed) return@runOnUiThread
-                    backupSummary = if (outcome.invalid) getString(R.string.backup_import_invalid)
-                    else getString(R.string.backup_summary, outcome.applied, outcome.skipped)
-                    if (!outcome.invalid && outcome.applied > 0) markReconnectNeeded()
-                    render()
-                }
-            }
-            endpoint = created.start()
-            if (endpoint == null) {
-                created.stop()
-                content.addView(space(SETTINGS_BLOCK_GAP_DP))
-                content.addView(label(getString(R.string.backup_no_network), 16, MUTED))
-                return
-            }
-            backupServer = created
-            backupEndpoint = endpoint
-            backupSummary = null
-        }
-        val active = endpoint
-        backupServer?.landing = if (forReport) "#report" else ""
-        val qr = ImageView(this).apply {
-            val side = dp(240)
-            setImageBitmap(SettingsQrCode.encode(active.url(addresses.first()) + if (forReport) "#report" else "", side))
-            scaleType = ImageView.ScaleType.FIT_CENTER
-        }
-        content.addView(space(SETTINGS_BLOCK_GAP_DP))
-        content.addView(card().apply {
-            addView(label(getString(if (forReport) R.string.settings_report_on_phone_hint else R.string.backup_page_hint), 16, MUTED))
-            addView(qr, LinearLayout.LayoutParams(dp(240) + dp(24), dp(240) + dp(24)).apply {
-                topMargin = dp(SETTINGS_BLOCK_GAP_DP); gravity = Gravity.CENTER_HORIZONTAL
-            })
-            backupSummary?.let {
-                addView(label(it, 15, TEXT).apply { setPadding(0, dp(16), 0, 0) })
-            }
-            // For a computer, or a phone whose camera will not read the code.
-            addView(label(
-                if (backupServer?.codeEntryOpen == true) {
-                    getString(R.string.backup_type_address, active.typedAddress(addresses.first()),
-                        active.code.chunked(3).joinToString(" "))
-                } else getString(R.string.backup_code_entry_closed),
-                16,
-                TEXT,
-            ).apply { setPadding(0, dp(16), 0, 0) })
-            if (addresses.size > 1) {
-                addView(label(
-                    addresses.drop(1).joinToString("\n") { getString(R.string.backup_other_addresses, it) },
-                    14,
-                    MUTED,
-                ).apply { setPadding(0, dp(16), 0, 0) })
-            }
-        })
+    private fun openBackup(forReport: Boolean = true) {
+        phoneTransferDialog?.dismiss()
+        phoneTransferDialog = showPhoneTransferDialog(forReport,
+            report = { diagnosticReportText(applicationContext).toByteArray(Charsets.UTF_8) },
+            onImported = { outcome ->
+                if (!outcome.invalid && outcome.applied > 0) { markReconnectNeeded(); render() }
+            },
+            onClosed = { phoneTransferDialog = null },
+        )
     }
 
     private fun stopBackupServer() {
-        backupServer?.stop()
-        backupServer = null
-        backupEndpoint = null
-        backupSummary = null
+        phoneTransferDialog?.dismiss()
+        phoneTransferDialog = null
     }
-
-    private fun backupPageHtml(): ByteArray = assets.open("settings-backup.html").use { it.readBytes() }
 
     // An opted-in connection prepares the hotspot in the controller instead of stopping at this reminder.
     private fun carHotspotOff(): Boolean =
@@ -5073,7 +4972,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         } else exportDiagnostics()
     }
 
-    private fun chooseReportDestination() { openBackup(SettingsCategory.DIAGNOSTICS) }
+    private fun chooseReportDestination() { openBackup() }
 
     private fun exportDiagnostics(uri: Uri? = null) {
         if (exportInProgress) return
@@ -5106,7 +5005,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                         .setPositiveButton(getString(R.string.view_diagnostic_report)) { _, _ -> showDiagnosticReport(report) }
                         .setNegativeButton(getString(R.string.done), null)
                         .setNeutralButton(getString(R.string.settings_report_on_phone)) { _, _ ->
-                            openBackup(SettingsCategory.DIAGNOSTICS)
+                            openBackup()
                         }.show()
                 } else {
                     appDialogBuilder().setTitle(getString(R.string.could_not_save_the_report))
@@ -5316,7 +5215,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     private fun version() = packageManager.getPackageInfo(packageName, 0).versionName ?: "0.1.0-beta.1"
     private fun backupSettings(content: LinearLayout) {
         filteredSection(content, SettingsSection.BACKUP, getString(R.string.backup_title), R.drawable.ic_dp_diagnostics) { card ->
-            card.addView(button(getString(R.string.backup_open), false) { openBackup(SettingsCategory.DIAGNOSTICS) },
+            card.addView(button(getString(R.string.backup_open), false) { openBackup(forReport = false) },
                 matchButton(0, CONTROL_HEIGHT_DP))
             card.addView(label(getString(R.string.backup_open_description), 14, MUTED))
         }

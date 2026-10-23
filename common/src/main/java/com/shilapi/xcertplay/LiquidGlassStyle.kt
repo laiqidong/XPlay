@@ -15,11 +15,9 @@ import androidx.core.graphics.ColorUtils
 
 /** Shared glass material; semantic tints retain primary/danger action recognition. */
 internal object LiquidGlassStyle {
-    const val CONTROL_RADIUS_RATIO = .22f
+    const val CONTROL_RADIUS_RATIO = .5f
     fun button(view: View, night: Boolean, tint: Int?, ripple: Int): RippleDrawable {
-        val material = SettingsBackdrop.surface(view, night, controlCorners = true,
-            tint = tint?.let { ColorUtils.setAlphaComponent(it, 190) }
-                ?: if (night) 0xB34B5260.toInt() else 0x80FFFFFF.toInt())
+        val material = ButtonGlassDrawable(view, night, tint)
         val mask = object : android.graphics.drawable.Drawable() {
             private val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE }
             override fun draw(canvas: android.graphics.Canvas) {
@@ -35,7 +33,8 @@ internal object LiquidGlassStyle {
         return RippleDrawable(ColorStateList.valueOf(ripple), material, mask)
     }
 
-    fun dialog(dialog: Dialog, night: Boolean) {
+    fun dialog(dialog: Dialog, night: Boolean, owner: android.content.Context = dialog.context) {
+        DialogBackdrop.attach(dialog, owner)
         val window = dialog.window ?: return
         val content = window.decorView.findViewById<ViewGroup>(android.R.id.content) ?: return
         val panel = content.getChildAt(0) ?: return
@@ -48,6 +47,18 @@ internal object LiquidGlassStyle {
             }
         }
         clearWrappers(panel)
+        for (name in listOf("parentPanel", "topPanel", "contentPanel", "customPanel", "buttonPanel", "custom")) {
+            val id = panel.resources.getIdentifier(name, "id", "android")
+            if (id != 0) panel.findViewById<View>(id)?.background = null
+        }
+        fun clearLists(view: View) {
+            if (view is android.widget.ListView) {
+                view.background = null
+                view.cacheColorHint = Color.TRANSPARENT
+            }
+            if (view is ViewGroup) for (i in 0 until view.childCount) clearLists(view.getChildAt(i))
+        }
+        clearLists(panel)
         panel.background = SettingsBackdrop.surface(panel, night)
         window.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
     }

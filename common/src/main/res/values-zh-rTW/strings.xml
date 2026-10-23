@@ -756,7 +756,7 @@
     <string name="update_saved_to">已儲存至 %1$s</string>
     <string name="backup_title">備份設定</string>
     <string name="backup_open">在手機上備份或還原</string>
-    <string name="backup_open_description">顯示 QR 碼，同一網路內的手機瀏覽器即可匯出或匯入 XPlay 設定。離開頁面後服務自動停止。</string>
+    <string name="backup_open_description">顯示 QR 碼，同一網路內的手機瀏覽器即可匯出或匯入 XPlay 設定。關閉對話框後服務自動停止。</string>
     <string name="backup_page_hint">用手機相機掃碼，在瀏覽器中開啟此頁面。匯出儲存設定檔，匯入載入設定檔。</string>
     <string name="backup_other_addresses">若掃碼無法開啟，請嘗試將瀏覽器中的 IP 位址改為 %1$s。</string>
     <string name="backup_no_network">沒有可用的 Wi-Fi 網路。請先開啟車載熱點，或讓手機連線至車機 Wi-Fi。</string>

@@ -1,3 +1,4 @@
 <resources>
     <item name="glass_position_tracker" type="id" />
+    <item name="glass_dialog_capture" type="id" />
 </resources>

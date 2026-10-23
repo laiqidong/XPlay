@@ -827,7 +827,7 @@
     <string name="update_saved_to">Saved to %1$s</string>
     <string name="backup_title">Back up settings</string>
     <string name="backup_open">Back up or restore on a phone</string>
-    <string name="backup_open_description">Show a QR code so a phone browser on the same network can export or import XPlay settings. The service stops when you leave the page.</string>
+    <string name="backup_open_description">Show a QR code so a phone browser on the same network can export or import XPlay settings. The service stops when you close the dialog.</string>
     <string name="backup_page_hint">Scan the code with the phone camera to open this page in its browser. Export saves a settings file, import loads one.</string>
     <string name="backup_other_addresses">If the code does not open, try changing the IP address in your browser to %1$s.</string>
     <string name="backup_no_network">No usable Wi-Fi network. Turn on the car hotspot or connect the phone to the car Wi-Fi first.</string>
