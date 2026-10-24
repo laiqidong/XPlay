@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900">
+<defs><pattern id="grid" width="110" height="86" patternUnits="userSpaceOnUse"><path d="M110 0H0V86" fill="none" stroke="#28343e" stroke-width="12"/></pattern><filter id="shadow"><feDropShadow dx="0" dy="18" stdDeviation="25" flood-opacity=".4"/></filter></defs>
+<rect width="1440" height="900" fill="#10151c"/>
+<g font-family="PingFang SC, Microsoft YaHei, sans-serif">
+<text x="56" y="66" fill="#f0f4f7" font-size="26" font-weight="600">XPLAY / 车辆控制</text><text x="56" y="102" fill="#80909d" font-size="17">布局草稿 01 · 功能与状态均为示意</text>
+<rect x="40" y="140" width="1360" height="700" rx="28" fill="#1b252e"/>
+<rect x="140" y="140" width="1260" height="700" rx="28" fill="url(#grid)"/>
+<path d="M200 800L450 630 380 450 650 300 900 210" fill="none" stroke="#314d49" stroke-width="70"/>
+<path d="M250 740L520 570 510 350 1050 350" fill="none" stroke="#4b90cb" stroke-width="12"/>
+<rect x="173" y="170" width="405" height="120" rx="22" fill="#263641"/><text x="200" y="220" fill="#fff" font-size="30">↱  300 米后右转</text><text x="244" y="258" fill="#b5c5d0" font-size="20">进入前方道路</text>
+<text x="290" y="470" fill="#7f919e" font-size="22">CarPlay 导航保持可见</text>
+<circle cx="415" cy="630" r="27" fill="#559fe1" stroke="#c9e9ff" stroke-width="4"/><path d="M415 613L427 642 415 636 403 642Z" fill="white"/>
+<rect x="40" y="140" width="94" height="700" rx="28" fill="#101b24"/>
+<text x="65" y="191" fill="#fff" font-size="23">9:41</text>
+<rect x="61" y="300" width="52" height="52" rx="15" fill="#69a58b"/><text x="76" y="335" fill="white" font-size="25">↗</text>
+<rect x="61" y="382" width="52" height="52" rx="15" fill="#ce6472"/><text x="77" y="418" fill="white" font-size="28">♫</text>
+<rect x="61" y="464" width="52" height="52" rx="15" fill="#6396c5"/><text x="76" y="499" fill="white" font-size="25">☎</text>
+<rect x="57" y="732" width="60" height="70" rx="18" fill="#a9e8d5"/><text x="73" y="762" fill="#17372d" font-size="24">⌘</text><text x="67" y="786" fill="#17372d" font-size="14">车控</text>
+<rect x="650" y="166" width="720" height="646" rx="28" fill="#171e25" stroke="#3c474f" filter="url(#shadow)"/>
+<text x="680" y="216" fill="#f4f7f9" font-size="28" font-weight="600">车辆控制</text><text x="680" y="245" fill="#8e9da8" font-size="16">常用操作，触手可及</text>
+<rect x="1292" y="187" width="48" height="48" rx="24" fill="#303a43"/><text x="1306" y="220" fill="#dbe2e6" font-size="30">×</text>
+<rect x="680" y="270" width="660" height="148" rx="18" fill="#26333b"/>
+<text x="702" y="305" fill="#b8c9d0" font-size="17">空调</text><text x="702" y="362" fill="#f4f8fa" font-size="42" font-weight="500">22.0<tspan font-size="24"> °C</tspan></text>
+<rect x="870" y="306" width="64" height="64" rx="16" fill="#3b4a53"/><text x="891" y="350" fill="#fff" font-size="32">−</text>
+<rect x="944" y="306" width="64" height="64" rx="16" fill="#3b4a53"/><text x="964" y="350" fill="#fff" font-size="32">+</text>
+<path d="M1030 298V390" stroke="#4a5760"/>
+<text x="1054" y="307" fill="#b8c9d0" font-size="17">风量 · 3 档</text>
+<rect x="1054" y="324" width="64" height="64" rx="16" fill="#3b4a53"/><text x="1075" y="368" fill="#fff" font-size="32">−</text>
+<rect x="1128" y="324" width="64" height="64" rx="16" fill="#3b4a53"/><text x="1148" y="368" fill="#fff" font-size="32">+</text>
+<rect x="1212" y="324" width="104" height="64" rx="16" fill="#a9e8d5"/><text x="1232" y="363" fill="#163c31" font-size="20">AUTO</text>
+<rect x="680" y="438" width="204" height="130" rx="18" fill="#28473f"/><text x="700" y="477" fill="#a9e8d5" font-size="29">↻</text><text x="700" y="516" fill="#f2f6f8" font-size="23">内循环</text><text x="700" y="546" fill="#a9e8d5" font-size="16">已开启</text><rect x="908" y="438" width="204" height="130" rx="18" fill="#29323b"/><text x="928" y="477" fill="#c1d1dc" font-size="29">≋</text><text x="928" y="516" fill="#f2f6f8" font-size="23">前挡除雾</text><text x="928" y="546" fill="#92a3af" font-size="16">关闭</text><rect x="1136" y="438" width="204" height="130" rx="18" fill="#29323b"/><text x="1156" y="477" fill="#c1d1dc" font-size="29">▣</text><text x="1156" y="516" fill="#f2f6f8" font-size="23">360° 影像</text><text x="1156" y="546" fill="#92a3af" font-size="16">打开影像</text><rect x="680" y="588" width="204" height="130" rx="18" fill="#29323b"/><text x="700" y="627" fill="#c1d1dc" font-size="29">◇</text><text x="700" y="666" fill="#f2f6f8" font-size="23">后备箱</text><text x="700" y="696" fill="#92a3af" font-size="16">点击打开</text><rect x="908" y="588" width="204" height="130" rx="18" fill="#29323b"/><text x="928" y="627" fill="#c1d1dc" font-size="29">ϟ</text><text x="928" y="666" fill="#f2f6f8" font-size="23">充电口盖</text><text x="928" y="696" fill="#92a3af" font-size="16">点击打开</text><rect x="1136" y="588" width="204" height="130" rx="18" fill="#29323b"/><text x="1156" y="627" fill="#c1d1dc" font-size="29">☷</text><text x="1156" y="666" fill="#f2f6f8" font-size="23">灯光</text><text x="1156" y="696" fill="#92a3af" font-size="16">更多控制  ›</text><circle cx="687" cy="763" r="4" fill="#a9e8d5"/><text x="702" y="769" fill="#96a8b4" font-size="16">点空白处关闭 · 连续调节时保持展开</text>
+<text x="56" y="881" fill="#8c9ba7" font-size="17">布局建议：顶部连续调节 / 中部常用快捷操作 / 灯光收纳现有雾灯功能</text></g></svg>

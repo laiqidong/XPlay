@@ -159,13 +159,9 @@ internal class SettingsBackdrop(context: Context, private val night: Boolean) {
             canvas.restoreToCount(save)
             if (frost) {
                 // Glass reflects at the top and bottom; both side edges stay subtly shaded.
-                val stroke = EDGE_STROKE_DP * density
+                val stroke = GlassRim.WIDTH_DP * density
                 val radius = minOf(corner, rect.width() / 2f, rect.height() / 2f)
-                val side = Color.argb(if (controlCorners) { if (night) 28 else 42 } else { if (night) 24 else 28 }, 0, 0, 0)
-                val highlight = Color.argb(if (controlCorners) { if (night) 80 else 108 } else { if (night) 62 else 84 }, 255, 255, 255)
-                edgePaint.shader = SweepGradient(rect.centerX(), rect.centerY(),
-                    intArrayOf(side, highlight, side, highlight, side),
-                    floatArrayOf(0f, .25f, .5f, .75f, 1f))
+                edgePaint.shader = GlassRim.shader(rect, light = !night)
                 val edge = RectF(rect).apply { inset(stroke / 2, stroke / 2) }
                 edgePaint.strokeWidth = stroke
                 edgePaint.alpha = 255

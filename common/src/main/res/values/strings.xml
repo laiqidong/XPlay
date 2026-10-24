@@ -933,4 +933,13 @@
     <string name="settings_controls_category">Controls &amp; gestures</string>
     <string name="settings_controls_summary">Configure steering wheel buttons, gestures and the CarPlay car button.</string>
     <string name="settings_vehicle_carplay_data">CarPlay vehicle data (experimental)</string>
+    <string name="settings_vehicle_control">Vehicle control</string>
+    <string name="settings_fog_title">Rear fog flashing (experimental)</string>
+    <string name="settings_fog_overlay">Show floating fog button</string>
+    <string name="settings_fog_behavior">Tap to flash continuously (250 ms on/off); tap again to stop and restore the original lamp state. Hiding the button also stops flashing.</string>
+    <string name="settings_fog_supported">Available on XPeng P7 E28 with Android 9 only.</string>
+    <string name="settings_fog_position">Only appears on the CarPlay page, above Home in the left bar; drag to adjust. Leaving the page stops flashing. Requires local ADB approval.</string>
+    <string name="fog_start">Start rear fog flashing</string>
+    <string name="fog_stop">Stop rear fog flashing</string>
+    <string name="fog_failed">Fog control failed or restoration is unconfirmed. Check the rear fog lamp.</string>
 </resources>

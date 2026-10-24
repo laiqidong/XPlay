@@ -1,5 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
+        <activity android:name="com.shilapi.xcertplay.ClimatePreviewActivity"
+            android:exported="true" android:screenOrientation="landscape"
+            android:theme="@style/Theme.Xcertplay" />
         <activity android:name="com.shilapi.xcertplay.ConnectionPreviewActivity"
             android:exported="true" android:theme="@android:style/Theme.Material.Light.NoActionBar" />
     </application>

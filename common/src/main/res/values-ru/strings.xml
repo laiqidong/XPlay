@@ -833,4 +833,13 @@
     <string name="settings_controls_category">Кнопки и жесты</string>
     <string name="settings_controls_summary">Настройте кнопки руля, жесты и кнопку автомобиля в CarPlay.</string>
     <string name="settings_vehicle_carplay_data">Данные автомобиля CarPlay (экспериментально)</string>
+    <string name="settings_vehicle_control">Управление автомобилем</string>
+    <string name="settings_fog_title">Мигание задней противотуманной фары (экспериментально)</string>
+    <string name="settings_fog_overlay">Плавающая кнопка противотуманной фары</string>
+    <string name="settings_fog_behavior">Нажмите для непрерывного мигания (250 мс вкл./выкл.); нажмите снова для остановки и восстановления исходного состояния. Скрытие кнопки также останавливает мигание.</string>
+    <string name="settings_fog_supported">Только XPeng P7 E28 с Android 9.</string>
+    <string name="settings_fog_position">Только на экране CarPlay над «Домой» слева; можно перетащить. При выходе мигание прекращается. Нужна локальная авторизация ADB.</string>
+    <string name="fog_start">Включить мигание</string>
+    <string name="fog_stop">Остановить мигание</string>
+    <string name="fog_failed">Ошибка управления или восстановление не подтверждено. Проверьте заднюю противотуманную фару.</string>
 </resources>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="climate_open">Abrir climatización</string>
+    <string name="climate_back">Volver</string>
+    <string name="climate_more">Más ajustes</string>
+    <string name="climate_failed">El vehículo no confirmó la acción. Comprueba el estado actual.</string>
+    <string name="climate_unavailable">No disponible</string>
+    <string name="climate_driver">Conductor</string>
+    <string name="climate_passenger">Acompañante</string>
+    <string name="climate_fan">Ventilador</string>
+    <string name="climate_power">Encendido</string>
+    <string name="climate_window">Parabrisas</string>
+    <string name="climate_face">Cara</string>
+    <string name="climate_feet">Pies</string>
+    <string name="climate_front">Desempañado delantero</string>
+    <string name="climate_rear">Luneta térmica</string>
+    <string name="climate_cycle_inner">Recirculación</string>
+    <string name="climate_cycle_outside">Aire exterior</string>
+    <string name="climate_cycle_auto">Circulación automática</string>
+    <string name="climate_increase_fan">Aumentar ventilador</string>
+    <string name="climate_decrease_fan">Reducir ventilador</string>
+    <string name="climate_increase_temp">Subir temperatura</string>
+    <string name="climate_decrease_temp">Bajar temperatura</string>
+    <string name="climate_on">Activado</string>
+    <string name="climate_off">Desactivado</string>
+    <string name="climate_max">Frío máximo</string>
+    <string name="climate_aqs">Protección de gases</string>
+    <string name="climate_smart_defog">Desempañado inteligente</string>
+    <string name="settings_climate_title">Climatización (experimental)</string>
+    <string name="settings_climate_enable">Activar controles de climatización</string>
+    <string name="settings_climate_enable_desc">Muestra A/C en la barra de CarPlay. Al desactivarlo, oculta el acceso y cierra el panel. Se aplica al instante sin reconectar. Requiere autorización ADB local.</string>
+    <string name="settings_climate_category_desc">Climatización y accesos del vehículo.</string>
+    <string name="climate_face_feet">Cara y pies</string>
+    <string name="climate_sync">Sincronizar</string>
+    <string name="climate_fan_level">Ventilador nivel %1$d</string>
+    <string name="climate_ac_cool">Frío</string>
+    <string name="climate_ac_heat">Calor</string>
+    <string name="climate_ac_natural">Ventilación</string>
+    <string name="climate_ac_auto">Climatización automática</string>
+    <string name="climate_stock">Climatización original</string>
+    <string name="climate_deodor">Desodorización inteligente</string>
+    <string name="climate_clean">Limpieza inteligente</string>
+    <string name="climate_smart_passenger">Flujo inteligente del acompañante</string>
+</resources>

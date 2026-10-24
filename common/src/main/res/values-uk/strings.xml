@@ -845,4 +845,13 @@
     <string name="settings_controls_category">Кнопки й жести</string>
     <string name="settings_controls_summary">Налаштуйте кнопки керма, жести й кнопку автомобіля в CarPlay.</string>
     <string name="settings_vehicle_carplay_data">Дані автомобіля CarPlay (експериментально)</string>
+    <string name="settings_vehicle_control">Керування автомобілем</string>
+    <string name="settings_fog_title">Блимання задньої протитуманної фари (експериментально)</string>
+    <string name="settings_fog_overlay">Плаваюча кнопка протитуманної фари</string>
+    <string name="settings_fog_behavior">Натисніть для безперервного блимання (250 мс увімк./вимк.); натисніть знову для зупинки й відновлення початкового стану. Приховування кнопки також зупиняє блимання.</string>
+    <string name="settings_fog_supported">Лише XPeng P7 E28 з Android 9.</string>
+    <string name="settings_fog_position">Лише на екрані CarPlay над «Додому» ліворуч; можна перетягнути. При виході блимання припиняється. Потрібна локальна авторизація ADB.</string>
+    <string name="fog_start">Почати блимання</string>
+    <string name="fog_stop">Зупинити блимання</string>
+    <string name="fog_failed">Помилка керування або відновлення не підтверджено. Перевірте задню протитуманну фару.</string>
 </resources>

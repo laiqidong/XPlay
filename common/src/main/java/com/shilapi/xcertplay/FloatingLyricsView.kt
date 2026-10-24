@@ -214,15 +214,12 @@ internal class FloatingLyricsView(context: Context) : View(context) {
             }
             canvas.drawRect(box, background)
             canvas.restoreToCount(layer)
-            // A narrow highlight and darker lower edge give the surface a little thickness.
-            val stroke = EDGE_STROKE_DP * density
+            // Match cards and controls: bright upper/lower rims, shaded sides.
+            val stroke = GlassRim.WIDTH_DP * density
             val edge = RectF(box).apply { inset(stroke / 2, stroke / 2) }
             edgePaint.strokeWidth = stroke
             edgePaint.alpha = (255 * opacity).toInt()
-            edgePaint.shader = LinearGradient(box.left, box.top, box.left, box.bottom,
-                intArrayOf(Color.argb(if (light) 150 else 95, 255, 255, 255),
-                    Color.argb(24, 255, 255, 255), Color.argb(48, 0, 0, 0)),
-                floatArrayOf(0f, .55f, 1f), Shader.TileMode.CLAMP)
+            edgePaint.shader = GlassRim.shader(box, light = light)
             canvas.drawRoundRect(edge, (radius - stroke / 2).coerceAtLeast(0f),
                 (radius - stroke / 2).coerceAtLeast(0f), edgePaint)
         }

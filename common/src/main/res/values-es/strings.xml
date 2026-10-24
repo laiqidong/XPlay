@@ -833,4 +833,13 @@
     <string name="settings_controls_category">Botones y gestos</string>
     <string name="settings_controls_summary">Configura los botones del volante, los gestos y el botón del coche de CarPlay.</string>
     <string name="settings_vehicle_carplay_data">Datos del vehículo CarPlay (experimental)</string>
+    <string name="settings_vehicle_control">Control del vehículo</string>
+    <string name="settings_fog_title">Destellos antiniebla traseros (experimental)</string>
+    <string name="settings_fog_overlay">Mostrar botón flotante antiniebla</string>
+    <string name="settings_fog_behavior">Toca para parpadear continuamente (250 ms encendido/apagado); toca de nuevo para detener y restaurar el estado original. Ocultar el botón también detiene los destellos.</string>
+    <string name="settings_fog_supported">Solo para XPeng P7 E28 con Android 9.</string>
+    <string name="settings_fog_position">Solo aparece en CarPlay, sobre Inicio en la barra izquierda; arrastra para mover. Salir de la página detiene los destellos. Requiere autorización ADB local.</string>
+    <string name="fog_start">Iniciar destellos antiniebla</string>
+    <string name="fog_stop">Detener destellos antiniebla</string>
+    <string name="fog_failed">Error de control o restauración sin confirmar. Comprueba el antiniebla trasero.</string>
 </resources>

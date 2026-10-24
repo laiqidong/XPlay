@@ -23,11 +23,27 @@
         <item name="android:fontFamily">@font/pingfang</item>
         <item name="android:colorAccent">#0091FF</item>
         <item name="android:windowBackground">@color/dialog_background_dark</item>
+        <item name="android:textColorPrimary">#DEDEDE</item>
+        <item name="android:textColorSecondary">#9E9E9E</item>
+        <item name="android:textColor">#DEDEDE</item>
+        <item name="android:textAppearanceLarge">@style/TextAppearance.Xcertplay.Dialog.Title</item>
+        <item name="android:textAppearanceMedium">@style/TextAppearance.Xcertplay.Dialog.Body</item>
+        <item name="android:textAppearanceSmall">@style/TextAppearance.Xcertplay.Dialog.Body</item>
+        <item name="android:textAppearanceListItem">@style/TextAppearance.Xcertplay.Dialog.Body</item>
+        <item name="android:textAppearanceListItemSmall">@style/TextAppearance.Xcertplay.Dialog.Body</item>
     </style>
     <style name="Theme.Xcertplay.Dialog.Light" parent="android:Theme.Material.Light.Dialog.Alert">
         <item name="android:fontFamily">@font/pingfang</item>
         <item name="android:colorAccent">#006BEA</item>
         <item name="android:windowBackground">@color/dialog_background_light</item>
+        <item name="android:textColorPrimary">#272727</item>
+        <item name="android:textColorSecondary">#767676</item>
+        <item name="android:textColor">#272727</item>
+        <item name="android:textAppearanceLarge">@style/TextAppearance.Xcertplay.Dialog.Title</item>
+        <item name="android:textAppearanceMedium">@style/TextAppearance.Xcertplay.Dialog.Body</item>
+        <item name="android:textAppearanceSmall">@style/TextAppearance.Xcertplay.Dialog.Body</item>
+        <item name="android:textAppearanceListItem">@style/TextAppearance.Xcertplay.Dialog.Body</item>
+        <item name="android:textAppearanceListItemSmall">@style/TextAppearance.Xcertplay.Dialog.Body</item>
     </style>
     <style name="Theme.AdbCluster" parent="android:Theme.Material.NoActionBar">
         <item name="android:fontFamily">@font/pingfang</item>
@@ -36,5 +52,13 @@
         <item name="android:windowNoTitle">true</item>
         <item name="android:backgroundDimEnabled">false</item>
         <item name="android:windowDisablePreview">true</item>
+    </style>
+    <style name="TextAppearance.Xcertplay.Dialog.Title" parent="android:TextAppearance.Material.Title">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
+    </style>
+    <style name="TextAppearance.Xcertplay.Dialog.Body" parent="android:TextAppearance.Material.Body1">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
     </style>
 </resources>

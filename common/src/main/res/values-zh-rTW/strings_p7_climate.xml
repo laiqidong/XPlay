@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="climate_open">開啟空調</string>
+    <string name="climate_back">返回</string>
+    <string name="climate_more">更多設定</string>
+    <string name="climate_failed">車輛未確認此操作，請檢查目前狀態</string>
+    <string name="climate_unavailable">暫不可用</string>
+    <string name="climate_driver">駕駛座</string>
+    <string name="climate_passenger">副駕駛座</string>
+    <string name="climate_fan">風量</string>
+    <string name="climate_power">空調開關</string>
+    <string name="climate_window">吹窗</string>
+    <string name="climate_face">吹面</string>
+    <string name="climate_feet">吹腳</string>
+    <string name="climate_front">前擋除霧</string>
+    <string name="climate_rear">後窗加熱</string>
+    <string name="climate_cycle_inner">內循環</string>
+    <string name="climate_cycle_outside">外循環</string>
+    <string name="climate_cycle_auto">自動循環</string>
+    <string name="climate_increase_fan">增加風量</string>
+    <string name="climate_decrease_fan">減少風量</string>
+    <string name="climate_increase_temp">升高溫度</string>
+    <string name="climate_decrease_temp">降低溫度</string>
+    <string name="climate_on">已開啟</string>
+    <string name="climate_off">已關閉</string>
+    <string name="climate_max">強力製冷</string>
+    <string name="climate_aqs">廢氣防護</string>
+    <string name="climate_smart_defog">智慧除霧</string>
+    <string name="settings_climate_title">空調控制（實驗性）</string>
+    <string name="settings_climate_enable">啟用空調控制</string>
+    <string name="settings_climate_enable_desc">在 CarPlay 左側欄顯示 A/C 入口。關閉後隱藏入口並關閉面板。立即生效，無需重新連線；需要本機 ADB 授權。</string>
+    <string name="settings_climate_category_desc">空調控制與車輛快捷操作。</string>
+    <string name="climate_face_feet">面部＋腳部</string>
+    <string name="climate_sync">同步</string>
+    <string name="climate_fan_level">風量 %1$d 檔</string>
+    <string name="climate_ac_cool">製冷</string>
+    <string name="climate_ac_heat">製熱</string>
+    <string name="climate_ac_natural">自然風</string>
+    <string name="climate_ac_auto">自動冷暖</string>
+    <string name="climate_stock">原車完整空調控制</string>
+    <string name="climate_deodor">智慧除味</string>
+    <string name="climate_clean">智慧清潔</string>
+    <string name="climate_smart_passenger">智慧副駕出風</string>
+</resources>

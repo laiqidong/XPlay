@@ -150,6 +150,14 @@ internal class FloatingLyricsBackdrop(private val owner: View, private val chang
                     }, main)
                 } catch (error: Exception) { report("pixel_copy_exception type=${error.javaClass.simpleName}"); bitmap.recycle(); complete(null) }
             }
+            is android.widget.ImageView -> {
+                // A static image can supply the same material in debug previews without a video session.
+                val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                val canvas = android.graphics.Canvas(bitmap)
+                canvas.scale(width.toFloat() / video.width, height.toFloat() / video.height)
+                video.draw(canvas)
+                complete(bitmap)
+            }
             else -> { report("unsupported_source type=${video.javaClass.simpleName}"); complete(null) }
         }
     }

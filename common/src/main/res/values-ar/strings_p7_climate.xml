@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="climate_open">فتح التكييف</string>
+    <string name="climate_back">رجوع</string>
+    <string name="climate_more">إعدادات إضافية</string>
+    <string name="climate_failed">لم تؤكد السيارة الأمر. تحقق من الحالة الحالية.</string>
+    <string name="climate_unavailable">غير متاح</string>
+    <string name="climate_driver">السائق</string>
+    <string name="climate_passenger">الراكب</string>
+    <string name="climate_fan">المروحة</string>
+    <string name="climate_power">التشغيل</string>
+    <string name="climate_window">الزجاج الأمامي</string>
+    <string name="climate_face">الوجه</string>
+    <string name="climate_feet">القدمين</string>
+    <string name="climate_front">إزالة ضباب الأمام</string>
+    <string name="climate_rear">تسخين الزجاج الخلفي</string>
+    <string name="climate_cycle_inner">تدوير داخلي</string>
+    <string name="climate_cycle_outside">هواء خارجي</string>
+    <string name="climate_cycle_auto">تدوير تلقائي</string>
+    <string name="climate_increase_fan">زيادة سرعة المروحة</string>
+    <string name="climate_decrease_fan">خفض سرعة المروحة</string>
+    <string name="climate_increase_temp">رفع الحرارة</string>
+    <string name="climate_decrease_temp">خفض الحرارة</string>
+    <string name="climate_on">مفعّل</string>
+    <string name="climate_off">متوقف</string>
+    <string name="climate_max">تبريد أقصى</string>
+    <string name="climate_aqs">حماية من العادم</string>
+    <string name="climate_smart_defog">إزالة ضباب ذكية</string>
+    <string name="settings_climate_title">التحكم بالتكييف (تجريبي)</string>
+    <string name="settings_climate_enable">تفعيل التحكم بالتكييف</string>
+    <string name="settings_climate_enable_desc">إظهار A/C في شريط CarPlay. يؤدي إيقافه إلى إخفاء الاختصار وإغلاق اللوحة. يسري فوراً دون إعادة اتصال. يتطلب إذن ADB المحلي.</string>
+    <string name="settings_climate_category_desc">التحكم بالتكييف واختصارات السيارة.</string>
+    <string name="climate_face_feet">الوجه والقدمين</string>
+    <string name="climate_sync">مزامنة</string>
+    <string name="climate_fan_level">سرعة المروحة %1$d</string>
+    <string name="climate_ac_cool">تبريد</string>
+    <string name="climate_ac_heat">تدفئة</string>
+    <string name="climate_ac_natural">هواء طبيعي</string>
+    <string name="climate_ac_auto">تكييف تلقائي</string>
+    <string name="climate_stock">التحكم الأصلي بالتكييف</string>
+    <string name="climate_deodor">إزالة الروائح الذكية</string>
+    <string name="climate_clean">التنظيف الذكي</string>
+    <string name="climate_smart_passenger">تدفق هواء الراكب الذكي</string>
+</resources>

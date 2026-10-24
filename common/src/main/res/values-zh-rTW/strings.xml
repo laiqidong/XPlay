@@ -893,4 +893,13 @@
     <string name="settings_controls_category">按鍵與操作</string>
     <string name="settings_controls_summary">設定方向盤按鍵、手勢和 CarPlay 車標按鈕。</string>
     <string name="settings_vehicle_carplay_data">CarPlay 車輛資料（實驗性）</string>
+    <string name="settings_vehicle_control">車輛控制</string>
+    <string name="settings_fog_title">後霧燈閃爍（實驗性）</string>
+    <string name="settings_fog_overlay">顯示霧燈懸浮按鈕</string>
+    <string name="settings_fog_behavior">點擊後持續閃爍（亮滅各 250 毫秒），再次點擊停止並恢復原燈光狀態。隱藏按鈕也會停止閃爍。</string>
+    <string name="settings_fog_supported">僅支援 Android 9 的小鵬 P7 E28。</string>
+    <string name="settings_fog_position">僅在 CarPlay 頁面顯示，預設位於左側欄 Home 上方，可拖動調整位置。離開頁面會停止閃爍。需要本機 ADB 授權。</string>
+    <string name="fog_start">開始後霧燈閃爍</string>
+    <string name="fog_stop">停止後霧燈閃爍</string>
+    <string name="fog_failed">霧燈控制失敗或恢復狀態未確認，請檢查後霧燈。</string>
 </resources>

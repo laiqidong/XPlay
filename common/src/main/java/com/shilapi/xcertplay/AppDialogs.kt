@@ -75,10 +75,22 @@ internal class AppDialogBuilder(private val owner: Context) {
         val night = owner.dialogNight()
         val colors = DiPlayPalette.of(night)
         LiquidGlassStyle.dialog(this, night, owner)
+        // OEM alert text appearances can override the theme's size and title color.
+        // Style only native chrome; custom forms keep their own semantic colors.
+        val titleId = owner.resources.getIdentifier("alertTitle", "id", "android")
+        if (titleId != 0) findViewById<TextView>(titleId)?.apply {
+            textSize = PANEL_TITLE_SP
+            setTextColor(colors.primaryText)
+            typeface = AppFonts.medium(context)
+        }
+        findViewById<TextView>(android.R.id.message)?.apply {
+            textSize = PANEL_BODY_SP
+            setTextColor(colors.primaryText)
+        }
         for (id in listOf(DialogInterface.BUTTON_NEGATIVE, DialogInterface.BUTTON_NEUTRAL, DialogInterface.BUTTON_POSITIVE)) {
             getButton(id)?.apply {
                 isAllCaps = false
-                textSize = 18f
+                textSize = PANEL_BODY_SP
                 typeface = AppFonts.medium(context)
                 val density = resources.displayMetrics.density
                 minHeight = (PANEL_CONTROL_HEIGHT_DP * resources.configuration.fontScale.coerceAtLeast(1f) * density).toInt()
@@ -90,6 +102,22 @@ internal class AppDialogBuilder(private val owner: Context) {
                 val tint = if (primary) { if (destructivePositive) colors.danger else colors.accent } else null
                 background = LiquidGlassStyle.button(this, night, tint, colors.ripple)
             }
+        }
+        listView?.let { list ->
+            fun styleOption(view: View) {
+                if (view is TextView) {
+                    view.textSize = PANEL_BODY_SP
+                    view.setTextColor(colors.primaryText)
+                    view.typeface = AppFonts.regular(view.context)
+                }
+                if (view is ViewGroup) for (i in 0 until view.childCount) styleOption(view.getChildAt(i))
+            }
+            // Native adapters inflate rows lazily, including after scrolling.
+            list.setOnHierarchyChangeListener(object : ViewGroup.OnHierarchyChangeListener {
+                override fun onChildViewAdded(parent: View?, child: View?) { child?.let(::styleOption) }
+                override fun onChildViewRemoved(parent: View?, child: View?) = Unit
+            })
+            for (i in 0 until list.childCount) styleOption(list.getChildAt(i))
         }
         arrangeNativeActions(this)
         window?.apply {
@@ -161,3 +189,6 @@ internal class AppDialogScrollView(context: Context) : androidx.core.widget.Nest
         super.onMeasure(widthMeasureSpec, View.MeasureSpec.makeMeasureSpec(limit, View.MeasureSpec.AT_MOST))
     }
 }
+
+internal const val PANEL_TITLE_SP = 20f
+private const val PANEL_BODY_SP = 18f

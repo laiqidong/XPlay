@@ -321,7 +321,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         }
         pendingCarHotspotSetup = savedInstanceState?.getBoolean("pending_car_hotspot") ?: false
         bydVehicleAdvancedExpanded = savedInstanceState?.getBoolean("byd_vehicle_advanced") ?: false
-        settingsCategory = savedInstanceState?.getString("settings_category")
+        settingsCategory = (savedInstanceState?.getString("settings_category") ?: intent.getStringExtra("settings_category"))
             ?.let { runCatching { SettingsCategory.valueOf(it) }.getOrNull() }
             ?: settingsHomeCategory
         // Old category names can remain in saved activity state after an update.
@@ -368,7 +368,8 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         }
         connectionSettingsReturnCategory = null
         page = intent.getStringExtra("page")?.let { if (it == "home" || it == "backup") "settings" else it } ?: "settings"
-        settingsCategory = settingsHomeCategory
+        settingsCategory = intent.getStringExtra("settings_category")
+            ?.let { runCatching { SettingsCategory.valueOf(it) }.getOrNull() } ?: settingsHomeCategory
         if (unifiedSettings && page in setOf("connection", "setup")) {
             page = "settings"
             settingsCategory = SettingsCategory.CONNECTION
@@ -1056,6 +1057,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         SettingsCategory.CONTROLS -> R.drawable.ic_settings_sliders_horizontal
         SettingsCategory.LYRICS -> R.drawable.ic_settings_music_2
         SettingsCategory.INSTRUMENT -> R.drawable.ic_settings_gauge
+        SettingsCategory.VEHICLE_CONTROL -> R.drawable.ic_settings_sliders_horizontal
         SettingsCategory.ABOUT -> R.drawable.ic_settings_info
     }
 
@@ -1070,6 +1072,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         SettingsCategory.CONTROLS -> R.string.settings_menu_controls
         SettingsCategory.LYRICS -> R.string.settings_lyrics_category
         SettingsCategory.INSTRUMENT -> R.string.settings_menu_instrument
+        SettingsCategory.VEHICLE_CONTROL -> R.string.settings_vehicle_control
         SettingsCategory.ABOUT -> R.string.settings_menu_about
     })
 
@@ -1099,6 +1102,10 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             SettingsCategory.INSTRUMENT -> {
                 settingsPageTitle(content, settingsCategoryTitle(SettingsCategory.INSTRUMENT), getString(R.string.settings_instrument_map_category_desc))
                 renderSections(content, categorySections(SettingsCategory.INSTRUMENT))
+            }
+            SettingsCategory.VEHICLE_CONTROL -> {
+                settingsPageTitle(content, settingsCategoryTitle(SettingsCategory.VEHICLE_CONTROL), getString(R.string.settings_climate_category_desc))
+                renderSections(content, categorySections(SettingsCategory.VEHICLE_CONTROL))
             }
             SettingsCategory.ABOUT -> about(content)
         }
@@ -1266,6 +1273,8 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
 
     private val settingsSectionRenderer by lazy {
         SettingsSectionRenderer(mapOf(
+            SettingsSection.CLIMATE_OVERLAY to ::climateOverlaySection,
+            SettingsSection.FOG_OVERLAY to ::fogOverlaySection,
             SettingsSection.FLOATING_LYRICS to ::floatingLyricsSection,
             SettingsSection.INSTRUMENT_MAP to ::instrumentMapSection,
             SettingsSection.LYRICS_SHARED to ::sharedLyricsSection,
@@ -3046,7 +3055,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                     setPadding(dp(SETTINGS_CONTENT_INSET_DP), dp(SETTINGS_CONTENT_INSET_DP),
                         dp(SETTINGS_CONTENT_INSET_DP), dp(SETTINGS_CONTENT_INSET_DP))
                     background = rounded(SURFACE, BORDER)
-                    addView(label(getString(R.string.security), 24, TEXT, true))
+                    addView(label(getString(R.string.security), PANEL_TITLE_SP.toInt(), TEXT, true))
                 }
                 securityModes.forEachIndexed { index, mode ->
                     choices.addView(button(securityTitles[index], mode == protectedSecurity && password.text.isNotEmpty()) {
@@ -3104,7 +3113,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                 dp(SETTINGS_CONTENT_INSET_DP), dp(SETTINGS_CONTENT_INSET_DP))
             background = rounded(SURFACE, BORDER)
             addView(label(getString(if (existingWifi) R.string.existing_wifi_details else R.string.car_hotspot_details),
-                24, TEXT, true))
+                PANEL_TITLE_SP.toInt(), TEXT, true))
         }
         listOf(ssid, password).forEach { input ->
             input.setTextColor(TEXT)
@@ -5338,6 +5347,33 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         parent.addView(dependent)
     }
 
+
+    private fun climateOverlaySection(content: LinearLayout) {
+        filteredSection(content, SettingsSection.CLIMATE_OVERLAY,
+            getString(R.string.settings_climate_title), R.drawable.ic_dp_car) { card ->
+            if (!P7FogButton.supported()) {
+                card.addView(label(getString(R.string.settings_fog_supported), 14, MUTED))
+            } else {
+                toggle(card, getString(R.string.settings_climate_enable), getString(R.string.settings_climate_enable_desc),
+                    P7ClimateOverlay.enabled(this)) { enabled -> P7ClimateOverlay.enable(this, enabled) }
+            }
+        }
+    }
+
+    private fun fogOverlaySection(content: LinearLayout) {
+        filteredSection(content, SettingsSection.FOG_OVERLAY,
+            getString(R.string.settings_fog_title), R.drawable.ic_p7_fog) { card ->
+            if (!P7FogButton.supported()) {
+                card.addView(label(getString(R.string.settings_fog_supported), 14, MUTED))
+            } else {
+                toggle(card, getString(R.string.settings_fog_overlay), getString(R.string.settings_fog_behavior),
+                    P7FogButton.enabled(this)) { enabled ->
+                    P7FogButton.enable(this, enabled)
+                }
+                card.addView(label(getString(R.string.settings_fog_position), 14, MUTED))
+            }
+        }
+    }
 
     private fun floatingLyricsSection(content: LinearLayout) {
         filteredSection(content, SettingsSection.FLOATING_LYRICS,

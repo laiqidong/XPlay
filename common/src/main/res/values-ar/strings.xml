@@ -882,4 +882,13 @@
     <string name="settings_controls_category">الأزرار والإيماءات</string>
     <string name="settings_controls_summary">اضبط أزرار المقود والإيماءات وزر السيارة في CarPlay.</string>
     <string name="settings_vehicle_carplay_data">بيانات السيارة في CarPlay (تجريبي)</string>
+    <string name="settings_vehicle_control">التحكم بالمركبة</string>
+    <string name="settings_fog_title">وميض ضوء الضباب الخلفي (تجريبي)</string>
+    <string name="settings_fog_overlay">إظهار زر الضباب العائم</string>
+    <string name="settings_fog_behavior">اضغط للوميض المستمر (250 مللي ثانية للتشغيل والإيقاف)؛ اضغط مجددًا للإيقاف واستعادة الحالة الأصلية. إخفاء الزر يوقف الوميض أيضًا.</string>
+    <string name="settings_fog_supported">متاح فقط لسيارة XPeng P7 E28 بنظام Android 9.</string>
+    <string name="settings_fog_position">يظهر فقط في صفحة CarPlay فوق الرئيسية بالشريط الأيسر؛ اسحبه لتغيير موضعه. مغادرة الصفحة توقف الوميض. يتطلب تفويض ADB المحلي.</string>
+    <string name="fog_start">بدء وميض الضباب الخلفي</string>
+    <string name="fog_stop">إيقاف وميض الضباب الخلفي</string>
+    <string name="fog_failed">فشل التحكم أو لم يتم تأكيد الاستعادة. تحقق من ضوء الضباب الخلفي.</string>
 </resources>

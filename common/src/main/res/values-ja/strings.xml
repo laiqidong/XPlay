@@ -932,4 +932,13 @@
     <string name="settings_controls_category">ボタンと操作</string>
     <string name="settings_controls_summary">ステアリングボタン、ジェスチャー、CarPlayの車両ボタンを設定します。</string>
     <string name="settings_vehicle_carplay_data">CarPlay車両データ（実験的機能）</string>
+    <string name="settings_vehicle_control">車両制御</string>
+    <string name="settings_fog_title">リアフォグ点滅（実験的機能）</string>
+    <string name="settings_fog_overlay">フォグのフローティングボタンを表示</string>
+    <string name="settings_fog_behavior">タップで連続点滅（点灯・消灯各250ミリ秒）、再度タップで停止し元の状態に戻します。ボタンを非表示にしても停止します。</string>
+    <string name="settings_fog_supported">Android 9 の XPeng P7 E28 のみ対応。</string>
+    <string name="settings_fog_position">CarPlay画面の左バー、ホームの上にのみ表示します。ドラッグで移動できます。画面を離れると点滅を停止します。ローカルADB認証が必要です。</string>
+    <string name="fog_start">リアフォグ点滅を開始</string>
+    <string name="fog_stop">リアフォグ点滅を停止</string>
+    <string name="fog_failed">フォグ制御に失敗、または復元未確認です。リアフォグを確認してください。</string>
 </resources>

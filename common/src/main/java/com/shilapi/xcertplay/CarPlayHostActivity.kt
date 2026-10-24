@@ -357,6 +357,8 @@ class CarPlayHostActivity : ComponentActivity() {
     private var picturePanelGeneration = 0
     private var gestureOverlay: View? = null
     private var floatingLyricsView: FloatingLyricsView? = null
+    private var fogButton: P7FogButton? = null
+    private var climateOverlay: P7ClimateOverlay? = null
     private var settingsMenu: View? = null
     private var settingsMenuCategoryKey = "connection"
     private var settingsMenuContentScroll: ScrollView? = null
@@ -1089,6 +1091,8 @@ class CarPlayHostActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        fogButton?.resume()
+        climateOverlay?.resume()
         WheelKeyService.restoreIfNeeded(this)
         hostAppearanceResumed = true
         updateCallPopupGuard()
@@ -1640,6 +1644,8 @@ class CarPlayHostActivity : ComponentActivity() {
     }
 
     override fun onPause() {
+        fogButton?.pause()
+        climateOverlay?.pause()
         cancelSystemBack()
         hostAppearanceResumed = false
         updateCallPopupGuard()
@@ -1744,6 +1750,10 @@ class CarPlayHostActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        climateOverlay?.close()
+        climateOverlay = null
+        fogButton?.close()
+        fogButton = null
         if (!CarPlayBackgroundSession.hasSession()) P7CarPlayData.stopSession()
         cancelSystemBack()
         discardLastPicture()
@@ -1865,6 +1875,15 @@ class CarPlayHostActivity : ComponentActivity() {
                 setMargins(0, dp(12), dp(12), 0)
             })
         }
+        fogButton = P7FogButton(root, night = { darkMode }, source = { fallbackVideoView ?: videoView }) {
+            SCREEN_TYPE_MAIN in activeScreenStreamTypes && !menuOpen && !shuttingDown.get()
+        }
+        climateOverlay = P7ClimateOverlay(root,
+            night = { darkMode },
+            eligible = { SCREEN_TYPE_MAIN in activeScreenStreamTypes && !menuOpen && !shuttingDown.get() && picturePanel == null },
+            source = { fallbackVideoView ?: videoView },
+            videoBounds = { val bounds = contentRect(root.width, root.height); RectF(bounds.left, bounds.top, bounds.left + bounds.width, bounds.top + bounds.height) },
+            cancelTouch = { controller?.sendTouch(emptyList()) })
         settingsMenu = buildSettingsMenu().apply { visibility = View.GONE }
         root.addView(settingsMenu, FrameLayout.LayoutParams(-1, -1))
         safeAreaEditor = buildSafeAreaEditor().apply { visibility = View.GONE }
@@ -5744,7 +5763,9 @@ class CarPlayHostActivity : ComponentActivity() {
     }
 
     private fun handleSystemBack() {
-        if (picturePanel != null) {
+        if (climateOverlay?.dismiss() == true) {
+            cancelSystemBack()
+        } else if (picturePanel != null) {
             cancelSystemBack()
             closePicturePanel()
         } else if (menuOpen) {

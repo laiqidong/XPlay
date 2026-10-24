@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="climate_open">Open A/C</string>
+    <string name="climate_back">Back</string>
+    <string name="climate_more">More settings</string>
+    <string name="climate_failed">The car did not confirm this command. Check the current state.</string>
+    <string name="climate_unavailable">Unavailable</string>
+    <string name="climate_driver">Driver</string>
+    <string name="climate_passenger">Passenger</string>
+    <string name="climate_fan">Fan</string>
+    <string name="climate_power">Power</string>
+    <string name="climate_window">Windshield</string>
+    <string name="climate_face">Face</string>
+    <string name="climate_feet">Feet</string>
+    <string name="climate_front">Front defrost</string>
+    <string name="climate_rear">Rear defrost</string>
+    <string name="climate_cycle_inner">Recirculate</string>
+    <string name="climate_cycle_outside">Outside air</string>
+    <string name="climate_cycle_auto">Auto circulation</string>
+    <string name="climate_increase_fan">Increase fan speed</string>
+    <string name="climate_decrease_fan">Decrease fan speed</string>
+    <string name="climate_increase_temp">Increase temperature</string>
+    <string name="climate_decrease_temp">Decrease temperature</string>
+    <string name="climate_on">On</string>
+    <string name="climate_off">Off</string>
+    <string name="climate_max">Max cooling</string>
+    <string name="climate_aqs">Exhaust protection</string>
+    <string name="climate_smart_defog">Smart defog</string>
+    <string name="settings_climate_title">A/C controls (experimental)</string>
+    <string name="settings_climate_enable">Enable A/C controls</string>
+    <string name="settings_climate_enable_desc">Show the A/C shortcut in CarPlay. Turning it off hides the shortcut and closes the panel. Takes effect immediately; no reconnect required. Requires local ADB approval.</string>
+    <string name="settings_climate_category_desc">A/C controls and vehicle shortcuts.</string>
+    <string name="climate_face_feet">Face + feet</string>
+    <string name="climate_sync">Sync</string>
+    <string name="climate_fan_level">Fan level %1$d</string>
+    <string name="climate_ac_cool">Cooling</string>
+    <string name="climate_ac_heat">Heating</string>
+    <string name="climate_ac_natural">Natural air</string>
+    <string name="climate_ac_auto">Automatic A/C</string>
+    <string name="climate_stock">Stock climate controls</string>
+    <string name="climate_deodor">Smart deodorizing</string>
+    <string name="climate_clean">Smart cleaning</string>
+    <string name="climate_smart_passenger">Smart passenger airflow</string>
+</resources>

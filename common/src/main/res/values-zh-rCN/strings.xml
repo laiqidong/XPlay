@@ -893,4 +893,13 @@
     <string name="settings_controls_category">按键与操作</string>
     <string name="settings_controls_summary">设置方向盘按键、手势和 CarPlay 车标按钮。</string>
     <string name="settings_vehicle_carplay_data">CarPlay 车辆数据（实验性）</string>
+    <string name="settings_vehicle_control">车辆控制</string>
+    <string name="settings_fog_title">后雾灯爆闪（实验性）</string>
+    <string name="settings_fog_overlay">显示雾灯悬浮按钮</string>
+    <string name="settings_fog_behavior">点击后持续闪烁（亮灭各 250 毫秒），再次点击停止并恢复原灯光状态。隐藏按钮也会停止闪烁。</string>
+    <string name="settings_fog_supported">仅支持 Android 9 的小鹏 P7 E28。</string>
+    <string name="settings_fog_position">仅在 CarPlay 页面显示，默认位于左侧栏 Home 上方，可拖动调整位置。离开页面会停止闪烁。需要本机 ADB 授权。</string>
+    <string name="fog_start">开始后雾灯爆闪</string>
+    <string name="fog_stop">停止后雾灯爆闪</string>
+    <string name="fog_failed">雾灯控制失败或恢复状态未确认，请检查后雾灯。</string>
 </resources>

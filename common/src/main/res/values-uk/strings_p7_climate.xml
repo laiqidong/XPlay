@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="climate_open">Відкрити клімат</string>
+    <string name="climate_back">Назад</string>
+    <string name="climate_more">Інші налаштування</string>
+    <string name="climate_failed">Автомобіль не підтвердив команду. Перевірте поточний стан.</string>
+    <string name="climate_unavailable">Недоступно</string>
+    <string name="climate_driver">Водій</string>
+    <string name="climate_passenger">Пасажир</string>
+    <string name="climate_fan">Вентилятор</string>
+    <string name="climate_power">Живлення</string>
+    <string name="climate_window">На скло</string>
+    <string name="climate_face">В обличчя</string>
+    <string name="climate_feet">В ноги</string>
+    <string name="climate_front">Обігрів лобового</string>
+    <string name="climate_rear">Обігрів заднього</string>
+    <string name="climate_cycle_inner">Рециркуляція</string>
+    <string name="climate_cycle_outside">Зовнішнє повітря</string>
+    <string name="climate_cycle_auto">Автоциркуляція</string>
+    <string name="climate_increase_fan">Збільшити обдув</string>
+    <string name="climate_decrease_fan">Зменшити обдув</string>
+    <string name="climate_increase_temp">Підвищити температуру</string>
+    <string name="climate_decrease_temp">Знизити температуру</string>
+    <string name="climate_on">Увімкнено</string>
+    <string name="climate_off">Вимкнено</string>
+    <string name="climate_max">Макс. охолодження</string>
+    <string name="climate_aqs">Захист від вихлопу</string>
+    <string name="climate_smart_defog">Автообігрів скла</string>
+    <string name="settings_climate_title">Керування кліматом (експериментально)</string>
+    <string name="settings_climate_enable">Увімкнути керування кліматом</string>
+    <string name="settings_climate_enable_desc">Показує A/C на панелі CarPlay. Вимкнення приховує кнопку та закриває панель. Діє одразу, без перепідключення. Потрібен дозвіл локального ADB.</string>
+    <string name="settings_climate_category_desc">Клімат і швидкі дії автомобіля.</string>
+    <string name="climate_face_feet">Обличчя та ноги</string>
+    <string name="climate_sync">Синхронізація</string>
+    <string name="climate_fan_level">Рівень обдуву %1$d</string>
+    <string name="climate_ac_cool">Охолодження</string>
+    <string name="climate_ac_heat">Обігрів</string>
+    <string name="climate_ac_natural">Вентиляція</string>
+    <string name="climate_ac_auto">Автоматичний клімат</string>
+    <string name="climate_stock">Штатний клімат</string>
+    <string name="climate_deodor">Розумне усунення запахів</string>
+    <string name="climate_clean">Розумне очищення</string>
+    <string name="climate_smart_passenger">Розумний обдув пасажира</string>
+</resources>

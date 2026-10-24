@@ -2,11 +2,13 @@
 package com.shilapi.xcertplay
 
 internal enum class SettingsCategory {
-    OVERVIEW, CONNECTION, DISPLAY, AUDIO, NAVIGATION, CONTROLS, VEHICLE, DIAGNOSTICS, LYRICS, INSTRUMENT, ABOUT,
+    OVERVIEW, CONNECTION, DISPLAY, AUDIO, NAVIGATION, CONTROLS, VEHICLE, DIAGNOSTICS, LYRICS, INSTRUMENT, VEHICLE_CONTROL, ABOUT,
 }
 
 /** A settings card. Every entry needs one category in [SettingsInformationArchitecture]; see AGENTS.md. */
 internal enum class SettingsSection {
+    CLIMATE_OVERLAY,
+    FOG_OVERLAY,
     P7_CARPLAY_DATA,
     INSTRUMENT_MAP,
     FLOATING_LYRICS,
@@ -54,6 +56,7 @@ internal object SettingsInformationArchitecture {
             SettingsSection.PERMISSIONS_AND_HELP, SettingsSection.BACKUP),
         SettingsCategory.LYRICS to setOf(SettingsSection.FLOATING_LYRICS, SettingsSection.LYRICS_SHARED),
         SettingsCategory.INSTRUMENT to setOf(SettingsSection.INSTRUMENT_MAP),
+        SettingsCategory.VEHICLE_CONTROL to setOf(SettingsSection.CLIMATE_OVERLAY, SettingsSection.FOG_OVERLAY),
         SettingsCategory.ABOUT to emptySet(),
     )
 

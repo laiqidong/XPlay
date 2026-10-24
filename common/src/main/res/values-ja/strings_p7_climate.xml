@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="climate_open">エアコンを開く</string>
+    <string name="climate_back">戻る</string>
+    <string name="climate_more">その他の設定</string>
+    <string name="climate_failed">車両が操作を確認できませんでした。現在の状態を確認してください</string>
+    <string name="climate_unavailable">利用不可</string>
+    <string name="climate_driver">運転席</string>
+    <string name="climate_passenger">助手席</string>
+    <string name="climate_fan">風量</string>
+    <string name="climate_power">電源</string>
+    <string name="climate_window">窓</string>
+    <string name="climate_face">上半身</string>
+    <string name="climate_feet">足元</string>
+    <string name="climate_front">前面の曇り取り</string>
+    <string name="climate_rear">リアデフォッガー</string>
+    <string name="climate_cycle_inner">内気循環</string>
+    <string name="climate_cycle_outside">外気導入</string>
+    <string name="climate_cycle_auto">自動循環</string>
+    <string name="climate_increase_fan">風量を上げる</string>
+    <string name="climate_decrease_fan">風量を下げる</string>
+    <string name="climate_increase_temp">温度を上げる</string>
+    <string name="climate_decrease_temp">温度を下げる</string>
+    <string name="climate_on">オン</string>
+    <string name="climate_off">オフ</string>
+    <string name="climate_max">急速冷房</string>
+    <string name="climate_aqs">排気ガス対策</string>
+    <string name="climate_smart_defog">自動曇り取り</string>
+    <string name="settings_climate_title">エアコン操作（実験的機能）</string>
+    <string name="settings_climate_enable">エアコン操作を有効化</string>
+    <string name="settings_climate_enable_desc">CarPlay の左側に A/C を表示します。オフにすると入口を非表示にし、パネルを閉じます。即時反映され、再接続は不要です。ローカル ADB の許可が必要です。</string>
+    <string name="settings_climate_category_desc">エアコン操作と車両のショートカット。</string>
+    <string name="climate_face_feet">上半身＋足元</string>
+    <string name="climate_sync">同期</string>
+    <string name="climate_fan_level">風量 %1$d</string>
+    <string name="climate_ac_cool">冷房</string>
+    <string name="climate_ac_heat">暖房</string>
+    <string name="climate_ac_natural">送風</string>
+    <string name="climate_ac_auto">自動冷暖房</string>
+    <string name="climate_stock">純正エアコン操作</string>
+    <string name="climate_deodor">スマート消臭</string>
+    <string name="climate_clean">スマート清掃</string>
+    <string name="climate_smart_passenger">助手席スマート送風</string>
+</resources>
