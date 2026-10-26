@@ -30,6 +30,12 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
     private var disposed = false
     private var state: JSONObject? = null
     private var pending = false
+    private var requestedTarget: Pair<String, Double>? = null
+    private val targetTimeout = Runnable {
+        requestedTarget = null
+        pending = false
+        paint()
+    }
     private var monitoring = false
     private var uiScale = 1f
     private var feedback: P7ClimateFeedback? = null
@@ -60,8 +66,17 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
     }
     private val entryContrast = CarPlayControlContrast(entry, source, night) { updateEntryColor() }
     private val controller = sessionFactory(context, { data ->
-        state = data; pending = false; paint()
-    }, { Toast.makeText(context, R.string.climate_failed, Toast.LENGTH_SHORT).show() })
+        state = data
+        requestedTarget?.let { (key, target) ->
+            if (data == null || !data.optBoolean("ok", false) ||
+                (!data.isNull(key) && kotlin.math.abs(data.optDouble(key) - target) < .01)) clearTarget()
+        }
+        pending = requestedTarget != null
+        paint()
+    }, {
+        clearTarget(); pending = false; paint()
+        Toast.makeText(context, R.string.climate_failed, Toast.LENGTH_SHORT).show()
+    })
     private val refresh = object : Runnable {
         override fun run() {
             if (!resumed || disposed) return
@@ -88,7 +103,7 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
         if (!isOpen()) return false
         panel.animate().cancel(); panel.translationY = 0f
         panel.visibility = View.GONE; outside.visibility = View.GONE; panel.active(false)
-        pending = false; paint()
+        clearTarget(); pending = false; paint()
         return true
     }
     fun open() {
@@ -239,7 +254,21 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
         val density = context.resources.displayMetrics.density
         val availableW = layoutWidth / density
         val availableH = layoutHeight / density
-        val scale = controlScale(availableW, availableH)
+        // Include captions and reserved lower space when fitting the complete sheet.
+        // The old design-height scale predated captions and made the content scroll.
+        fun requiredHeight(scale: Float): Int = dp(PADDING_DP * scale) * 2 +
+            dp(HEADER_DP * scale).coerceAtLeast(dp(MIN_TOUCH_DP)) + dp(GAP_DP * scale) +
+            dp(TOP_GROUP_DP * scale) + dp(SECTION_GAP_DP * scale) * 2 +
+            dp(LABELED_ROW_GAP_DP * scale) * 2 +
+            (climateButtonSize(scale) + dp(CONTROL_LABEL_HEIGHT_DP * scale) + dp(INNER_DP * scale)) * 2 +
+            dp(CONTROLS_VERTICAL_OFFSET_DP * scale) * 2
+        var low = 0f
+        var high = controlScale(availableW, availableH)
+        repeat(16) {
+            val candidate = (low + high) / 2f
+            if (requiredHeight(candidate) <= layoutHeight) low = candidate else high = candidate
+        }
+        val scale = low.coerceAtLeast(.01f)
         uiScale = scale
         val gap = dp(GAP_DP * scale)
         val pad = dp(PADDING_DP * scale)
@@ -253,15 +282,15 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
         controls["status"] = status
         header.addView(status, LinearLayout.LayoutParams(0, -1, 1f))
         content.addView(header, LinearLayout.LayoutParams(-1, dp(HEADER_DP * scale).coerceAtLeast(dp(MIN_TOUCH_DP))))
-        val scroll = ScrollView(context).apply { isFillViewport = true; clipToPadding = false }
-        content.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = gap })
-        val body = LinearLayout(context).apply { orientation = LinearLayout.VERTICAL }
-        scroll.addView(body, FrameLayout.LayoutParams(-1, -1))
+        val body = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(0, 0, 0, dp(CONTROLS_VERTICAL_OFFSET_DP * scale) * 2)
+        }
+        content.addView(body, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = gap })
         run {
             body.gravity = Gravity.CENTER_VERTICAL
             val groups = LinearLayout(context).apply {
                 orientation = LinearLayout.VERTICAL
-                translationY = -dp(CONTROLS_VERTICAL_OFFSET_DP * scale).toFloat()
             }
             val top = LinearLayout(context).apply { gravity = Gravity.CENTER_VERTICAL }
             top.addView(temperature("driver", s(R.string.climate_driver), scale), LinearLayout.LayoutParams(0, -1, 1f))
@@ -346,15 +375,6 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
         val dial = TemperatureDial(key, label, scale)
         temperatureDials[key] = dial
         addView(dial, FrameLayout.LayoutParams(-1, -1))
-        val adjust = LinearLayout(context).apply {
-            isBaselineAligned = false
-            gravity = Gravity.CENTER_VERTICAL
-        }
-        val size = dp(TEMPERATURE_ADJUST_DP * scale).coerceAtLeast(dp(MIN_TOUCH_DP))
-        adjust.addView(button("", "${key}_down", "minus", 20f) { send("${key.uppercase(Locale.ROOT)}_DOWN") }, LinearLayout.LayoutParams(size, -1))
-        adjust.addView(Space(context), LinearLayout.LayoutParams(0, 1, 1f))
-        adjust.addView(button("", "${key}_up", "plus", 20f) { send("${key.uppercase(Locale.ROOT)}_UP") }, LinearLayout.LayoutParams(size, -1))
-        addView(adjust, FrameLayout.LayoutParams(-1, size, Gravity.BOTTOM))
     }
     /** Local gesture preview; only ACTION_UP writes a half-degree target. */
     private inner class TemperatureDial(val key: String, val label: String, val scale: Float) : View(context) {
@@ -362,6 +382,10 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
         var powered = true
         private var draft: Float? = null
         private var tracking = false
+        private var dragging = false
+        private var downX = 0f
+        private var downY = 0f
+        private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
         val isTracking get() = tracking
         private val ink = Paint(Paint.ANTI_ALIAS_FLAG)
         private val arc = RectF()
@@ -375,7 +399,7 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
             val buttons = dp(TEMPERATURE_ADJUST_DP * scale).coerceAtLeast(dp(MIN_TOUCH_DP)).toFloat()
             radius = ((minOf(width.toFloat(), dp(DIAL_LAYOUT_HEIGHT_DP * scale) - title - buttons) - stroke) / 2f).coerceAtLeast(1f)
             cx = width / 2f
-            // The two arc ends sit on the same baseline as the bottom adjustment buttons.
+            // Keep the arc ends level with the fan readout below the track.
             cy = height - buttons / 2f - radius * kotlin.math.sin(Math.toRadians(DIAL_START.toDouble())).toFloat()
             arc.set(cx - radius, cy - radius, cx + radius, cy + radius)
         }
@@ -409,38 +433,64 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
                 canvas.drawCircle(cx + radius * kotlin.math.cos(angle).toFloat(), cy + radius * kotlin.math.sin(angle).toFloat(), stroke * .37f, ink)
             }
             ink.color = if (powered) Color.WHITE else MUTED
-            ink.typeface = Typeface.create("sans-serif", Typeface.NORMAL)
-            ink.textSize = minOf(dp(DIAL_VALUE_DP * scale).toFloat(), radius * .48f)
+            ink.typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+            ink.textSize = minOf(dp(DIAL_VALUE_DP * scale).toFloat(), radius * .56f)
             val text = if (!powered) s(R.string.climate_off) else value?.let { String.format(Locale.getDefault(), "%.1f", it) } ?: "—"
             canvas.drawText(text, cx, cy - (ink.ascent() + ink.descent()) / 2f, ink)
         }
-        private fun updateDraft(event: MotionEvent) {
-            val angle = ((Math.toDegrees(kotlin.math.atan2((event.y - cy).toDouble(), (event.x - cx).toDouble())).toFloat() - DIAL_START + 360f) % 360f)
+        private fun relativeAngle(x: Float, y: Float): Float =
+            (Math.toDegrees(kotlin.math.atan2((y - cy).toDouble(), (x - cx).toDouble())).toFloat() - DIAL_START + 360f) % 360f
+        private fun valueAt(x: Float, y: Float): Float {
+            val angle = relativeAngle(x, y)
             val bounded = if (angle <= DIAL_SWEEP) angle else if (angle < DIAL_SWEEP + (360f - DIAL_SWEEP) / 2f) DIAL_SWEEP else 0f
-            val next = (kotlin.math.round((DIAL_MIN + bounded / DIAL_SWEEP * (DIAL_MAX - DIAL_MIN)) * 2f) / 2f).coerceIn(DIAL_MIN, DIAL_MAX)
+            return DIAL_MIN + bounded / DIAL_SWEEP * (DIAL_MAX - DIAL_MIN)
+        }
+        private fun updateDraft(event: MotionEvent) {
+            val next = (kotlin.math.round(valueAt(event.x, event.y) * 2f) / 2f).coerceIn(DIAL_MIN, DIAL_MAX)
             if (next != (draft ?: actual)) feedback?.tick()
             draft = next
             contentDescription = "$label · $draft°C"
             invalidate()
         }
+        private fun movedBeyondSlop(event: MotionEvent) =
+            kotlin.math.hypot(event.x - downX, event.y - downY) > touchSlop
         override fun onTouchEvent(event: MotionEvent): Boolean {
             if (!isEnabled || !powered) return false
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     geometry()
                     val distance = kotlin.math.hypot(event.x - cx, event.y - cy)
-                    if (kotlin.math.abs(distance - radius) > dp(MIN_TOUCH_DP) / 2f) return false
-                    tracking = true; parent.requestDisallowInterceptTouchEvent(true); updateDraft(event)
+                    if (kotlin.math.abs(distance - radius) > dp(MIN_TOUCH_DP) / 2f || relativeAngle(event.x, event.y) > DIAL_SWEEP) return false
+                    downX = event.x; downY = event.y
+                    tracking = true; dragging = false; draft = null
+                    parent.requestDisallowInterceptTouchEvent(true)
                 }
-                MotionEvent.ACTION_MOVE -> if (tracking) updateDraft(event)
+                MotionEvent.ACTION_MOVE -> if (tracking) {
+                    if (!dragging && movedBeyondSlop(event)) dragging = true
+                    if (dragging) updateDraft(event)
+                }
                 MotionEvent.ACTION_UP -> if (tracking) {
-                    updateDraft(event)
-                    val target = draft
-                    tracking = false; draft = null; parent.requestDisallowInterceptTouchEvent(false)
-                    if (target != null && target != actual) send("${key.uppercase(Locale.ROOT)}_TEMP_${(target * 2).toInt()}")
-                    performClick(); invalidate()
+                    if (!dragging && movedBeyondSlop(event)) dragging = true
+                    if (dragging) {
+                        updateDraft(event)
+                        draft?.takeIf { it != actual }?.let { submitTarget(key, it.toDouble(), "${key.uppercase(Locale.ROOT)}_TEMP_${(it * 2).toInt()}") }
+                    } else {
+                        // A tap nudges just one detent towards the touched part of the arc.
+                        actual?.let { current ->
+                            val touched = valueAt(downX, downY)
+                            if (touched > current + DIAL_TAP_DEADBAND && current < DIAL_MAX) send("${key.uppercase(Locale.ROOT)}_UP")
+                            else if (touched < current - DIAL_TAP_DEADBAND && current > DIAL_MIN) send("${key.uppercase(Locale.ROOT)}_DOWN")
+                        }
+                        performClick()
+                    }
+                    tracking = false; dragging = false; draft = null
+                    parent.requestDisallowInterceptTouchEvent(false)
+                    invalidate()
                 }
-                MotionEvent.ACTION_CANCEL -> { tracking = false; draft = null; parent.requestDisallowInterceptTouchEvent(false); invalidate() }
+                MotionEvent.ACTION_CANCEL -> {
+                    tracking = false; dragging = false; draft = null
+                    parent.requestDisallowInterceptTouchEvent(false); invalidate()
+                }
             }
             return true
         }
@@ -461,33 +511,26 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
     private fun fanGroup(scale: Float) = LinearLayout(context).apply {
         orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_VERTICAL
         val slider = FanSlider(context, detent = { feedback?.tick() },
-            commit = { level -> send("FAN_LEVEL_$level") },
+            commit = { level -> submitTarget("fan", level.toDouble(), "FAN_LEVEL_$level") },
             preview = { level -> setFanReadout(level?.toString() ?: when(val actual = valid("fan")) {
                 null -> "—"; 14 -> "AUTO"; else -> actual.toString()
             }) }).also { fanSlider = it }
         val controlSize = dp(TEMPERATURE_ADJUST_DP * scale).coerceAtLeast(dp(MIN_TOUCH_DP))
-        val sliderArea = FrameLayout(context)
-        sliderArea.addView(slider, FrameLayout.LayoutParams(-1, controlSize, Gravity.BOTTOM).apply {
+        addView(button("—", "fan", "fan", FAN_VALUE_TEXT_DP * scale) {}.apply {
+            contentDescription = s(R.string.climate_fan)
+        }, LinearLayout.LayoutParams(-1, dp(FAN_READOUT_HEIGHT_DP * scale).coerceAtLeast(controlSize)))
+        addView(slider, LinearLayout.LayoutParams(-1, controlSize).apply {
             leftMargin = controlSize
             rightMargin = controlSize
-            bottomMargin = dp(GAP_DP * scale)
+            topMargin = dp(GAP_DP * scale)
         })
-        addView(sliderArea, LinearLayout.LayoutParams(-1, 0, 1f))
-        val adjust = LinearLayout(context).apply {
-            isBaselineAligned = false
-            gravity = Gravity.CENTER_VERTICAL
-        }
-        adjust.addView(button("", "fan_down", "minus", 20f) { send("FAN_DOWN") }, LinearLayout.LayoutParams(controlSize, controlSize))
-        adjust.addView(button("—", "fan", "fan", FAN_VALUE_TEXT_DP * scale) {}.apply {
-            contentDescription = s(R.string.climate_fan)
-        }, LinearLayout.LayoutParams(0, controlSize, 1f))
-        adjust.addView(button("", "fan_up", "plus", 20f) { send("FAN_UP") }, LinearLayout.LayoutParams(controlSize, controlSize))
-        addView(adjust, LinearLayout.LayoutParams(-1, controlSize))
     }
     private fun setFanReadout(value: String) {
         controls["fan"]?.apply {
             text = value
             textSize = (if (value == "AUTO") FAN_AUTO_TEXT_DP else FAN_VALUE_TEXT_DP) * uiScale
+            (this as? ClimateControlView)?.setFanSpeed(value.toIntOrNull() ?: if (value == "AUTO") 14 else null,
+                valid("power") == 1 && isOpen() && resumed)
         }
     }
     private fun button(label: String, key: String, icon: String?, font: Float, action: () -> Unit): TextView {
@@ -587,7 +630,7 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
             view.isSelected = selected(key)
             if (key in listOf("driver", "passenger")) {
                 view.text = temperatureValue(key)?.let { String.format(Locale.getDefault(), "%.1f°C", it) } ?: "—"
-            } else if (key == "fan" && fanSlider?.isTracking != true) setFanReadout(when (val v = valid(key)) { null -> "—"; 14 -> "AUTO"; else -> v.toString() })
+            } else if (key == "fan" && fanSlider?.isTracking != true) setFanReadout(when (val v = requestedTarget?.takeIf { it.first == "fan" }?.second?.toInt() ?: valid(key)) { null -> "—"; 14 -> "AUTO"; else -> v.toString() })
             else if (key == "cycle") view.text = s(when (valid(key)) { 1 -> R.string.climate_cycle_inner; 2 -> R.string.climate_cycle_outside; else -> R.string.climate_cycle_auto })
             if (key !in listOf("driver", "passenger", "fan")) {
                 view.background = surface(view, view.isSelected, roundControl(key))
@@ -610,7 +653,7 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
             if (view.isClickable) view.contentDescription = "${view.contentDescription.toString().substringBefore(" · ")} · ${if (!available) s(R.string.climate_unavailable) else if (view.isSelected) s(R.string.climate_on) else s(R.string.climate_off)}"
         }
         temperatureDials.forEach { (key, dial) ->
-            dial.actual = temperatureValue(key)?.toFloat()
+            dial.actual = (requestedTarget?.takeIf { it.first == key }?.second ?: temperatureValue(key))?.toFloat()
             dial.powered = power != 0
             if (!dial.isTracking) dial.contentDescription = "${dial.label} · ${dial.actual?.let { String.format(Locale.getDefault(), "%.1f°C", it) } ?: "—"}"
             dial.isEnabled = dial.actual != null && !pending
@@ -619,7 +662,7 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
         }
         fanSlider?.apply {
             isEnabled = valid("fan") != null && !pending
-            value = valid("fan")?.takeIf { it in 0..FAN_LEVELS }
+            value = (requestedTarget?.takeIf { it.first == "fan" }?.second?.toInt() ?: valid("fan"))?.takeIf { it in 0..FAN_LEVELS }
             automatic = valid("fan") == 14
             alpha = if (valid("fan") == null) .4f else 1f
         }
@@ -635,13 +678,27 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
         send(AC_MODE_COMMANDS[(current / 2 + 1) % AC_MODE_COMMANDS.size])
     }
     private fun toggle(key: String, command: String) { if (valid(key) != null) send("${command}_${if (selected(key)) "OFF" else "ON"}") }
-    private fun send(command: String) {
-        if (pending || !isOpen() || !resumed || !enabled(context) || !eligible()) return
+    private fun clearTarget() {
+        requestedTarget = null
+        main.removeCallbacks(targetTimeout)
+    }
+    private fun submitTarget(key: String, target: Double, command: String) {
+        if (pending) return
+        requestedTarget = key to target
+        if (send(command)) {
+            // Ignore intermediate old readbacks until acknowledgement, failure or timeout.
+            if (requestedTarget != null) main.postDelayed(targetTimeout, TARGET_CONFIRM_TIMEOUT_MS)
+        } else { clearTarget(); paint() }
+    }
+    private fun send(command: String): Boolean {
+        if (pending || !isOpen() || !resumed || !enabled(context) || !eligible()) return false
         if (controller.request(command)) {
             if ((command.startsWith("DRIVER_") || command.startsWith("PASSENGER_") || command.startsWith("FAN_")) &&
                 (command.endsWith("_UP") || command.endsWith("_DOWN"))) feedback?.tick()
             pending = true; paint()
+            return true
         }
+        return false
     }
     private fun roundControl(key: String) = key.startsWith("vehicle_") || key == "back" || key in BOTTOM_KEYS || key in MIDDLE_KEYS || key.endsWith("_up") || key.endsWith("_down")
 
@@ -708,8 +765,12 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
         var value: Int? = null
             set(newValue) { field = newValue; if (!dragging) invalidate() }
         var automatic = false
-        val isTracking: Boolean get() = dragging
+        val isTracking: Boolean get() = tracking
+        private var tracking = false
         private var dragging = false
+        private var downX = 0f
+        private var downY = 0f
+        private val touchSlop = ViewConfiguration.get(context).scaledTouchSlop
         private var draft = 1
         private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
         init {
@@ -728,25 +789,49 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
             }
 
         }
+        private fun levelAt(x: Float) =
+            ((x / width.coerceAtLeast(1) * FAN_LEVELS).toInt() + 1).coerceIn(1, FAN_LEVELS)
+        private fun movedBeyondSlop(event: MotionEvent) =
+            kotlin.math.hypot(event.x - downX, event.y - downY) > touchSlop
         override fun onTouchEvent(event: MotionEvent): Boolean {
             if (!isEnabled) return false
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     draft = value ?: 1
-                    dragging = true; parent?.requestDisallowInterceptTouchEvent(true)
-                    updateDraft(event.x); return true
+                    downX = event.x; downY = event.y
+                    tracking = true; dragging = false
+                    parent?.requestDisallowInterceptTouchEvent(true)
+                    return true
                 }
-                MotionEvent.ACTION_MOVE -> { updateDraft(event.x); return true }
-                MotionEvent.ACTION_UP -> {
-                    updateDraft(event.x); dragging = false; parent?.requestDisallowInterceptTouchEvent(false)
-                    performClick(); commit(draft); invalidate(); return true
+                MotionEvent.ACTION_MOVE -> if (tracking) {
+                    if (!dragging && movedBeyondSlop(event)) dragging = true
+                    if (dragging) updateDraft(levelAt(event.x))
+                    return true
                 }
-                MotionEvent.ACTION_CANCEL -> { dragging = false; preview(null); parent?.requestDisallowInterceptTouchEvent(false); invalidate(); return true }
+                MotionEvent.ACTION_UP -> if (tracking) {
+                    if (!dragging && movedBeyondSlop(event)) dragging = true
+                    if (dragging) updateDraft(levelAt(event.x))
+                    else {
+                        val current = value ?: 1
+                        val touched = levelAt(downX)
+                        val next = (current + touched.compareTo(current)).coerceIn(1, FAN_LEVELS)
+                        updateDraft(next)
+                        performClick()
+                    }
+                    val target = draft
+                    tracking = false; dragging = false
+                    parent?.requestDisallowInterceptTouchEvent(false)
+                    if (target != value) commit(target) else preview(null)
+                    invalidate(); return true
+                }
+                MotionEvent.ACTION_CANCEL -> {
+                    tracking = false; dragging = false; preview(null)
+                    parent?.requestDisallowInterceptTouchEvent(false); invalidate(); return true
+                }
             }
             return super.onTouchEvent(event)
         }
-        private fun updateDraft(x: Float) {
-            val next = ((x / width.coerceAtLeast(1) * FAN_LEVELS).toInt() + 1).coerceIn(1, FAN_LEVELS)
+        private fun updateDraft(next: Int) {
             if (next != draft) { performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK); detent() }
             draft = next
             preview(draft)
@@ -789,6 +874,47 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
         }
         private var iconKey = icon
         private var glyph = icon?.let { loader(context, it) }
+        private var fanPeriodMs = 0L
+        private var fanAngle = 0f
+        private var fanFrameTime = 0L
+        private var fanAnimator: android.animation.ValueAnimator? = null
+        fun setFanSpeed(level: Int?, powered: Boolean) {
+            advanceFanAngle(android.os.SystemClock.uptimeMillis())
+            fanPeriodMs = if (iconKey != "fan" || !powered) 0L else when (level) {
+                14 -> 2400L
+                in 1..10 -> 4000L - (level ?: 0) * 280L
+                else -> 0L
+            }
+            updateFanAnimation()
+        }
+        private fun advanceFanAngle(now: Long) {
+            if (fanFrameTime != 0L && fanPeriodMs > 0L) {
+                fanAngle = (fanAngle + 360f * (now - fanFrameTime) / fanPeriodMs) % 360f
+            }
+            fanFrameTime = now
+        }
+        private fun updateFanAnimation() {
+            val animate = fanPeriodMs > 0L && isAttachedToWindow && isShown && windowVisibility == View.VISIBLE
+            if (!animate) { fanAnimator?.cancel(); fanFrameTime = 0L; return }
+            val animator = fanAnimator ?: android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
+                duration = 1000L
+                repeatCount = android.animation.ValueAnimator.INFINITE
+                interpolator = android.view.animation.LinearInterpolator()
+                addUpdateListener { advanceFanAngle(android.os.SystemClock.uptimeMillis()); invalidate() }
+            }.also { fanAnimator = it }
+            if (!animator.isStarted) {
+                fanFrameTime = android.os.SystemClock.uptimeMillis()
+                animator.start()
+            }
+        }
+        override fun onAttachedToWindow() { super.onAttachedToWindow(); updateFanAnimation() }
+        override fun onDetachedFromWindow() { fanAnimator?.cancel(); fanFrameTime = 0L; super.onDetachedFromWindow() }
+        override fun onVisibilityChanged(changedView: View, visibility: Int) {
+            super.onVisibilityChanged(changedView, visibility); updateFanAnimation()
+        }
+        override fun onWindowVisibilityChanged(visibility: Int) {
+            super.onWindowVisibilityChanged(visibility); updateFanAnimation()
+        }
         fun setIcon(key: String) {
             if (iconKey == key) return
             iconKey = key; glyph = loader(context, key); invalidate()
@@ -810,7 +936,10 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
                 icon.setTint(currentTextColor)
                 icon.setBounds((iconX + (iconSize - w) / 2).toInt(), (top + (iconSize - h) / 2).toInt(),
                     (iconX + (iconSize + w) / 2).toInt(), (top + (iconSize + h) / 2).toInt())
+                val iconSave = canvas.save()
+                if (iconKey == "fan") canvas.rotate(fanAngle, icon.bounds.exactCenterX(), icon.bounds.exactCenterY())
                 icon.draw(canvas)
+                canvas.restoreToCount(iconSave)
                 val metrics = paint.fontMetrics
                 val baseline = paddingTop + (availableHeight - metrics.ascent - metrics.descent) / 2f
                 val textX = if (iconKey == "more") left else left + iconSize + gap
@@ -957,9 +1086,11 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
         private const val DIAL_SWEEP = 270f
         private const val DIAL_TOP_INSET_DP = 26f
         private const val DIAL_STROKE_DP = 16f
-        private const val DIAL_VALUE_DP = 32f
+        private const val DIAL_VALUE_DP = 38f
+        private const val DIAL_TAP_DEADBAND = .25f
+        private const val TARGET_CONFIRM_TIMEOUT_MS = 3000L
         private const val CONTROLS_VERTICAL_OFFSET_DP = 30f
-        private const val TOP_GROUP_DP = 220f
+        private const val TOP_GROUP_DP = 200f
         private const val DIAL_LAYOUT_HEIGHT_DP = 260f
         private const val LABELED_ROW_GAP_DP = 10f
         private const val MIDDLE_GROUP_DP = 56f
@@ -970,11 +1101,12 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
         private const val TEMPERATURE_VALUE_DP = 64f
         private const val TEMPERATURE_ADJUST_DP = 50f
         private const val ADJUST_ICON_DP = 26f
-        private const val FAN_TITLE_ICON_DP = 32f
+        private const val FAN_TITLE_ICON_DP = 40f
+        private const val FAN_READOUT_HEIGHT_DP = 56f
         private const val FAN_GROUP_WEIGHT = 1f
         private const val FAN_VALUE_WIDTH_DP = 104f
-        private const val FAN_AUTO_TEXT_DP = 14f
-        private const val FAN_VALUE_TEXT_DP = 18f
+        private const val FAN_AUTO_TEXT_DP = 18f
+        private const val FAN_VALUE_TEXT_DP = 24f
         private const val FAN_LEVELS = 10
         private const val STOCK_PACKAGE = "com.xiaopeng.carhvac"
         private val STOCK_KEYS = setOf("max", "stock")
