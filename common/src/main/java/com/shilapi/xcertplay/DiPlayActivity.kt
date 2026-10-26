@@ -5170,6 +5170,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         appendLine()
         appendLine("--- Last received boot and app-launch result ---")
         appendLine(StartupDiagnosticSnapshot.report(appContext))
+        appendLine(P7WakeReceiver.report(appContext))
         appendLine("Startup settings: openAfterBoot=${AirPlayPersistence.loadAutoStartOnBoot(appContext)} " +
             "connectWhenOpened=${DiPlayPreferences.autoConnect(appContext)}")
         appendLine(WheelKeyService.report(appContext))

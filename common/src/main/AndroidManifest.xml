@@ -169,6 +169,15 @@
         </service>
 
         <receiver
+            android:name="com.shilapi.xcertplay.P7WakeReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.xiaopeng.intent.action.XUI_POWER_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
             android:name="com.shilapi.xcertplay.BootReceiver"
             android:enabled="true"
             android:exported="true">
