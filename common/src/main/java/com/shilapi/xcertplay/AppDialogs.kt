@@ -98,7 +98,12 @@ internal class AppDialogBuilder(private val owner: Context) {
                 setPadding((PANEL_INSET_DP * density).toInt(), 0, (PANEL_INSET_DP * density).toInt(), 0)
                 stateListAnimator = null
                 val primary = id == DialogInterface.BUTTON_POSITIVE
-                setTextColor(if (primary) colors.onAccent else colors.primaryText)
+                // Glass actions have no solid accent fill; their labels need foreground colors.
+                setTextColor(when {
+                    primary && destructivePositive -> colors.danger
+                    primary -> colors.accent
+                    else -> colors.primaryText
+                })
                 val tint = if (primary) { if (destructivePositive) colors.danger else colors.accent } else null
                 background = LiquidGlassStyle.button(this, night, tint, colors.ripple)
             }

@@ -17,7 +17,8 @@ internal interface P7ClimateSession {
 
 /** One bounded request in flight. Only reads reconnect; writes are never retried or queued. */
 internal class P7ClimateController(private val context: Context, private val changed: (JSONObject?) -> Unit,
-    private val failed: () -> Unit) : P7ClimateSession {
+    private val failed: () -> Unit,
+    private val workerClass: String = "com.shilapi.xcertplay.P7ClimateWorker") : P7ClimateSession {
     private val main = Handler(Looper.getMainLooper())
     private val worker = Executors.newSingleThreadExecutor()
     @Volatile private var active = false
@@ -26,14 +27,15 @@ internal class P7ClimateController(private val context: Context, private val cha
     private var disposed = false
     private var adb: LocalAdb? = null // worker thread only
     private var shell: LocalAdb.InteractiveShell? = null
+    private val deodorizer = if (workerClass == "com.shilapi.xcertplay.P7ClimateWorker") P7ClimateDeodorizer(context) else null
     private val poll = Runnable { request("READ") }
 
     override fun start() {
         if (disposed || active) return
-        active = true; generation++; changed(null); request("READ")
+        active = true; generation++; deodorizer?.start(); changed(null); request("READ")
     }
     override fun stop() {
-        active = false; generation++; main.removeCallbacks(poll)
+        active = false; generation++; main.removeCallbacks(poll); deodorizer?.stop()
         worker.execute { disconnect() }
     }
     override fun close() { if (!disposed) { stop(); disposed = true; worker.shutdown() } }
@@ -54,13 +56,16 @@ internal class P7ClimateController(private val context: Context, private val cha
                     check(connection.connect(true) == LocalAdb.Access.READY)
                     val path = context.applicationInfo.sourceDir + ":/system/framework/android.car.jar"
                     val quoted = "'" + path.replace("'", "'\\''") + "'"
-                    shell = connection.openShell("CLASSPATH=$quoted app_process /system/bin com.shilapi.xcertplay.P7ClimateWorker")
+                    shell = connection.openShell("CLASSPATH=$quoted app_process /system/bin ${workerClass}")
                     check(shell != null)
                 }
                 if (ticket == generation && active) {
-                    val reply = shell!!.exchangeBounded(command, 3000) ?: error("climate stream ended")
+                    val deodorCommand = command in listOf("DEODOR_ON", "DEODOR_OFF")
+                    if (deodorCommand) checkNotNull(deodorizer).set(command == "DEODOR_ON")
+                    val reply = shell!!.exchangeBounded(if (deodorCommand) "READ" else command, 3000) ?: error("climate stream ended")
                     state = JSONObject(reply.trim())
                     error = !state.optBoolean("ok", false)
+                    deodorizer?.let { state.put("deodor", it.read() ?: JSONObject.NULL) }
                 }
             } catch (_: Exception) { disconnect(); error = true }
             val delivered = state

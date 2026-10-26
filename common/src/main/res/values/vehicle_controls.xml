@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_vehicle_controls_title">Vehicle controls (experimental)</string>
+    <string name="settings_vehicle_controls_toggle">Show vehicle controls</string>
+    <string name="settings_vehicle_controls_behavior">Open a single row of controls from the CarPlay vehicle icon. Tap outside to close. Requires local ADB approval.</string>
+    <string name="settings_vehicle_controls_position">Drag the vehicle icon to reposition it. Leaving CarPlay or disabling vehicle controls stops flashing and restores the original fog lamp state. Trunk movement and charge port controls require the car to be stationary.</string>
+    <string name="vehicle_fog">Fog</string>
+    <string name="vehicle_flash">Flash</string>
+    <string name="vehicle_flash_stop">Stop</string>
+    <string name="vehicle_sent">Command sent</string>
+    <string name="vehicle_failed">Vehicle command failed; check local ADB and vehicle state.</string>
+    <string name="vehicle_trunk">Trunk</string>
+    <string name="vehicle_charge_fast">DC port</string>
+    <string name="vehicle_charge_slow">AC port</string>
+    <string name="vehicle_trunk_close">Close</string>
+</resources>

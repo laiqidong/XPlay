@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_vehicle_controls_title">車輛控制（實驗性）</string>
+    <string name="settings_vehicle_controls_toggle">顯示車輛控制</string>
+    <string name="settings_vehicle_controls_behavior">點擊 CarPlay 車輛圖示，從底部彈出一行控制卡片，點擊外部關閉。需要本機 ADB 授權。</string>
+    <string name="settings_vehicle_controls_position">可拖動車輛圖示調整位置。離開 CarPlay 或關閉車輛控制會停止閃爍並恢復原霧燈狀態。尾門移動和充電口控制需車輛靜止。</string>
+    <string name="vehicle_fog">霧燈</string>
+    <string name="vehicle_flash">閃爍</string>
+    <string name="vehicle_flash_stop">停止</string>
+    <string name="vehicle_sent">已傳送指令</string>
+    <string name="vehicle_failed">車輛控制失敗，請檢查本機 ADB 和車輛狀態。</string>
+    <string name="vehicle_trunk">尾箱</string>
+    <string name="vehicle_charge_fast">快充</string>
+    <string name="vehicle_charge_slow">慢充</string>
+    <string name="vehicle_trunk_close">關尾箱</string>
+</resources>

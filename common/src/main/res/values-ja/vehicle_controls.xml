@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_vehicle_controls_title">車両操作（実験的機能）</string>
+    <string name="settings_vehicle_controls_toggle">車両操作を表示</string>
+    <string name="settings_vehicle_controls_behavior">CarPlay の車両アイコンで画面下部に操作カードを開きます。外側をタップすると閉じます。ローカル ADB の承認が必要です。</string>
+    <string name="settings_vehicle_controls_position">アイコンはドラッグで移動できます。CarPlay を離れるか機能を無効にすると点滅を停止し元のフォグ状態に戻します。トランクの開閉と充電口操作は停車中のみ。</string>
+    <string name="vehicle_fog">フォグ</string>
+    <string name="vehicle_flash">点滅</string>
+    <string name="vehicle_flash_stop">停止</string>
+    <string name="vehicle_sent">指令を送信しました</string>
+    <string name="vehicle_failed">操作に失敗しました。ローカル ADB と車両の状態を確認してください。</string>
+    <string name="vehicle_trunk">トランク</string>
+    <string name="vehicle_charge_fast">急速充電</string>
+    <string name="vehicle_charge_slow">普通充電</string>
+    <string name="vehicle_trunk_close">閉じる</string>
+</resources>

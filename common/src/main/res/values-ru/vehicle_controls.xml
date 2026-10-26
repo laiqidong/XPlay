@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_vehicle_controls_title">Управление автомобилем (экспериментально)</string>
+    <string name="settings_vehicle_controls_toggle">Показывать управление автомобилем</string>
+    <string name="settings_vehicle_controls_behavior">Значок автомобиля в CarPlay открывает нижний ряд кнопок. Нажмите снаружи, чтобы закрыть. Требуется разрешение локального ADB.</string>
+    <string name="settings_vehicle_controls_position">Перетащите значок для перемещения. Выход из CarPlay или отключение управления останавливает мигание и восстанавливает фонарь. Движение багажника и управление зарядными портами доступны на стоянке.</string>
+    <string name="vehicle_fog">Туман</string>
+    <string name="vehicle_flash">Мигание</string>
+    <string name="vehicle_flash_stop">Стоп</string>
+    <string name="vehicle_sent">Команда отправлена</string>
+    <string name="vehicle_failed">Ошибка управления. Проверьте локальный ADB и состояние автомобиля.</string>
+    <string name="vehicle_trunk">Багажник</string>
+    <string name="vehicle_charge_fast">Порт DC</string>
+    <string name="vehicle_charge_slow">Порт AC</string>
+    <string name="vehicle_trunk_close">Закрыть</string>
+</resources>

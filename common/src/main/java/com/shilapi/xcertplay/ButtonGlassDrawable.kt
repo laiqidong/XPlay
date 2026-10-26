@@ -3,7 +3,6 @@ package com.shilapi.xcertplay
 import android.graphics.*
 import android.graphics.drawable.Drawable
 import android.view.View
-import androidx.core.graphics.ColorUtils
 
 /** Capsule material sampled from the actual ancestor surfaces, excluding the button itself. */
 internal class ButtonGlassDrawable(
@@ -12,10 +11,8 @@ internal class ButtonGlassDrawable(
     private val tint: Int?,
 ) : Drawable() {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
-    private val fill = Paint(Paint.ANTI_ALIAS_FLAG)
     private val rim = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
     private val rect = RectF()
-    private val edge = RectF()
     private val position = IntArray(2)
     private val ancestorPosition = IntArray(2)
     private var lastX = Int.MIN_VALUE
@@ -44,17 +41,17 @@ internal class ButtonGlassDrawable(
         paint.shader = shader
         paint.alpha = opacity
         if (shader != null) canvas.drawRoundRect(rect, radius, radius, paint)
-        fill.color = tint?.let { ColorUtils.setAlphaComponent(it, 220) }
-            ?: if (night) 0x665F718A else 0x24405F88
-        fill.alpha = Color.alpha(fill.color) * opacity / 255
-        canvas.drawRoundRect(rect, radius, radius, fill)
-        val stroke = owner.resources.displayMetrics.density * GlassRim.WIDTH_DP
-        edge.set(rect); edge.inset(stroke / 2, stroke / 2)
-        rim.strokeWidth = stroke
-        rim.shader = GlassRim.shader(rect, light = !night, emphasized = tint != null)
-        rim.alpha = opacity
-        canvas.drawRoundRect(edge, (radius - stroke / 2).coerceAtLeast(0f),
-            (radius - stroke / 2).coerceAtLeast(0f), rim)
+        if (!night) {
+            // A subtle warm tint separates light controls from the sampled card.
+            paint.shader = null
+            paint.color = Color.rgb(184, 165, 143)
+            paint.alpha = (opacity * LIGHT_FILL_ALPHA / 255f).toInt()
+            canvas.drawRoundRect(rect, radius, radius, paint)
+
+        }
+        GlassRim.drawSettings(canvas, rect, radius, owner.resources.displayMetrics.density,
+            rim, opacity = opacity, light = !night, emphasized = tint != null, raised = true)
+
     }
 
     private fun sampleAncestors() {
@@ -97,6 +94,7 @@ internal class ButtonGlassDrawable(
     override fun getOpacity() = PixelFormat.TRANSLUCENT
 
     private companion object {
+        const val LIGHT_FILL_ALPHA = 46
         const val SAMPLE_WIDTH = 256
         const val BUTTON_RIM_DP = .7f
     }

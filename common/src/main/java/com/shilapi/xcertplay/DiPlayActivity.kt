@@ -966,10 +966,8 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
             setPadding(dp(SETTINGS_SIDEBAR_INSET_DP), dp(SETTINGS_CONTENT_INSET_DP),
                 dp(SETTINGS_SIDEBAR_INSET_DP), 0)
             addView(ScrollView(settingsScrollContext()).apply {
-                addView(column().apply {
-                    setPadding(0, 0, 0, dp(SETTINGS_SIDEBAR_INSET_DP))
-                    addView(settingsRail())
-                })
+                overScrollMode = View.OVER_SCROLL_IF_CONTENT_SCROLLS
+                addView(settingsRail())
                 settingsRailScroll = this
             }, LinearLayout.LayoutParams(-1, 0, 1f))
             if (unifiedSettings) {
@@ -996,7 +994,6 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     }
 
     private fun settingsRail(): LinearLayout = column().apply {
-        setPadding(0, 0, 0, dp(SETTINGS_BLOCK_GAP_DP))
         val rowHeight = (SETTINGS_RAIL_ROW_HEIGHT_DP * resources.configuration.fontScale.coerceAtLeast(1f)).roundToInt()
         settingsCategories.forEach { category ->
             addView(settingsRailDestination(category), matchButton(0, rowHeight).apply {
@@ -5260,7 +5257,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     private fun paintChannel(index: Int, selected: Boolean) {
         val target = channelButtons.getOrNull(index) ?: return
         target.isSelected = selected
-        target.setTextColor(if (selected) ON_ACCENT else TEXT)
+        target.setTextColor(TEXT)
         target.background = LiquidGlassStyle.button(target, appNight, if (selected) ACCENT else null, RIPPLE)
     }
 
@@ -5362,15 +5359,15 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
 
     private fun fogOverlaySection(content: LinearLayout) {
         filteredSection(content, SettingsSection.FOG_OVERLAY,
-            getString(R.string.settings_fog_title), R.drawable.ic_p7_fog) { card ->
+            getString(R.string.settings_vehicle_controls_title), R.drawable.ic_dp_vehicle) { card ->
             if (!P7FogButton.supported()) {
                 card.addView(label(getString(R.string.settings_fog_supported), 14, MUTED))
             } else {
-                toggle(card, getString(R.string.settings_fog_overlay), getString(R.string.settings_fog_behavior),
+                toggle(card, getString(R.string.settings_vehicle_controls_toggle), getString(R.string.settings_vehicle_controls_behavior),
                     P7FogButton.enabled(this)) { enabled ->
                     P7FogButton.enable(this, enabled)
                 }
-                card.addView(label(getString(R.string.settings_fog_position), 14, MUTED))
+                card.addView(label(getString(R.string.settings_vehicle_controls_position), 14, MUTED))
             }
         }
     }
@@ -5805,7 +5802,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     )
 
     private fun button(title: String, primary: Boolean, click: () -> Unit) = SettingButton(this, MUTED, if (page == "settings") MUTED else ACCENT, page == "settings").apply {
-        isAllCaps = false; textSize = 18f; setTextColor(if (primary) ON_ACCENT else TEXT)
+        isAllCaps = false; textSize = 18f; setTextColor(TEXT)
         setSingleLine(false)
         maxLines = Int.MAX_VALUE
         typeface = AppFonts.medium(this@DiPlayActivity)

@@ -158,15 +158,8 @@ internal class SettingsBackdrop(context: Context, private val night: Boolean) {
             })
             canvas.restoreToCount(save)
             if (frost) {
-                // Glass reflects at the top and bottom; both side edges stay subtly shaded.
-                val stroke = GlassRim.WIDTH_DP * density
                 val radius = minOf(corner, rect.width() / 2f, rect.height() / 2f)
-                edgePaint.shader = GlassRim.shader(rect, light = !night)
-                val edge = RectF(rect).apply { inset(stroke / 2, stroke / 2) }
-                edgePaint.strokeWidth = stroke
-                edgePaint.alpha = 255
-                canvas.drawRoundRect(edge, (radius - stroke / 2).coerceAtLeast(0f),
-                    (radius - stroke / 2).coerceAtLeast(0f), edgePaint)
+                GlassRim.drawSettings(canvas, rect, radius, density, edgePaint, light = !night)
             }
         }
         override fun getOutline(outline: Outline) {

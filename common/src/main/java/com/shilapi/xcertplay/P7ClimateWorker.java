@@ -13,8 +13,9 @@ import java.util.concurrent.TimeUnit;
 /** Explicit foreground climate commands only; a lost connection never replays a write. */
 @Keep
 public final class P7ClimateWorker {
-    private static final String[] KEYS = {"driver", "passenger", "fan", "power", "ac", "auto", "sync", "cycle", "direction", "front", "rear", "eco", "aqs", "defog"};
-    private static final String[] GETTERS = {"getHvacDrvSeatTempValue", "getHvacPsnSeatTempValue", "getHvacFanSpeedLevel", "getHvacPowerState", "getHvacAcState", "getHvacAutoModeState", "getHvacTempSyncMode", "getHvacAirCycleMode", "getHvacFanPosition", "getHvacDefrostMode", "getBcmBackDefrostMode", "getHvacEconState", "getHvacAqsSwitchState", "getHvacAutoDefogSwitchStatus"};
+    private static final String[] KEYS = {"driver", "passenger", "fan", "power", "ac", "auto", "sync", "cycle", "direction", "front", "rear", "eco", "aqs", "defog", "clean", "smart_passenger"};
+    private static final String[] GETTERS = {"getHvacDrvSeatTempValue", "getHvacPsnSeatTempValue", "getHvacFanSpeedLevel", "getHvacPowerState", "getHvacAcState", "getHvacAutoModeState", "getHvacTempSyncMode", "getHvacAirCycleMode", "getHvacFanPosition", "getHvacDefrostMode", "getBcmBackDefrostMode", "getHvacEconState", "getHvacAqsSwitchState", "getHvacAutoDefogSwitchStatus", "getHvacSelfDrySwStatus", "getHvacEavPsnWindMode"};
+    private int previousPsnWindMode = 3; // OEM Free mode
     private final Class<?> api;
     private final Object vehicle;
     private P7ClimateWorker() throws Exception {
@@ -27,12 +28,29 @@ public final class P7ClimateWorker {
     private void call(String name) throws Exception { api.getMethod(name).invoke(vehicle); }
     private void set(String name, int value) throws Exception { api.getMethod(name, int.class).invoke(vehicle, value); }
     private void command(String cmd) throws Exception {
+        // Half-degree integer protocol, bounded before invoking the OEM float setter.
+        if (cmd.matches("(DRIVER|PASSENGER)_TEMP_(3[6-9]|[4-5][0-9]|6[0-4])")) {
+            boolean driver = cmd.startsWith("DRIVER_");
+            float target = Integer.parseInt(cmd.substring(cmd.lastIndexOf('_') + 1)) / 2f;
+            api.getMethod(driver ? "setHvacDrvSeatTempValue" : "setHvacPsnSeatTempValue", float.class).invoke(vehicle, target);
+            return;
+        }
         if (cmd.matches("FAN_LEVEL_(10|[1-9])")) {
             set("setHvacFanSpeedLevel", Integer.parseInt(cmd.substring("FAN_LEVEL_".length())));
             return;
         }
         switch (cmd) {
             case "READ": return;
+            // OEM self-dry setter/getter use 2=on and 1=off.
+            case "CLEAN_ON": set("setHvacSelfDrySwStatus", 2); return;
+            case "CLEAN_OFF": set("setHvacSelfDrySwStatus", 1); return;
+            // OEM EAV enum: Single=1, Mirror=2, Free=3, Avoid=4, Intelligence=5.
+            case "SMART_PASSENGER_ON": {
+                int mode = ((Number) api.getMethod("getHvacEavPsnWindMode").invoke(vehicle)).intValue();
+                if (mode >= 1 && mode <= 4) previousPsnWindMode = mode;
+                set("setHvacEavPsnWindMode", 5); return;
+            }
+            case "SMART_PASSENGER_OFF": set("setHvacEavPsnWindMode", previousPsnWindMode); return;
             case "DRIVER_UP": call("setHvacDrvSeatTempInc"); return;
             case "DRIVER_DOWN": call("setHvacDrvSeatTempDec"); return;
             case "PASSENGER_UP": call("setHvacPsnSeatTempInc"); return;
@@ -75,7 +93,17 @@ public final class P7ClimateWorker {
     private JSONObject snapshot() throws Exception {
         JSONObject data = new JSONObject();
         for (int i = 0; i < KEYS.length; i++) {
-            try { data.put(KEYS[i], api.getMethod(GETTERS[i]).invoke(vehicle)); }
+            try {
+                Object value = api.getMethod(GETTERS[i]).invoke(vehicle);
+                if ("clean".equals(KEYS[i])) {
+                    int mode = ((Number) value).intValue();
+                    value = mode == 2 ? 1 : mode == 1 ? 0 : JSONObject.NULL;
+                } else if ("smart_passenger".equals(KEYS[i])) {
+                    int mode = ((Number) value).intValue();
+                    value = mode == 5 ? 1 : mode >= 1 && mode <= 4 ? 0 : JSONObject.NULL;
+                }
+                data.put(KEYS[i], value);
+            }
             catch (Exception ignored) { data.put(KEYS[i], JSONObject.NULL); }
         }
         return data;

@@ -1875,7 +1875,9 @@ class CarPlayHostActivity : ComponentActivity() {
                 setMargins(0, dp(12), dp(12), 0)
             })
         }
-        fogButton = P7FogButton(root, night = { darkMode }, source = { fallbackVideoView ?: videoView }) {
+        fogButton = P7FogButton(root, night = { darkMode }, source = { fallbackVideoView ?: videoView },
+            videoBounds = { val bounds = contentRect(root.width, root.height); RectF(bounds.left, bounds.top, bounds.left + bounds.width, bounds.top + bounds.height) },
+            cancelTouch = { climateOverlay?.dismiss(); controller?.sendTouch(emptyList()) }) {
             SCREEN_TYPE_MAIN in activeScreenStreamTypes && !menuOpen && !shuttingDown.get()
         }
         climateOverlay = P7ClimateOverlay(root,
@@ -5763,7 +5765,7 @@ class CarPlayHostActivity : ComponentActivity() {
     }
 
     private fun handleSystemBack() {
-        if (climateOverlay?.dismiss() == true) {
+        if (fogButton?.dismiss() == true || climateOverlay?.dismiss() == true) {
             cancelSystemBack()
         } else if (picturePanel != null) {
             cancelSystemBack()

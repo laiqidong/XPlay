@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_vehicle_controls_title">车辆控制（实验性）</string>
+    <string name="settings_vehicle_controls_toggle">显示车辆控制</string>
+    <string name="settings_vehicle_controls_behavior">点击 CarPlay 车辆图标，从底部弹出一行控制卡片，点击外部关闭。需要本地 ADB 授权。</string>
+    <string name="settings_vehicle_controls_position">可拖动车辆图标调整位置。离开 CarPlay 或关闭车辆控制会停止爆闪并恢复原雾灯状态。后备箱移动和充电口控制需车辆静止。</string>
+    <string name="vehicle_fog">雾灯</string>
+    <string name="vehicle_flash">爆闪</string>
+    <string name="vehicle_flash_stop">停止</string>
+    <string name="vehicle_sent">已发送指令</string>
+    <string name="vehicle_failed">车辆控制失败，请检查本地 ADB 和车辆状态。</string>
+    <string name="vehicle_trunk">尾箱</string>
+    <string name="vehicle_charge_fast">快充</string>
+    <string name="vehicle_charge_slow">慢充</string>
+    <string name="vehicle_trunk_close">关尾箱</string>
+</resources>

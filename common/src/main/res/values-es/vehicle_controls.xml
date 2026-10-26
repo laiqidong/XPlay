@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="settings_vehicle_controls_title">Controles del vehículo (experimental)</string>
+    <string name="settings_vehicle_controls_toggle">Mostrar controles del vehículo</string>
+    <string name="settings_vehicle_controls_behavior">Abre una fila de controles desde el icono del vehículo en CarPlay. Toca fuera para cerrar. Requiere autorización ADB local.</string>
+    <string name="settings_vehicle_controls_position">Arrastra el icono para moverlo. Al salir de CarPlay o desactivar los controles, cesa el parpadeo y se restaura la luz antiniebla. El movimiento del maletero y los puertos de carga requieren estar parado.</string>
+    <string name="vehicle_fog">Niebla</string>
+    <string name="vehicle_flash">Destellos</string>
+    <string name="vehicle_flash_stop">Detener</string>
+    <string name="vehicle_sent">Orden enviada</string>
+    <string name="vehicle_failed">Error de control. Comprueba ADB local y el estado del vehículo.</string>
+    <string name="vehicle_trunk">Maletero</string>
+    <string name="vehicle_charge_fast">Carga DC</string>
+    <string name="vehicle_charge_slow">Carga AC</string>
+    <string name="vehicle_trunk_close">Cerrar</string>
+</resources>
