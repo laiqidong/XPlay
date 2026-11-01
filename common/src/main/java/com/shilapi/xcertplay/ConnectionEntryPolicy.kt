@@ -14,7 +14,16 @@ internal object ConnectionEntryPolicy {
 
     fun launchIntent(context: Context): Intent {
         val existing = CarPlayBackgroundSession.hasSession() || CarPlayBackgroundSession.active
-        val autoStart = existing || (configured(context) && DiPlayPreferences.autoConnect(context))
+        // Incomplete setup belongs in Connection settings. Once configured, even a
+        // temporarily unavailable phone/network must stay on the waiting surface.
+        if (!existing && !configured(context)) {
+            return Intent(context, DiPlayActivity::class.java)
+                .putExtra("page", "settings")
+                .putExtra("settings_category", SettingsCategory.CONNECTION.name)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_NO_ANIMATION)
+        }
+        val autoStart = existing || DiPlayPreferences.autoConnect(context)
         if (!existing) AirPlayPersistence.saveWirelessEnabled(context, DiPlayPreferences.autoConnectWireless(context))
         return Intent(context, CarPlayHostActivity::class.java)
             .putExtra(EXTRA_LAUNCHER, true)

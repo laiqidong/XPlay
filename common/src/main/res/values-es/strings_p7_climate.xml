@@ -41,4 +41,6 @@
     <string name="climate_deodor">Desodorización inteligente</string>
     <string name="climate_clean">Limpieza inteligente</string>
     <string name="climate_smart_passenger">Flujo inteligente del acompañante</string>
+    <string name="climate_deodor_countdown">Aprox. %1$s</string>
+    <string name="climate_smart_passenger_unknown">No se pudo leer el estado del climatizador original. Elige activar o desactivar; el estado actual es desconocido.</string>
 </resources>

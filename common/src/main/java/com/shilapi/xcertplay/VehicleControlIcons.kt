@@ -10,6 +10,7 @@ internal object VehicleControlIcons {
     private var oemResources: android.content.res.Resources? = null
 
     fun load(context: Context, key: String, resourceOverride: android.content.res.Resources? = null): Drawable? {
+        if (key == "vehicle_settings") return context.getDrawable(R.drawable.ic_settings_sliders_horizontal)?.mutate()
         if (key == "vehicle_charge_slow") return context.getDrawable(R.drawable.ic_p7_vehicle_ac)?.mutate()
         if (key == "vehicle_charge_fast") return context.getDrawable(R.drawable.ic_p7_vehicle_dc)?.mutate()
         if (key == "vehicle_flash") return context.getDrawable(R.drawable.ic_p7_vehicle_flash)?.mutate()

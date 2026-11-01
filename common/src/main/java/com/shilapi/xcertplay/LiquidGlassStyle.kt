@@ -13,11 +13,19 @@ import android.widget.FrameLayout
 import android.widget.ScrollView
 import androidx.core.graphics.ColorUtils
 
-/** Shared glass material; semantic tints retain primary/danger action recognition. */
+/** Opaque settings surfaces with semantic action colours. */
 internal object LiquidGlassStyle {
     const val CONTROL_RADIUS_RATIO = .5f
     fun button(view: View, night: Boolean, tint: Int?, ripple: Int): RippleDrawable {
-        val material = ButtonGlassDrawable(view, night, tint)
+        val material = object : GradientDrawable() {
+            override fun onBoundsChange(bounds: android.graphics.Rect) {
+                super.onBoundsChange(bounds)
+                cornerRadius = bounds.height() * CONTROL_RADIUS_RATIO
+            }
+        }.apply {
+            setColor(tint ?: if (night) 0xFF353943.toInt() else 0xFFE9ECF1.toInt())
+            cornerRadius = (view.height.takeIf { it > 0 } ?: view.minimumHeight) * CONTROL_RADIUS_RATIO
+        }
         val mask = object : android.graphics.drawable.Drawable() {
             private val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE }
             override fun draw(canvas: android.graphics.Canvas) {
@@ -34,7 +42,6 @@ internal object LiquidGlassStyle {
     }
 
     fun dialog(dialog: Dialog, night: Boolean, owner: android.content.Context = dialog.context) {
-        DialogBackdrop.attach(dialog, owner)
         val window = dialog.window ?: return
         val content = window.decorView.findViewById<ViewGroup>(android.R.id.content) ?: return
         val panel = content.getChildAt(0) ?: return

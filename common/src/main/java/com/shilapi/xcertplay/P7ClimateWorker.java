@@ -13,9 +13,9 @@ import java.util.concurrent.TimeUnit;
 /** Explicit foreground climate commands only; a lost connection never replays a write. */
 @Keep
 public final class P7ClimateWorker {
-    private static final String[] KEYS = {"driver", "passenger", "fan", "power", "ac", "auto", "sync", "cycle", "direction", "front", "rear", "eco", "aqs", "defog", "clean", "smart_passenger"};
-    private static final String[] GETTERS = {"getHvacDrvSeatTempValue", "getHvacPsnSeatTempValue", "getHvacFanSpeedLevel", "getHvacPowerState", "getHvacAcState", "getHvacAutoModeState", "getHvacTempSyncMode", "getHvacAirCycleMode", "getHvacFanPosition", "getHvacDefrostMode", "getBcmBackDefrostMode", "getHvacEconState", "getHvacAqsSwitchState", "getHvacAutoDefogSwitchStatus", "getHvacSelfDrySwStatus", "getHvacEavPsnWindMode"};
-    private int previousPsnWindMode = 3; // OEM Free mode
+    private static final String[] KEYS = {"driver", "passenger", "fan", "power", "ac", "auto", "sync", "cycle", "direction", "front", "rear", "eco", "aqs", "defog", "clean"};
+    private static final String[] GETTERS = {"getHvacDrvSeatTempValue", "getHvacPsnSeatTempValue", "getHvacFanSpeedLevel", "getHvacPowerState", "getHvacAcState", "getHvacAutoModeState", "getHvacTempSyncMode", "getHvacAirCycleMode", "getHvacFanPosition", "getHvacDefrostMode", "getBcmBackDefrostMode", "getHvacEconState", "getHvacAqsSwitchState", "getHvacAutoDefogSwitchStatus", "getHvacSelfDrySwStatus"};
+    private P7ClimateSmartPassenger smartPassenger;
     private final Class<?> api;
     private final Object vehicle;
     private P7ClimateWorker() throws Exception {
@@ -44,13 +44,10 @@ public final class P7ClimateWorker {
             // OEM self-dry setter/getter use 2=on and 1=off.
             case "CLEAN_ON": set("setHvacSelfDrySwStatus", 2); return;
             case "CLEAN_OFF": set("setHvacSelfDrySwStatus", 1); return;
-            // OEM EAV enum: Single=1, Mirror=2, Free=3, Avoid=4, Intelligence=5.
-            case "SMART_PASSENGER_ON": {
-                int mode = ((Number) api.getMethod("getHvacEavPsnWindMode").invoke(vehicle)).intValue();
-                if (mode >= 1 && mode <= 4) previousPsnWindMode = mode;
-                set("setHvacEavPsnWindMode", 5); return;
-            }
-            case "SMART_PASSENGER_OFF": set("setHvacEavPsnWindMode", previousPsnWindMode); return;
+            // Smart passenger airflow is an OEM application workflow, separate from EAV aiming.
+            case "SMART_PASSENGER_ON": case "SMART_PASSENGER_OFF":
+                if (smartPassenger == null) throw new IllegalStateException("OEM workflow unavailable");
+                smartPassenger.set(cmd.endsWith("_ON")); return;
             case "DRIVER_UP": call("setHvacDrvSeatTempInc"); return;
             case "DRIVER_DOWN": call("setHvacDrvSeatTempDec"); return;
             case "PASSENGER_UP": call("setHvacPsnSeatTempInc"); return;
@@ -98,20 +95,27 @@ public final class P7ClimateWorker {
                 if ("clean".equals(KEYS[i])) {
                     int mode = ((Number) value).intValue();
                     value = mode == 2 ? 1 : mode == 1 ? 0 : JSONObject.NULL;
-                } else if ("smart_passenger".equals(KEYS[i])) {
-                    int mode = ((Number) value).intValue();
-                    value = mode == 5 ? 1 : mode >= 1 && mode <= 4 ? 0 : JSONObject.NULL;
                 }
                 data.put(KEYS[i], value);
             }
             catch (Exception ignored) { data.put(KEYS[i], JSONObject.NULL); }
         }
+        boolean queried = false;
+        if (smartPassenger != null) try { smartPassenger.query(); queried = true; } catch (Exception ignored) { }
+        data.put("smart_passenger_query", queried);
+        if (smartPassenger != null) {
+            data.put("smart_passenger_transport", smartPassenger.status());
+            data.put("smart_passenger_write", smartPassenger.writeStatus());
+        }
         return data;
     }
     public static void main(String[] args) {
-        if (args.length != 0 || Process.myUid() != 2000 || Build.VERSION.SDK_INT != 28 || !"E28".equals(Build.MODEL)) return;
+        if ((args.length != 0 && args.length != 2) || Process.myUid() != 2000 || Build.VERSION.SDK_INT != 28 || !"E28".equals(Build.MODEL)) return;
         try {
             P7ClimateWorker worker = new P7ClimateWorker();
+            if (args.length == 2 && args[0].matches("[a-zA-Z0-9_.]+") && args[1].matches("[a-f0-9-]{36}")) {
+                worker.smartPassenger = new P7ClimateSmartPassenger(args[0], args[1]);
+            }
             ArrayBlockingQueue<String> input = new ArrayBlockingQueue<>(2);
             Thread reader = new Thread(() -> {
                 try {

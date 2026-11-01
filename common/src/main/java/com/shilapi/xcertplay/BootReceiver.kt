@@ -16,14 +16,9 @@ class BootReceiver : BroadcastReceiver() {
         val launchEnabled = AirPlayPersistence.loadAutoStartOnBoot(context)
         StartupDiagnosticSnapshot.received(context, launchEnabled)
         if (!launchEnabled) return
+        CarWakePrewarm.start(context)
 
-        val launch = Intent(context, DiPlayActivity::class.java).apply {
-            addFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK or
-                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                    Intent.FLAG_ACTIVITY_SINGLE_TOP,
-            )
-        }
+        val launch = ConnectionEntryPolicy.launchIntent(context)
         try {
             context.startActivity(launch)
             StartupDiagnosticSnapshot.launchResult(context)

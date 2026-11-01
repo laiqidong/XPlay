@@ -41,4 +41,6 @@
     <string name="climate_deodor">Умное удаление запахов</string>
     <string name="climate_clean">Умная очистка</string>
     <string name="climate_smart_passenger">Умный обдув пассажира</string>
+    <string name="climate_deodor_countdown">Примерно %1$s</string>
+    <string name="climate_smart_passenger_unknown">Не удалось получить состояние штатного климат-контроля. Выберите включение или выключение; текущее состояние неизвестно.</string>
 </resources>

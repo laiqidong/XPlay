@@ -67,16 +67,44 @@ object SettingsWidgets {
      * Replaces the platform switch (about a 36x14dp track) with a 60x34dp track and a 28dp thumb,
      * so the state reads at arm's length on a head unit.
      */
+    private const val SWITCH_THUMB_SHADOW_RADIUS_DP = 1.5f
+    private const val SWITCH_THUMB_SHADOW_OFFSET_DP = .5f
+    private const val SWITCH_THUMB_SHADOW_PADDING_DP = 3
+
     fun applyLargeSwitchStyle(switch: Switch, thumbOn: Int, thumbOff: Int, trackOn: Int, trackOff: Int, settingsStyle: Boolean = false) {
         val density = switch.resources.displayMetrics.density
         fun px(value: Int) = (value * density).roundToInt()
         // Switch stretches the thumb to the full track height, so the inset keeps a margin around it.
         val thumbInset = px(3)
         switch.thumbDrawable = InsetDrawable(
-            GradientDrawable().apply {
+            object : GradientDrawable() {
+                private val shadowPadding = px(SWITCH_THUMB_SHADOW_PADDING_DP)
+                private val shadow = if (settingsStyle) {
+                    val size = px(28) + shadowPadding * 2
+                    android.graphics.Bitmap.createBitmap(size, size, android.graphics.Bitmap.Config.ARGB_8888).also { bitmap ->
+                        val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+                            color = Color.WHITE
+                            setShadowLayer(SWITCH_THUMB_SHADOW_RADIUS_DP * density, 0f,
+                                SWITCH_THUMB_SHADOW_OFFSET_DP * density, 0x30000000)
+                        }
+                        android.graphics.Canvas(bitmap).drawCircle(size / 2f, size / 2f, px(28) / 2f, paint)
+                    }
+                } else null
+                private val shadowPaint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG or android.graphics.Paint.FILTER_BITMAP_FLAG)
+                override fun draw(canvas: android.graphics.Canvas) {
+                    shadow?.let {
+                        val destination = android.graphics.RectF(bounds).apply {
+                            inset(-shadowPadding.toFloat(), -shadowPadding.toFloat())
+                        }
+                        shadowPaint.alpha = if (state.contains(android.R.attr.state_enabled)) 255 else 97
+                        canvas.drawBitmap(it, null, destination, shadowPaint)
+                    }
+                    super.draw(canvas)
+                }
+            }.apply {
                 shape = GradientDrawable.OVAL
                 setSize(px(28), px(28))
-                setColor(Color.WHITE)
+                if (settingsStyle) setColor(switchStates(Color.WHITE, Color.WHITE)) else setColor(Color.WHITE)
             },
             thumbInset,
         )
@@ -89,7 +117,7 @@ object SettingsWidgets {
         }
         switch.switchMinWidth = px(60)
         switch.showText = false
-        switch.thumbTintList = if (settingsStyle) switchStates(Color.WHITE, Color.WHITE) else switchStates(thumbOn, thumbOff)
+        switch.thumbTintList = if (settingsStyle) null else switchStates(thumbOn, thumbOff)
         switch.trackTintList = switchStates(trackOn, trackOff)
     }
 

@@ -21,6 +21,7 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
     private val night: () -> Boolean = { parent.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK == android.content.res.Configuration.UI_MODE_NIGHT_YES },
     private val iconLoader: (Context, String) -> Drawable? = { c, key -> ClimateIcons.load(c, key) },
     private val vehicleActions: (() -> List<P7VehicleAction>)? = null,
+    private val toggleAnchor: () -> View? = { null },
     sessionFactory: (Context, (JSONObject?) -> Unit, () -> Unit) -> P7ClimateSession = { c, changed, failed ->
         P7ClimateController(c, changed, failed)
     }) {
@@ -54,7 +55,7 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
         setOnTouchListener { _, event ->
             // Decline DOWN after dismissal so FrameLayout delivers this same gesture
             // to the real view below, including MOVE/UP and CarPlay touch forwarding.
-            if (event.actionMasked == MotionEvent.ACTION_DOWN) dismiss()
+            if (event.actionMasked == MotionEvent.ACTION_DOWN && !touchesToggleAnchor(event)) dismiss()
             false
         }
     }
@@ -99,6 +100,14 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
         parent.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> position() }
     }
     fun isOpen() = panel.visibility == View.VISIBLE
+    private fun touchesToggleAnchor(event: MotionEvent): Boolean {
+        val anchor = toggleAnchor() ?: entry
+        val bounds = Rect()
+        // Let the entry's click listener close the sheet once. Dismissing on DOWN
+        // here would make that same click see a closed sheet and reopen it.
+        return anchor.getGlobalVisibleRect(bounds) &&
+            bounds.contains(event.rawX.toInt(), event.rawY.toInt())
+    }
     fun dismiss(): Boolean {
         if (!isOpen()) return false
         panel.animate().cancel(); panel.translationY = 0f
@@ -333,6 +342,12 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
                         when {
                             key == "ac" -> cycleAcMode()
                             key == "cycle" -> send(when (valid("cycle") ?: return@button) { 1 -> "CYCLE_OUTSIDE"; 2 -> "CYCLE_AUTO"; else -> "CYCLE_INNER" })
+                            key == "smart_passenger" && valid(key) == null -> context.appDialogBuilder()
+                                .setTitle(s(R.string.climate_smart_passenger))
+                                .setMessage(s(R.string.climate_smart_passenger_unknown))
+                                .setPositiveButton(s(R.string.climate_on)) { _, _ -> send("SMART_PASSENGER_ON") }
+                                .setNegativeButton(s(R.string.climate_off)) { _, _ -> send("SMART_PASSENGER_OFF") }
+                                .show()
                             key in listOf("window", "face", "feet") -> send("DIRECTION_${key.uppercase(Locale.ROOT)}")
                             else -> toggle(key, key.uppercase(Locale.ROOT))
                         }
@@ -624,7 +639,9 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
                 key in listOf("window", "face", "feet", "facefeet") -> "direction"
                 else -> key
             }
-            val available = if (key in STOCK_KEYS) context.packageManager.getLaunchIntentForPackage(STOCK_PACKAGE) != null else if (property == "driver" || property == "passenger") temperatureValue(property) != null else valid(property) != null
+            val available = if (key == "smart_passenger") hasState
+                else if (key in STOCK_KEYS) context.packageManager.getLaunchIntentForPackage(STOCK_PACKAGE) != null
+                else if (property == "driver" || property == "passenger") temperatureValue(property) != null else valid(property) != null
             view.isEnabled = available && !pending
             view.alpha = if (available) 1f else .4f
             view.isSelected = selected(key)
@@ -639,6 +656,16 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
                 alpha = view.alpha
                 isEnabled = view.isEnabled
                 if (key == "cycle") text = view.text
+                if (key == "deodor") {
+                    val remaining = state?.takeUnless { it.isNull("deodor_remaining_estimate") }
+                        ?.optInt("deodor_remaining_estimate")?.takeIf { valid("deodor") == 1 && it in 1..180 }
+                    val estimate = remaining?.let {
+                        context.getString(R.string.climate_deodor_countdown,
+                            String.format(Locale.getDefault(), "%d:%02d", it / 60, it % 60))
+                    }
+                    text = s(R.string.climate_deodor) + (estimate?.let { "\n$it" } ?: "")
+                    view.contentDescription = text
+                }
             }
             val color = if (view.isSelected) INK else Color.WHITE
             view.setTextColor(color)
@@ -650,7 +677,7 @@ internal class P7ClimateOverlay(private val parent: FrameLayout, private val eli
             if (key == "cycle") (view as? ClimateControlView)?.setIcon(when(valid("cycle")) {
                 1 -> "cycle_inner"; 2 -> "cycle_outside"; else -> "cycle"
             })
-            if (view.isClickable) view.contentDescription = "${view.contentDescription.toString().substringBefore(" · ")} · ${if (!available) s(R.string.climate_unavailable) else if (view.isSelected) s(R.string.climate_on) else s(R.string.climate_off)}"
+            if (view.isClickable) view.contentDescription = "${view.contentDescription.toString().substringBefore(" · ")} · ${if (!available || (key == "smart_passenger" && valid(key) == null)) s(R.string.climate_unavailable) else if (view.isSelected) s(R.string.climate_on) else s(R.string.climate_off)}"
         }
         temperatureDials.forEach { (key, dial) ->
             dial.actual = (requestedTarget?.takeIf { it.first == key }?.second ?: temperatureValue(key))?.toFloat()

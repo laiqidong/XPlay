@@ -27,6 +27,7 @@ internal class P7FogButton(private val parent: FrameLayout,
     private val source: () -> View? = { null },
     private val videoBounds: () -> android.graphics.RectF = { android.graphics.RectF(0f, 0f, parent.width.toFloat(), parent.height.toFloat()) },
     private val cancelTouch: () -> Unit = {},
+    private val openSettings: () -> Unit = {},
     private val eligible: () -> Boolean) {
     companion object {
         private const val PREFS = "p7_fog_overlay"
@@ -73,7 +74,7 @@ internal class P7FogButton(private val parent: FrameLayout,
     private var destroyed = false
     @Volatile private var resumed = false
     private val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-    private val button = ImageButton(context).apply {
+    private val button: ImageButton = ImageButton(context).apply {
         setImageDrawable(VehicleControlIcons.load(context, "vehicle_entry"))
         scaleType = ImageView.ScaleType.FIT_CENTER
         background = null
@@ -85,7 +86,8 @@ internal class P7FogButton(private val parent: FrameLayout,
             }
         }
     }
-    private val sheet = P7ClimateOverlay(parent, eligible, source, videoBounds, cancelTouch,
+    private val sheet: P7ClimateOverlay = P7ClimateOverlay(parent, eligible, source, videoBounds, cancelTouch,
+        toggleAnchor = { button },
         night = night, iconLoader = { c, key -> VehicleControlIcons.load(c, key) }, vehicleActions = { listOf(
             P7VehicleAction(context.getString(R.string.vehicle_fog), "vehicle_fog", selected = !busy && (fogTarget ?: vehicleState?.optInt("fog", -1)) == 1, enabled = !busy && validState("fog", 0..1)) { vehicleCommand("FOG") },
             P7VehicleAction(context.getString(if (requested) R.string.vehicle_flash_stop else R.string.vehicle_flash), "vehicle_flash", requested) {
@@ -95,7 +97,10 @@ internal class P7FogButton(private val parent: FrameLayout,
             },
             P7VehicleAction(context.getString(if (trunkOpen()) R.string.vehicle_trunk_close else R.string.vehicle_trunk), if (trunkOpen()) "vehicle_trunk_close" else "vehicle_trunk", selected = trunkOpen(), enabled = pendingCommand != "TRUNK" && trunkReady()) { vehicleCommand("TRUNK") },
             P7VehicleAction(context.getString(R.string.vehicle_charge_slow), "vehicle_charge_slow", selected = vehicleState?.optInt("slow", -1) == 0, enabled = pendingCommand != "CHARGE_SLOW" && portReady("slow")) { vehicleCommand("CHARGE_SLOW") },
-            P7VehicleAction(context.getString(R.string.vehicle_charge_fast), "vehicle_charge_fast", selected = vehicleState?.optInt("fast", -1) == 0, enabled = pendingCommand != "CHARGE_FAST" && portReady("fast")) { vehicleCommand("CHARGE_FAST") }
+            P7VehicleAction(context.getString(R.string.vehicle_charge_fast), "vehicle_charge_fast", selected = vehicleState?.optInt("fast", -1) == 0, enabled = pendingCommand != "CHARGE_FAST" && portReady("fast")) { vehicleCommand("CHARGE_FAST") },
+            P7VehicleAction(context.getString(R.string.settings_connection_back), "vehicle_settings") {
+                dismiss(); openSettings()
+            }
         ) })
     private fun validState(key: String, range: IntRange) = vehicleState?.optInt(key, -1) in range
     private fun trunkOpen() = vehicleState?.optInt("trunk", -1) in 2..9

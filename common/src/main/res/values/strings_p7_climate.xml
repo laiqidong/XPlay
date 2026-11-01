@@ -41,4 +41,6 @@
     <string name="climate_deodor">Smart deodorizing</string>
     <string name="climate_clean">Smart cleaning</string>
     <string name="climate_smart_passenger">Smart passenger airflow</string>
+    <string name="climate_deodor_countdown">Est. %1$s</string>
+    <string name="climate_smart_passenger_unknown">State could not be read from the stock climate app. Choose an explicit command; the current state is unknown.</string>
 </resources>

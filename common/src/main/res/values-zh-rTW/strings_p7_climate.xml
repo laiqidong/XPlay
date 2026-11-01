@@ -41,4 +41,6 @@
     <string name="climate_deodor">智慧除味</string>
     <string name="climate_clean">智慧清潔</string>
     <string name="climate_smart_passenger">智慧副駕出風</string>
+    <string name="climate_deodor_countdown">預計 %1$s</string>
+    <string name="climate_smart_passenger_unknown">暫未讀到原車狀態。請選擇明確的開啟或關閉指令；目前狀態未知。</string>
 </resources>

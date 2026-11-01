@@ -296,6 +296,7 @@ class CarPlayController(
     }.apply { removeOnCancelPolicy = true }
     @Volatile private var wirelessDiagnostics: WirelessStartupDiagnostics? = null
     @Volatile private var bluetoothSocket: BluetoothSocket? = null
+    @Volatile private var rfcommPreconnect: RfcommPreconnect? = null
     @Volatile private var bluetoothStream: BluetoothRfcommDuplexStream? = null
     @Volatile private var wirelessTunnelChannel: Iap2Session? = null
     @Volatile private var wirelessRuntimeIdentification: Iap2IdentificationConfig? = null
@@ -474,6 +475,8 @@ class CarPlayController(
         }
         connectionDiagnostic("start transport=${config.transport}")
         if (!hasRequiredUsbService()) return
+        // Both transports attach through this service; its cold start overlaps MFi and hotspot bring-up.
+        bindVpn()
         videoListener?.let { listener ->
             videoGate = VideoInCarGate(
                 readParked = listener::readParked,
@@ -514,11 +517,46 @@ class CarPlayController(
         }
     }
 
+    /** A queued move that a newer move of the same fingers may still overwrite. */
+    private class PendingMove(val session: AirPlaySession, var contacts: List<AirPlayContact>)
+
+    private val touchLock = Any()
+    private var lastTouch: List<AirPlayContact>? = null
+    private var pendingMove: PendingMove? = null
+
+    /**
+     * A move keeps the same fingers down. Behind a slow write it replaces the move still waiting in
+     * the queue, so only the newest position is sent. Presses and releases are never merged.
+     */
     fun sendTouch(contacts: List<AirPlayContact>): Boolean {
         if (closed) return false
         val session = activeSession ?: return false
         return try {
-            touchExecutor.execute { session.sendTouch(contacts) }
+            synchronized(touchLock) {
+                val isMove = contacts.isNotEmpty() && contacts.all { it.down } &&
+                    lastTouch?.filter { it.down }?.map { it.id }?.toSet() == contacts.map { it.id }.toSet()
+                lastTouch = contacts
+                val pending = pendingMove
+                if (isMove && pending != null && pending.session === session) {
+                    pending.contacts = contacts
+                    return true
+                }
+                if (!isMove) {
+                    pendingMove = null
+                    touchExecutor.execute { session.sendTouch(contacts) }
+                } else {
+                    val move = PendingMove(session, contacts)
+                    touchExecutor.execute {
+                        val latest = synchronized(touchLock) {
+                            if (pendingMove === move) pendingMove = null
+                            move.contacts
+                        }
+                        session.sendTouch(latest)
+                    }
+                    // Set only after execute() accepted the task, and still under touchLock, which the task needs to start.
+                    pendingMove = move
+                }
+            }
             true
         } catch (_: Exception) {
             false
@@ -1276,6 +1314,7 @@ class CarPlayController(
                 state = activeAdapter?.state,
                 pausedByDiPlay = BydBluetoothSuspend.isSuspendedByUs(appContext),
             )?.let { throw BluetoothRadioCheck.failure(it) }
+            val preconnect = startRfcommPreconnect(activeAdapter, generation)
             val hotspotInfo = startWirelessHotspot(generation)
             if (isStaleWirelessRun(generation)) {
                 return
@@ -1442,26 +1481,33 @@ class CarPlayController(
                 "wireless RFCOMM connecting address=${device.address} " +
                     "uuid=$IAP2_IPHONE_UUID",
             )
-            val socket = synchronized(wirelessResourceLock) {
-                if (isStaleWirelessRun(generation)) return
-                device.createRfcommSocketToServiceRecord(UUID.fromString(IAP2_IPHONE_UUID))
-                    .also { bluetoothSocket = it }
-            }
-            logBluetoothConnectionSnapshot(device, "before-connect")
-            val bluetoothStarted = System.nanoTime()
+            val preconnected = takeRfcommPreconnect(preconnect, device, generation)
+            val socket: BluetoothSocket
             val bluetoothConnectMillis: Long
-            try {
-                connectBluetoothSocket(socket, device.address)
-                bluetoothConnectMillis = elapsedMillis(bluetoothStarted)
-                connectionDiagnostic("Bluetooth connect completed elapsedMs=$bluetoothConnectMillis " +
-                    "socketReportedConnected=${runCatching { socket.isConnected }.getOrNull() ?: "unknown"}")
-            } catch (error: Throwable) {
-                connectionDiagnostic(
-                    "Bluetooth connect failed elapsedMs=${elapsedMillis(bluetoothStarted)} " +
-                        "failureClass=${diagnosticFailureClass(error)}",
-                )
-                logBluetoothConnectionSnapshot(device, "after-failure")
-                throw error
+            if (preconnected != null) {
+                socket = preconnected.socket
+                bluetoothConnectMillis = preconnected.connectMillis
+            } else {
+                socket = synchronized(wirelessResourceLock) {
+                    if (isStaleWirelessRun(generation)) return
+                    device.createRfcommSocketToServiceRecord(UUID.fromString(IAP2_IPHONE_UUID))
+                        .also { bluetoothSocket = it }
+                }
+                logBluetoothConnectionSnapshot(device, "before-connect")
+                val bluetoothStarted = System.nanoTime()
+                try {
+                    connectBluetoothSocket(socket, device.address)
+                    bluetoothConnectMillis = elapsedMillis(bluetoothStarted)
+                    connectionDiagnostic("Bluetooth connect completed elapsedMs=$bluetoothConnectMillis " +
+                        "socketReportedConnected=${runCatching { socket.isConnected }.getOrNull() ?: "unknown"}")
+                } catch (error: Throwable) {
+                    connectionDiagnostic(
+                        "Bluetooth connect failed elapsedMs=${elapsedMillis(bluetoothStarted)} " +
+                            "failureClass=${diagnosticFailureClass(error)}",
+                    )
+                    logBluetoothConnectionSnapshot(device, "after-failure")
+                    throw error
+                }
             }
             debugLog("wireless RFCOMM connected address=${device.address}")
             logBluetoothConnectionSnapshot(device, "after-connect")
@@ -1856,6 +1902,10 @@ class CarPlayController(
         val activeSocket = bluetoothSocket
         bluetoothSocket = null
         if (activeSocket != null) closeBestEffort("wireless Bluetooth socket") { activeSocket.close() }
+
+        val pendingPreconnect = rfcommPreconnect
+        rfcommPreconnect = null
+        if (pendingPreconnect != null) closeBestEffort("pre-connected RFCOMM") { pendingPreconnect.socket.close() }
     }
 
     private fun startIphone() {
@@ -2586,6 +2636,117 @@ class CarPlayController(
         )
     }
 
+    /** An RFCOMM connect started before the hotspot, so the iPhone's paging overlaps the Wi-Fi bring-up. */
+    private class RfcommPreconnect(val generation: Int, val device: BluetoothDevice, val socket: BluetoothSocket) {
+        val startedNanos = System.nanoTime()
+        val done = CountDownLatch(1)
+        @Volatile var failure: Throwable? = null
+        @Volatile var connectMillis = 0L
+        @Volatile var connectedNanos = 0L
+    }
+
+    private class PreconnectedRfcomm(val socket: BluetoothSocket, val connectMillis: Long)
+
+    /**
+     * Only for an iPhone chosen in setup: without one, the device choice depends on which phone is
+     * connected after the hotspot is up, so it stays where it was.
+     */
+    private fun startRfcommPreconnect(adapter: BluetoothAdapter?, generation: Int): RfcommPreconnect? {
+        val selected = config.wirelessBluetoothDeviceAddress ?: return null
+        if (adapter == null || !adapter.isEnabled) return null
+        return try {
+            val device = adapter.bondedDevices.orEmpty()
+                .firstOrNull { it.address.equals(selected, ignoreCase = true) } ?: return null
+            val preconnect = synchronized(wirelessResourceLock) {
+                if (isStaleWirelessRun(generation)) return null
+                RfcommPreconnect(generation, device,
+                    device.createRfcommSocketToServiceRecord(UUID.fromString(IAP2_IPHONE_UUID)))
+                    .also { rfcommPreconnect = it }
+            }
+            debugLog("wireless RFCOMM pre-connect starting alongside hotspot address=${device.address}")
+            Thread(
+                {
+                    try {
+                        preconnect.socket.connect()
+                        preconnect.connectMillis = elapsedMillis(preconnect.startedNanos)
+                        preconnect.connectedNanos = System.nanoTime()
+                    } catch (error: Throwable) {
+                        preconnect.failure = error
+                    } finally {
+                        preconnect.done.countDown()
+                    }
+                },
+                "wireless-rfcomm-preconnect",
+            ).apply {
+                isDaemon = true
+                start()
+            }
+            preconnect
+        } catch (error: Exception) {
+            debugLog("wireless RFCOMM pre-connect unavailable: ${error.javaClass.simpleName}")
+            null
+        }
+    }
+
+    /**
+     * The pre-connected socket when it is usable; null means connect again in order, as before.
+     * A pre-connect that failed while the radio was busy with the hotspot gets that second chance.
+     */
+    private fun takeRfcommPreconnect(
+        preconnect: RfcommPreconnect?,
+        device: BluetoothDevice,
+        generation: Int,
+    ): PreconnectedRfcomm? {
+        if (preconnect == null) return null
+        val claimed = synchronized(wirelessResourceLock) {
+            if (rfcommPreconnect !== preconnect || isStaleWirelessRun(generation)) return null
+            rfcommPreconnect = null
+            preconnect.generation == generation && preconnect.device.address.equals(device.address, ignoreCase = true)
+        }
+        if (!claimed) {
+            closeBestEffort("pre-connected RFCOMM") { preconnect.socket.close() }
+            return null
+        }
+        val remaining = RFCOMM_CONNECT_TIMEOUT_MILLIS - elapsedMillis(preconnect.startedNanos)
+        val completed = try {
+            remaining > 0 && preconnect.done.await(remaining, TimeUnit.MILLISECONDS)
+        } catch (error: InterruptedException) {
+            Thread.currentThread().interrupt()
+            closeBestEffort("pre-connected RFCOMM") { preconnect.socket.close() }
+            throw IOException("Interrupted while connecting RFCOMM to ${device.address}", error)
+        }
+        if (!completed) {
+            closeBestEffort("pre-connected RFCOMM") { preconnect.socket.close() }
+            debugLog("wireless RFCOMM pre-connect timed out after ${RFCOMM_CONNECT_TIMEOUT_MILLIS}ms address=${device.address}")
+            throw IOException("Timed out after ${RFCOMM_CONNECT_TIMEOUT_MILLIS}ms connecting RFCOMM to ${device.address}")
+        }
+        val failure = preconnect.failure
+        if (failure != null) {
+            closeBestEffort("pre-connected RFCOMM") { preconnect.socket.close() }
+            connectionDiagnostic("Bluetooth pre-connect failed elapsedMs=${elapsedMillis(preconnect.startedNanos)} " +
+                "failureClass=${diagnosticFailureClass(failure)}; connecting again in order")
+            return null
+        }
+        val idleMillis = elapsedMillis(preconnect.connectedNanos)
+        val connected = runCatching { preconnect.socket.isConnected }.getOrDefault(false)
+        if (!connected || idleMillis > RFCOMM_PRECONNECT_MAX_IDLE_MILLIS) {
+            // An iPhone may drop a link that carried no iAP2 bytes for long; a fresh one is safer.
+            closeBestEffort("pre-connected RFCOMM") { preconnect.socket.close() }
+            debugLog("wireless RFCOMM pre-connect discarded connected=$connected idleMs=$idleMillis; connecting again")
+            return null
+        }
+        synchronized(wirelessResourceLock) {
+            if (isStaleWirelessRun(generation)) {
+                closeBestEffort("pre-connected RFCOMM") { preconnect.socket.close() }
+                return null
+            }
+            bluetoothSocket = preconnect.socket
+        }
+        connectionDiagnostic("Bluetooth connect completed elapsedMs=${preconnect.connectMillis} " +
+            "preconnected=true idleMs=$idleMillis socketReportedConnected=true")
+        return PreconnectedRfcomm(preconnect.socket, preconnect.connectMillis)
+    }
+
     private fun connectBluetoothSocket(socket: BluetoothSocket, address: String) {
         val result = AtomicReference<Throwable?>()
         val connected = CountDownLatch(1)
@@ -3119,6 +3280,7 @@ class CarPlayController(
         private const val DEVICE_AVAILABILITY_POLL_INTERVAL_MILLIS = 2_000L
         private const val WIRELESS_HANDOFF_TIMEOUT_MILLIS = 45_000L
         private const val RFCOMM_CONNECT_TIMEOUT_MILLIS = 15_000L
+        private const val RFCOMM_PRECONNECT_MAX_IDLE_MILLIS = 8_000L
         private const val MAXIMUM_REENUMERATION_ATTEMPTS = 2
         /** An iPhone answers the mode request within about a second; one took six (#335). */
         const val REENUMERATION_WAIT_MILLIS = 10_000L

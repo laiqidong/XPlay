@@ -97,24 +97,24 @@ internal class SettingsBackdrop(context: Context, private val night: Boolean) {
     }
 
     private val density = context.resources.displayMetrics.density
-    private val images = cachedImages(context, night)
-    private val wallpaper = images.first
-    private val blurred = images.second
+    private val images by lazy { cachedImages(context, night) }
+    private val wallpaper by lazy { images.first }
+    private val blurred by lazy { images.second }
     private var root: View? = null
 
     fun install(view: View, fullBlur: Boolean = true) {
         root = view
-        view.background = Layer(view, false, fullBlur)
+        view.setBackgroundColor(if (night) 0xFF1B1E24.toInt() else 0xFFF2F4F7.toInt())
     }
 
     fun frost(view: View, controlCorners: Boolean = false, tint: Int? = null): Drawable {
-        val material = Layer(view, true, controlCorners = controlCorners, tint = tint)
-        if (!controlCorners) {
-            view.elevation = 0f
-            view.translationZ = 0f
+        view.elevation = 0f
+        view.translationZ = 0f
+        return android.graphics.drawable.GradientDrawable().apply {
+            setColor(tint ?: if (night) 0xFF292D35.toInt() else Color.WHITE)
+            cornerRadius = if (controlCorners) (view.height.takeIf { it > 0 } ?: view.minimumHeight) * LiquidGlassStyle.CONTROL_RADIUS_RATIO
+                else CARD_RADIUS_DP * density
         }
-        trackPosition(view)
-        return material
     }
 
     private inner class Layer(private val owner: View, private val frost: Boolean, private val fullBlur: Boolean = false, private val controlCorners: Boolean = false, private val tint: Int? = null) : Drawable() {

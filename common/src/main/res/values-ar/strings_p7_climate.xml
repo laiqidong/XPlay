@@ -41,4 +41,6 @@
     <string name="climate_deodor">إزالة الروائح الذكية</string>
     <string name="climate_clean">التنظيف الذكي</string>
     <string name="climate_smart_passenger">تدفق هواء الراكب الذكي</string>
+    <string name="climate_deodor_countdown">المتبقي تقريبًا %1$s</string>
+    <string name="climate_smart_passenger_unknown">تعذرت قراءة الحالة من تطبيق التكييف الأصلي. اختر التشغيل أو الإيقاف؛ الحالة الحالية غير معروفة.</string>
 </resources>

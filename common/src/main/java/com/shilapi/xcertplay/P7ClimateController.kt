@@ -28,14 +28,18 @@ internal class P7ClimateController(private val context: Context, private val cha
     private var adb: LocalAdb? = null // worker thread only
     private var shell: LocalAdb.InteractiveShell? = null
     private val deodorizer = if (workerClass == "com.shilapi.xcertplay.P7ClimateWorker") P7ClimateDeodorizer(context) else null
+    private var callbackToken: String? = null
     private val poll = Runnable { request("READ") }
 
     override fun start() {
         if (disposed || active) return
-        active = true; generation++; deodorizer?.start(); changed(null); request("READ")
+        active = true; generation++
+        if (deodorizer != null) callbackToken = P7ClimateCallbackProvider.open()
+        deodorizer?.start(); changed(null); request("READ")
     }
     override fun stop() {
         active = false; generation++; main.removeCallbacks(poll); deodorizer?.stop()
+        P7ClimateCallbackProvider.close(callbackToken); callbackToken = null
         worker.execute { disconnect() }
     }
     override fun close() { if (!disposed) { stop(); disposed = true; worker.shutdown() } }
@@ -44,6 +48,8 @@ internal class P7ClimateController(private val context: Context, private val cha
         busy = true
         main.removeCallbacks(poll)
         val ticket = generation
+        val token = callbackToken
+        if (command.startsWith("SMART_PASSENGER_")) P7ClimateCallbackProvider.invalidate(token)
         worker.execute {
             var state: JSONObject? = null
             var error = false
@@ -56,7 +62,8 @@ internal class P7ClimateController(private val context: Context, private val cha
                     check(connection.connect(true) == LocalAdb.Access.READY)
                     val path = context.applicationInfo.sourceDir + ":/system/framework/android.car.jar"
                     val quoted = "'" + path.replace("'", "'\\''") + "'"
-                    shell = connection.openShell("CLASSPATH=$quoted app_process /system/bin ${workerClass}")
+                    val arguments = if (token != null) " '${context.packageName}' '$token'" else ""
+                    shell = connection.openShell("CLASSPATH=$quoted app_process /system/bin ${workerClass}$arguments")
                     check(shell != null)
                 }
                 if (ticket == generation && active) {
@@ -65,7 +72,15 @@ internal class P7ClimateController(private val context: Context, private val cha
                     val reply = shell!!.exchangeBounded(if (deodorCommand) "READ" else command, 3000) ?: error("climate stream ended")
                     state = JSONObject(reply.trim())
                     error = !state.optBoolean("ok", false)
-                    deodorizer?.let { state.put("deodor", it.read() ?: JSONObject.NULL) }
+                    deodorizer?.let {
+                        P7ClimateDiagnostics.note(context, "transport", state.optString("smart_passenger_transport", "missing"))
+                        P7ClimateDiagnostics.note(context, "write", state.optString("smart_passenger_write", "missing"))
+                        state.put("deodor", it.read() ?: JSONObject.NULL)
+                        state.put("deodor_remaining_estimate", it.remainingEstimateSeconds() ?: JSONObject.NULL)
+                        state.put("smart_passenger", if (state.optBoolean("smart_passenger_query"))
+                            P7ClimateCallbackProvider.read(token) ?: JSONObject.NULL else JSONObject.NULL)
+                        P7ClimateDiagnostics.note(context, "readback", if (state.isNull("smart_passenger")) "unknown" else "received")
+                    }
                 }
             } catch (_: Exception) { disconnect(); error = true }
             val delivered = state

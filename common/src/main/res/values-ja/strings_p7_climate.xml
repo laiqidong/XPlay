@@ -41,4 +41,6 @@
     <string name="climate_deodor">スマート消臭</string>
     <string name="climate_clean">スマート清掃</string>
     <string name="climate_smart_passenger">助手席スマート送風</string>
+    <string name="climate_deodor_countdown">残り約 %1$s</string>
+    <string name="climate_smart_passenger_unknown">純正空調の状態を取得できません。オンまたはオフを選択してください。現在の状態は不明です。</string>
 </resources>

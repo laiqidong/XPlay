@@ -295,9 +295,11 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         P7HfpSessionGuard.recover(this)
-        if (savedInstanceState == null && !intent.hasExtra("page") &&
-            !intent.getBooleanExtra(PhoneBluetoothReceiver.EXTRA_AUTO_CONNECT, false)) {
-            startActivity(ConnectionEntryPolicy.launchIntent(this)); finish(); return
+        if (!intent.hasExtra("page")) {
+            val launch = ConnectionEntryPolicy.launchIntent(this)
+            if (intent.getBooleanExtra(PhoneBluetoothReceiver.EXTRA_AUTO_CONNECT, false))
+                launch.putExtra(ConnectionEntryPolicy.EXTRA_START, true)
+            startActivity(launch); finish(); return
         }
         // Retire work queued by older builds; XPlay updates are maintained in our own repository.
         runCatching { BackgroundUpdateScheduler.disable(applicationContext) }
@@ -359,12 +361,16 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent); setIntent(intent)
+        if (hasWindowFocus()) P7WakeForeground.focused(intent)
         cancelOverviewBack()
         explicitSettingsEntryPending = false
         routeOnNextStart = false
         autoConnectOnNextResume = !intent.hasExtra("page")
-        if (!intent.hasExtra("page") && !intent.getBooleanExtra(PhoneBluetoothReceiver.EXTRA_AUTO_CONNECT, false)) {
-            startActivity(ConnectionEntryPolicy.launchIntent(this)); finish(); return
+        if (!intent.hasExtra("page")) {
+            val launch = ConnectionEntryPolicy.launchIntent(this)
+            if (intent.getBooleanExtra(PhoneBluetoothReceiver.EXTRA_AUTO_CONNECT, false))
+                launch.putExtra(ConnectionEntryPolicy.EXTRA_START, true)
+            startActivity(launch); finish(); return
         }
         connectionSettingsReturnCategory = null
         page = intent.getStringExtra("page")?.let { if (it == "home" || it == "backup") "settings" else it } ?: "settings"
@@ -439,10 +445,10 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         val externalWake = routeOnNextStart && !explicitEntry && !returningFromExternalUi
         if (externalWake) autoConnectOnNextResume = true
         if (explicitEntry || returningFromExternalUi) autoConnectOnNextResume = false
-        val route = externalWake && CarPlayBackgroundSession.active
+        val route = externalWake
         routeOnNextStart = false
         returningFromExternalUi = false
-        if (route) { openProjection(); finish(); return }
+        if (route) { startActivity(ConnectionEntryPolicy.launchIntent(this)); finish(); return }
         window.decorView.visibility = View.VISIBLE
         // Results from the image picker and crop screens arrive before onResume.
         enforceInterfaceSize()
@@ -539,6 +545,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) P7WakeForeground.focused(intent)
         if (hasFocus) applyFullscreenMode()
         // Some head units put their own density back without any other callback.
         if (hasFocus && enforceInterfaceSize()) render()
@@ -5120,6 +5127,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         appendLine("Saved resolution preference (may differ from active session): ${AirPlayPersistence.loadDisplayScalePercent(appContext)}%")
         appendLine("Session: ${if (CarPlayBackgroundSession.active) "active" else if (CarPlayBackgroundSession.hasSession()) "connecting" else "stopped"}")
         appendLine(PhoneWakeDiagnostics.report(appContext))
+        appendLine(P7ClimateDiagnostics.report(appContext))
         appendLine("Head-unit board: ${Build.BOARD}; hardware: ${Build.HARDWARE}; build: ${Build.DISPLAY}")
         appendLine()
         appendLine(BluetoothDiagnosticSnapshot.report(appContext))
@@ -5258,7 +5266,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
     private fun paintChannel(index: Int, selected: Boolean) {
         val target = channelButtons.getOrNull(index) ?: return
         target.isSelected = selected
-        target.setTextColor(TEXT)
+        target.setTextColor(if (selected) ON_ACCENT else TEXT)
         target.background = LiquidGlassStyle.button(target, appNight, if (selected) ACCENT else null, RIPPLE)
     }
 
@@ -5812,6 +5820,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         compoundDrawablePadding = dp(12)
         foreground = buttonFocusRing()
         text = title
+        setTextColor(if (primary && !isSettingRow) ON_ACCENT else TEXT)
         if (isSettingRow) {
             setPaddingRelative(0, dp(SettingsWidgets.CARD_ROW_VERTICAL_PADDING_DP), 0,
                 dp(SettingsWidgets.CARD_ROW_VERTICAL_PADDING_DP))
@@ -5821,6 +5830,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
         }
         setOnClickListener { click() }
         doOnLayout {
+            setTextColor(if (primary && !isSettingRow) ON_ACCENT else TEXT)
             if (isSettingRow) {
                 background = android.graphics.drawable.RippleDrawable(ColorStateList.valueOf(RIPPLE),
                     ColorDrawable(Color.TRANSPARENT), null)

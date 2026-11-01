@@ -6,8 +6,11 @@ import android.Manifest
 import android.content.ActivityNotFoundException
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.bluetooth.BluetoothDevice
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.content.res.Resources
@@ -546,6 +549,7 @@ class CarPlayHostActivity : ComponentActivity() {
     private var startAfterHandshakeReset = false
     private var restartGeneration = 0
     private var reconnectScheduled = false
+    private var pendingReconnect: Runnable? = null
     // How often the current controller reached its control loop, and whether a loss came after the
     // last time. A retry scheduled before the count went up leaves the attempt alone only while it is
     // still running when the retry fires (#873).
@@ -750,6 +754,7 @@ class CarPlayHostActivity : ComponentActivity() {
         window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         getSystemService(android.hardware.display.DisplayManager::class.java)
             ?.registerDisplayListener(clusterDisplayListener, mainHandler)
+        registerPhoneBluetoothReceiver()
         initializeSessionLog()
         lastConfiguration = Configuration(resources.configuration)
         darkMode = savedInstanceState?.getBoolean("carplay_night_active")
@@ -810,6 +815,9 @@ class CarPlayHostActivity : ComponentActivity() {
             }
             authenticationReady = true
         }
+        // The vehicle shell needs seconds after wake; start it while permissions and the display settle,
+        // so startCarPlay rarely waits for the first battery snapshot.
+        P7CarPlayData.startSession(applicationContext)
         microphoneAvailable = checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
         microphonePermissionResolved = microphoneAvailable
         if (microphonePermissionResolved) requestStartupPrerequisites()
@@ -1044,6 +1052,7 @@ class CarPlayHostActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        if (hasWindowFocus()) P7WakeForeground.focused(intent)
         if (intent.getBooleanExtra(ConnectionEntryPolicy.EXTRA_LAUNCHER, false) && controller == null &&
             !CarPlayBackgroundSession.hasSession()) {
             loadPersistedSettings()
@@ -1630,6 +1639,7 @@ class CarPlayHostActivity : ComponentActivity() {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) P7WakeForeground.focused(intent)
         if (hasFocus) {
             refreshConfiguration(source = ThemeModeDiagnostics.Source.WINDOW_FOCUS)
             applyFullscreenMode()
@@ -1776,6 +1786,7 @@ class CarPlayHostActivity : ComponentActivity() {
         clusterMonitor?.stop()
         getSystemService(android.hardware.display.DisplayManager::class.java)
             ?.unregisterDisplayListener(clusterDisplayListener)
+        unregisterPhoneBluetoothReceiver()
         mainHandler.removeCallbacks(hideIdleCenterMap)
         homeMonitor?.stop()
         CenterMapOverlay.hide()
@@ -1877,7 +1888,8 @@ class CarPlayHostActivity : ComponentActivity() {
         }
         fogButton = P7FogButton(root, night = { darkMode }, source = { fallbackVideoView ?: videoView },
             videoBounds = { val bounds = contentRect(root.width, root.height); RectF(bounds.left, bounds.top, bounds.left + bounds.width, bounds.top + bounds.height) },
-            cancelTouch = { climateOverlay?.dismiss(); controller?.sendTouch(emptyList()) }) {
+            cancelTouch = { climateOverlay?.dismiss(); controller?.sendTouch(emptyList()) },
+            openSettings = { showDiPlayHome() }) {
             SCREEN_TYPE_MAIN in activeScreenStreamTypes && !menuOpen && !shuttingDown.get()
         }
         climateOverlay = P7ClimateOverlay(root,
@@ -5690,8 +5702,9 @@ class CarPlayHostActivity : ComponentActivity() {
         reconnectAttempts += 1
         appendLog("$reason; retrying in ${delayMillis}ms generation=$generation startupFailure=$startupFailure startupRetries=${startupRetryBudget.retries}")
         val controlRunsAtFailure = controlRunningCount
-        mainHandler.postDelayed(
-            {
+        val retry = object : Runnable {
+            override fun run() {
+                if (pendingReconnect === this) pendingReconnect = null
                 reconnectScheduled = false
                 if (menuOpen && generation == restartGeneration) recoveryPendingAfterMenu = true
                 if (
@@ -5700,19 +5713,64 @@ class CarPlayHostActivity : ComponentActivity() {
                     handshakeResetInProgress || startupRetryStopped ||
                     generation != restartGeneration
                 ) {
-                    return@postDelayed
+                    return
                 }
                 // A wired attempt can report a failure and still go on: a second CarPlay mode request
                 // failed while the iPhone was already switching, and the switch then completed (#873).
                 // Leave it alone only if it is still running; a loss after its recovery still restarts.
                 if (controlRunningCount != controlRunsAtFailure && !lossSinceControlRunning) {
                     appendLog("Not reconnecting after $reason: the same attempt is running again")
-                    return@postDelayed
+                    return
                 }
                 restartCarPlay("Reconnecting after $reason")
-            },
-            delayMillis,
-        )
+            }
+        }
+        pendingReconnect = retry
+        mainHandler.postDelayed(retry, delayMillis)
+    }
+
+    /**
+     * After power-on the iPhone usually reaches the car's Bluetooth a few seconds after the first
+     * RFCOMM attempt failed. Its link coming up is the moment a retry can succeed, so a waiting wireless
+     * retry runs at once instead of sitting out the backoff.
+     */
+    private val phoneBluetoothReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action != BluetoothDevice.ACTION_ACL_CONNECTED || !wirelessEnabled) return
+            val retry = pendingReconnect ?: return
+            val selected = DiPlayPreferences.phoneAddress(this@CarPlayHostActivity) ?: return
+            val device = if (Build.VERSION.SDK_INT >= 33) {
+                intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE, BluetoothDevice::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                intent.getParcelableExtra<BluetoothDevice>(BluetoothDevice.EXTRA_DEVICE)
+            } ?: return
+            val address = runCatching { device.address }.getOrNull() ?: return
+            if (!address.equals(selected, ignoreCase = true)) return
+            mainHandler.removeCallbacks(retry)
+            appendLog("Selected iPhone Bluetooth connected; retrying now")
+            retry.run()
+        }
+    }
+    private var phoneBluetoothReceiverRegistered = false
+
+    private fun registerPhoneBluetoothReceiver() {
+        if (phoneBluetoothReceiverRegistered) return
+        // ACL_CONNECTED is a protected broadcast sent by the Bluetooth process, so it has to be exported.
+        phoneBluetoothReceiverRegistered = runCatching {
+            val filter = IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED)
+            if (Build.VERSION.SDK_INT >= 33) {
+                registerReceiver(phoneBluetoothReceiver, filter, Context.RECEIVER_EXPORTED)
+            } else {
+                registerReceiver(phoneBluetoothReceiver, filter)
+            }
+        }.onFailure { Log.w(TAG, "Phone Bluetooth retry trigger unavailable", it) }.isSuccess
+    }
+
+    private fun unregisterPhoneBluetoothReceiver() {
+        if (!phoneBluetoothReceiverRegistered) return
+        phoneBluetoothReceiverRegistered = false
+        runCatching { unregisterReceiver(phoneBluetoothReceiver) }
     }
 
     /** Full-stack fallback when an AirPlay-only reconnect is unavailable. */
@@ -5773,17 +5831,9 @@ class CarPlayHostActivity : ComponentActivity() {
         } else if (menuOpen) {
             cancelSystemBack()
             if (safeAreaEditorActive) closeSafeAreaEditor() else leaveSettingsMenu()
-        } else if (pendingSystemBack != null) {
-            showDiPlayHome()
         } else {
-            val action = Runnable {
-                pendingSystemBack = null
-                controller?.sendTouch(emptyList())
-                // Return to CarPlay's own home; the XPENG icon opens the vehicle desktop.
-                controller?.sendKnob(AirPlayKnobState(home = true))
-            }
-            pendingSystemBack = action
-            mainHandler.postDelayed(action, 350L)
+            controller?.sendTouch(emptyList())
+            controller?.sendKnob(AirPlayKnobState(home = true))
         }
     }
 
@@ -6228,10 +6278,11 @@ class CarPlayHostActivity : ComponentActivity() {
             MotionEvent.ACTION_POINTER_DOWN,
             MotionEvent.ACTION_UP,
             MotionEvent.ACTION_POINTER_UP,
+            // The unmasked action keeps the pointer index: ACTION_POINTER_UP(1), not always (0).
             MotionEvent.ACTION_CANCEL -> Log.i(
                 TAG,
-                "touch action=${MotionEvent.actionToString(event.actionMasked)} " +
-                    "pointers=${event.pointerCount} queued=$queued",
+                "touch action=${MotionEvent.actionToString(event.action)} " +
+                    "pointer=${event.getPointerId(event.actionIndex)} pointers=${event.pointerCount} queued=$queued",
             )
         }
         return true
@@ -6359,10 +6410,7 @@ class CarPlayHostActivity : ComponentActivity() {
         else -> getString(R.string.getting_carplay_ready)
     }
 
-    private fun appendLog(message: String) {
-        val safe = DiagnosticRedactor.redact(message) ?: return
-        sessionLog?.append(formattedLogLine(safe, System.currentTimeMillis()))
-    }
+    private fun appendLog(message: String) = appendFileLog(message)
 
     private fun appendFileLog(message: String) {
         sessionLog?.append(formattedLogLine(message, System.currentTimeMillis()))

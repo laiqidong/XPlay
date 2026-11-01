@@ -6,11 +6,16 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import android.os.Parcel
+import android.os.SystemClock
 
 /** OEM app owns the deodorizing sequence and its timer; do not emulate it with fan writes. */
 internal class P7ClimateDeodorizer(private val context: Context) {
     @Volatile private var service: IBinder? = null
     private var bound = false
+    // Display-only estimate for an explicitly observed XPlay start. OEM owns all actuation.
+    private var requestedStartAt: Long? = null
+    private var estimatedStartAt: Long? = null
+    private var lastReadAt: Long? = null
     private val connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, binder: IBinder) { service = binder }
         override fun onServiceDisconnected(name: ComponentName) { service = null }
@@ -48,8 +53,42 @@ internal class P7ClimateDeodorizer(private val context: Context) {
             return result[0]
         } finally { reply.recycle(); request.recycle() }
     }
-    fun read(): Int? = runCatching {
-        when (call("isHvacDeodorantEnable", "null")) { "true" -> 1; "false" -> 0; else -> null }
-    }.getOrNull()
-    fun set(enabled: Boolean) { call("setHvacDeodorantEnable", enabled.toString()) }
+    fun read(): Int? {
+        val now = SystemClock.elapsedRealtime()
+        if (lastReadAt?.let { now - it > OBSERVATION_GAP_MS } == true) clearEstimate()
+        lastReadAt = now
+        val enabled = runCatching {
+            when (call("isHvacDeodorantEnable", "null")) { "true" -> 1; "false" -> 0; else -> null }
+        }.getOrNull()
+        val requested = requestedStartAt
+        when {
+            enabled == null -> clearEstimate()
+            requested != null && now - requested > START_CONFIRM_MS -> clearEstimate()
+            enabled == 1 && requested != null -> { estimatedStartAt = requested; requestedStartAt = null }
+            enabled == 0 && requested == null -> clearEstimate()
+        }
+        return enabled
+    }
+
+    fun set(enabled: Boolean) {
+        val wasOff = if (enabled) read() == 0 else false
+        clearEstimate()
+        call("setHvacDeodorantEnable", enabled.toString())
+        if (enabled && wasOff) requestedStartAt = SystemClock.elapsedRealtime()
+    }
+
+    fun remainingEstimateSeconds(): Int? {
+        val started = estimatedStartAt ?: return null
+        val remaining = (DEODOR_DURATION_MS - (SystemClock.elapsedRealtime() - started) + 999) / 1000
+        // Never claim completion or send OFF based on our estimate; OEM remains authoritative.
+        return remaining.toInt().takeIf { it in 1..180 }
+    }
+
+    private fun clearEstimate() { requestedStartAt = null; estimatedStartAt = null }
+
+    private companion object {
+        const val DEODOR_DURATION_MS = 180_000L
+        const val START_CONFIRM_MS = 3000L
+        const val OBSERVATION_GAP_MS = 3000L
+    }
 }
