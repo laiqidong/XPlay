@@ -361,7 +361,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent); setIntent(intent)
-        if (hasWindowFocus()) P7WakeForeground.focused(intent)
+        if (hasWindowFocus()) P7WakeForeground.focused()
         cancelOverviewBack()
         explicitSettingsEntryPending = false
         routeOnNextStart = false
@@ -545,7 +545,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) P7WakeForeground.focused(intent)
+        if (hasFocus) P7WakeForeground.focused()
         if (hasFocus) applyFullscreenMode()
         // Some head units put their own density back without any other callback.
         if (hasFocus && enforceInterfaceSize()) render()

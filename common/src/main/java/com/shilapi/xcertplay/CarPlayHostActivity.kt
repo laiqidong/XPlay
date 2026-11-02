@@ -1052,7 +1052,7 @@ class CarPlayHostActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        if (hasWindowFocus()) P7WakeForeground.focused(intent)
+        if (hasWindowFocus()) P7WakeForeground.focused()
         if (intent.getBooleanExtra(ConnectionEntryPolicy.EXTRA_LAUNCHER, false) && controller == null &&
             !CarPlayBackgroundSession.hasSession()) {
             loadPersistedSettings()
@@ -1639,7 +1639,7 @@ class CarPlayHostActivity : ComponentActivity() {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) P7WakeForeground.focused(intent)
+        if (hasFocus) P7WakeForeground.focused()
         if (hasFocus) {
             refreshConfiguration(source = ThemeModeDiagnostics.Source.WINDOW_FOCUS)
             applyFullscreenMode()
