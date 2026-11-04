@@ -562,6 +562,9 @@ class CarPlayHostActivity : ComponentActivity() {
     private var settingsGestureHint: TextView? = null
     private var gestureSequenceActive = false
     private var gestureTracking = false
+    private var settingsPinchSpan = 0f
+    private var settingsPinchActive = false
+    private var settingsPinchTriggered = false
     private var gestureStartX = 0f
     private var gestureStartY = 0f
     private var recoveryPendingAfterMenu = false
@@ -6209,6 +6212,34 @@ class CarPlayHostActivity : ComponentActivity() {
 
     private fun onHostTouch(view: View, event: MotionEvent): Boolean {
         if (menuOpen) return true
+        if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+            settingsPinchActive = false
+            settingsPinchTriggered = false
+        }
+        if (event.actionMasked == MotionEvent.ACTION_POINTER_DOWN && event.pointerCount == 5) {
+            settingsPinchActive = true
+            settingsPinchSpan = settingsPinchRadius(event)
+            gestureSequenceActive = false
+            gestureTracking = false
+            controller?.sendTouch(emptyList())
+            return true
+        }
+        if (settingsPinchActive) {
+            if (!settingsPinchTriggered && event.actionMasked == MotionEvent.ACTION_MOVE && event.pointerCount == 5) {
+                val span = settingsPinchRadius(event)
+                if (settingsPinchSpan - span >= dp(SETTINGS_PINCH_DISTANCE_DP) && span <= settingsPinchSpan * .75f) {
+                    settingsPinchTriggered = true
+                    showDiPlayHome("settings")
+                }
+            }
+            if (event.actionMasked == MotionEvent.ACTION_POINTER_UP || event.pointerCount != 5) {
+                settingsPinchTriggered = true
+            }
+            if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
+                settingsPinchActive = false
+            }
+            return true
+        }
         if (floatingLyricsView?.handleHostTouch(event) == true) return true
 
         when (event.actionMasked) {
@@ -6286,6 +6317,16 @@ class CarPlayHostActivity : ComponentActivity() {
             )
         }
         return true
+    }
+
+    private fun settingsPinchRadius(event: MotionEvent): Float {
+        val x = pointerCentroid(event, horizontal = true)
+        val y = pointerCentroid(event, horizontal = false)
+        var radius = 0f
+        for (i in 0 until event.pointerCount) {
+            radius += kotlin.math.hypot(event.getX(i) - x, event.getY(i) - y)
+        }
+        return radius / event.pointerCount
     }
 
     private fun pointerCentroid(event: MotionEvent, horizontal: Boolean): Float {
@@ -6552,6 +6593,7 @@ class CarPlayHostActivity : ComponentActivity() {
         const val AUDIO_CAPTURE_MARKER = "audio-capture.enabled"
         const val AUDIO_CAPTURE_DIRECTORY = "audio-captures"
         const val PROTOCOL_TRACE_PREFIX = "TRACE "
+        const val SETTINGS_PINCH_DISTANCE_DP = 24
         const val SETTINGS_SWIPE_DISTANCE_DP = 72
         const val SETTINGS_SWIPE_DIRECTION_RATIO = 1.15f
         const val MAX_SETTINGS_MENU_WIDTH_DP = 720

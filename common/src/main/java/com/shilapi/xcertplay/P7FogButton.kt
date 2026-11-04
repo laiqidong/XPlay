@@ -7,9 +7,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.view.Gravity
-import android.view.MotionEvent
 import android.view.View
-import android.view.ViewConfiguration
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -19,7 +17,6 @@ import com.shilapi.xcertplay.adb.LocalAdb
 import com.shilapi.xcertplay.adb.LocalAdbDevicePolicy
 import com.shilapi.xcertplay.host.R
 import java.util.concurrent.Executors
-import kotlin.math.abs
 
 /** Activity-owned control: never draws over another app or resumes a previous flashing request. */
 internal class P7FogButton(private val parent: FrameLayout,
@@ -60,7 +57,6 @@ internal class P7FogButton(private val parent: FrameLayout,
             }
         }
     }
-    private var positioning = false
     private var vehicleState: org.json.JSONObject? = null
     private var vehicleMonitoring = false
     private val vehicleController = P7ClimateController(context, { state ->
@@ -73,7 +69,6 @@ internal class P7FogButton(private val parent: FrameLayout,
         workerClass = "com.shilapi.xcertplay.P7VehicleWorker")
     private var destroyed = false
     @Volatile private var resumed = false
-    private val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
     private val button: ImageButton = ImageButton(context).apply {
         setImageDrawable(VehicleControlIcons.load(context, "vehicle_entry"))
         scaleType = ImageView.ScaleType.FIT_CENTER
@@ -129,42 +124,10 @@ internal class P7FogButton(private val parent: FrameLayout,
     init {
         parent.addView(button, FrameLayout.LayoutParams(1, 1, Gravity.TOP or Gravity.LEFT))
         parent.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> layout() }
-        var downX = 0f; var downY = 0f; var originX = 0; var originY = 0; var dragging = false
-        val slop = ViewConfiguration.get(context).scaledTouchSlop
-        button.setOnTouchListener { _, event ->
-            val params = button.layoutParams as FrameLayout.LayoutParams
-            when (event.actionMasked) {
-                MotionEvent.ACTION_DOWN -> {
-                    positioning = true
-                    downX = event.rawX; downY = event.rawY
-                    originX = params.leftMargin; originY = params.topMargin; dragging = false
-                    true
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    if (abs(event.rawX - downX) > slop || abs(event.rawY - downY) > slop) dragging = true
-                    if (dragging) {
-                        params.leftMargin = (originX + event.rawX - downX).toInt().coerceIn(0, (parent.width - button.width).coerceAtLeast(0))
-                        params.topMargin = (originY + event.rawY - downY).toInt().coerceIn(0, (parent.height - button.height).coerceAtLeast(0))
-                        button.layoutParams = params
-                    }
-                    true
-                }
-                MotionEvent.ACTION_UP -> {
-                    positioning = false
-                    if (dragging) prefs.edit()
-                        .putFloat("carplay_x", params.leftMargin.toFloat() / (parent.width - button.width).coerceAtLeast(1))
-                        .putFloat("carplay_y", params.topMargin.toFloat() / (parent.height - button.height).coerceAtLeast(1)).apply()
-                    else button.performClick()
-                    true
-                }
-                MotionEvent.ACTION_CANCEL -> { positioning = false; dragging = false; true }
-                else -> false
-            }
-        }
     }
 
     private fun layout() {
-        if (positioning || parent.width <= 0 || parent.height <= 0) return
+        if (parent.width <= 0 || parent.height <= 0) return
         val size = P7VehicleControlStyle.buttonSize(context, videoBounds().height())
             .coerceAtMost(minOf(parent.width, parent.height))
         val maxX = (parent.width - size).coerceAtLeast(0)
@@ -173,10 +136,8 @@ internal class P7FogButton(private val parent: FrameLayout,
         val defaultX = (bounds.left + (bounds.height() * BAR_WIDTH_FRACTION - size) / 2).toInt()
         val defaultY = (bounds.top + bounds.height() * (1f - HOME_GAP_FRACTION) - size).toInt()
         val next = FrameLayout.LayoutParams(size, size, Gravity.TOP or Gravity.LEFT).apply {
-            leftMargin = if (prefs.contains("carplay_x")) (prefs.getFloat("carplay_x", 0f) * maxX).toInt().coerceIn(0, maxX)
-                else defaultX.coerceIn(0, maxX)
-            topMargin = if (prefs.contains("carplay_y")) (prefs.getFloat("carplay_y", 0f) * maxY).toInt().coerceIn(0, maxY)
-                else defaultY.coerceIn(0, maxY)
+            leftMargin = defaultX.coerceIn(0, maxX)
+            topMargin = defaultY.coerceIn(0, maxY)
         }
         val current = button.layoutParams as? FrameLayout.LayoutParams
         if (current == null || current.width != next.width || current.height != next.height ||

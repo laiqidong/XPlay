@@ -3,7 +3,7 @@
     <string name="settings_vehicle_controls_title">التحكم بالمركبة (تجريبي)</string>
     <string name="settings_vehicle_controls_toggle">إظهار التحكم بالمركبة</string>
     <string name="settings_vehicle_controls_behavior">افتح صف عناصر التحكم من رمز المركبة في CarPlay. اضغط خارج البطاقة لإغلاقها. يتطلب تفويض ADB المحلي.</string>
-    <string name="settings_vehicle_controls_position">اسحب الرمز لتغيير موضعه. مغادرة CarPlay أو تعطيل التحكم يوقف الوميض ويعيد حالة ضوء الضباب الأصلية. تحريك الصندوق والتحكم بمنافذ الشحن يتطلبان توقف المركبة.</string>
+    <string name="settings_vehicle_controls_position">مغادرة CarPlay أو تعطيل التحكم يوقف الوميض ويعيد حالة ضوء الضباب الأصلية. تحريك الصندوق والتحكم بمنافذ الشحن يتطلبان توقف المركبة.</string>
     <string name="vehicle_fog">الضباب</string>
     <string name="vehicle_flash">وميض</string>
     <string name="vehicle_flash_stop">إيقاف</string>

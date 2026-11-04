@@ -3,7 +3,7 @@
     <string name="settings_vehicle_controls_title">Керування автомобілем (експериментально)</string>
     <string name="settings_vehicle_controls_toggle">Показувати керування автомобілем</string>
     <string name="settings_vehicle_controls_behavior">Значок автомобіля в CarPlay відкриває нижній ряд кнопок. Натисніть зовні, щоб закрити. Потрібен дозвіл локального ADB.</string>
-    <string name="settings_vehicle_controls_position">Перетягніть значок для переміщення. Вихід із CarPlay або вимкнення керування зупиняє блимання та відновлює ліхтар. Рух багажника та керування зарядними портами доступні на стоянці.</string>
+    <string name="settings_vehicle_controls_position">Вихід із CarPlay або вимкнення керування зупиняє блимання та відновлює ліхтар. Рух багажника та керування зарядними портами доступні на стоянці.</string>
     <string name="vehicle_fog">Туман</string>
     <string name="vehicle_flash">Блимання</string>
     <string name="vehicle_flash_stop">Стоп</string>

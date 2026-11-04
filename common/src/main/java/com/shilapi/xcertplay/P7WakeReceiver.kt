@@ -13,6 +13,7 @@ import com.shilapi.xcertplay.adb.LocalAdbDevicePolicy
 class P7WakeReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != ACTION_POWER_CHANGED || !LocalAdbDevicePolicy.isXpengP7()) return
+        watchSleep(context)
         // Missing fields must never bring an activity forward.
         if (!intent.hasExtra(EXTRA_IG) || !intent.hasExtra(EXTRA_POWER)) return
         val ig = intent.getIntExtra(EXTRA_IG, -1)
@@ -48,6 +49,23 @@ class P7WakeReceiver : BroadcastReceiver() {
 
     companion object {
         @Volatile private var driverAwake = false
+        private var sleepWatcher: BroadcastReceiver? = null
+
+        private fun watchSleep(context: Context) {
+            if (sleepWatcher != null) return
+            val receiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context, intent: Intent) {
+                    if (intent.action != Intent.ACTION_SCREEN_OFF) return
+                    // E28 may suspend the retained process before delivering IG off.
+                    // Re-arm for the next verified driver power-on, without launching on screen-on.
+                    driverAwake = false
+                    P7WakeForeground.cancel()
+                    CarWakePrewarm.stop()
+                }
+            }
+            context.applicationContext.registerReceiver(receiver, android.content.IntentFilter(Intent.ACTION_SCREEN_OFF))
+            sleepWatcher = receiver
+        }
 
         internal fun report(context: Context): String {
             val prefs = context.getSharedPreferences("xplay_car_wake", Context.MODE_PRIVATE)
