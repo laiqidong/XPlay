@@ -294,6 +294,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        P7WakeReceiver.install(applicationContext)
         P7HfpSessionGuard.recover(this)
         if (!intent.hasExtra("page")) {
             val launch = ConnectionEntryPolicy.launchIntent(this)
@@ -545,7 +546,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) P7WakeForeground.focused()
+        P7WakeForeground.focusChanged(hasFocus)
         if (hasFocus) applyFullscreenMode()
         // Some head units put their own density back without any other callback.
         if (hasFocus && enforceInterfaceSize()) render()

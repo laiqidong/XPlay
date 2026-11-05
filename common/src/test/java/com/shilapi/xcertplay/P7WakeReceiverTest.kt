@@ -54,16 +54,31 @@ class P7WakeReceiverTest {
         assertEquals(4, early)
     }
 
-    @Test fun anyDiPlayFocusStopsTheRetries() {
+    @Test fun stableDiPlayFocusStopsTheRetries() {
         var released = 0
         P7WakeForeground.launch(app) { released++ }
         looper.idleFor(Duration.ofSeconds(2))
         startedCount()
         P7WakeForeground.focused()
+        assertEquals(0, released)
+        looper.idleFor(Duration.ofSeconds(5))
         assertEquals(1, released)
         looper.idleFor(Duration.ofSeconds(60))
         assertEquals(0, startedCount())
         assertEquals(1, released)
+    }
+
+    @Test fun transientFocusDuringCarRestorationDoesNotStopWakeRetries() {
+        P7WakeForeground.launch(app) {}
+        looper.idleFor(Duration.ofSeconds(2))
+        startedCount()
+        P7WakeForeground.focusChanged(true)
+        looper.idleFor(Duration.ofSeconds(1))
+        P7WakeForeground.focusChanged(false)
+        looper.idleFor(Duration.ofSeconds(8))
+        assertTrue("the OEM launcher covering XPlay must leave wake retries armed", startedCount() > 0)
+        assertEquals("waiting-for-focus", app.getSharedPreferences("xplay_car_wake", 0)
+            .getString("foreground_result", null))
     }
 
     @Test fun windowEndsWithoutFocus() {

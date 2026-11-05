@@ -12,8 +12,18 @@ import com.shilapi.xcertplay.adb.LocalAdbDevicePolicy
 /** E28 normally resumes from sleep without sending BOOT_COMPLETED. */
 class P7WakeReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != ACTION_POWER_CHANGED || !LocalAdbDevicePolicy.isXpengP7()) return
-        watchSleep(context)
+        if (!LocalAdbDevicePolicy.isXpengP7()) return
+        if (intent.action == Intent.ACTION_SCREEN_OFF) {
+            driverAwake = false
+            P7WakeForeground.cancel()
+            CarWakePrewarm.stop()
+            context.getSharedPreferences("xplay_car_wake", Context.MODE_PRIVATE).edit()
+                .putBoolean("driver_awake", false)
+                .putLong("screen_off_at", System.currentTimeMillis()).apply()
+            return
+        }
+        if (intent.action != ACTION_POWER_CHANGED) return
+        install(context)
         // Missing fields must never bring an activity forward.
         if (!intent.hasExtra(EXTRA_IG) || !intent.hasExtra(EXTRA_POWER)) return
         val ig = intent.getIntExtra(EXTRA_IG, -1)
@@ -35,7 +45,11 @@ class P7WakeReceiver : BroadcastReceiver() {
             P7PowerState.DRIVER_AWAKE -> {
                 // In memory on purpose: the E28 force-stops DiPlay at IG off, often before the IG 0
                 // broadcast reaches it, so a saved flag would skip the next drive's wake.
-                if (driverAwake) return
+                val suspended = suspendClockAdvanced()
+                if (driverAwake && !suspended) {
+                    Log.i(TAG, "Duplicate driver power-on ignored")
+                    return
+                }
                 driverAwake = true
             }
         }
@@ -49,22 +63,35 @@ class P7WakeReceiver : BroadcastReceiver() {
 
     companion object {
         @Volatile private var driverAwake = false
-        private var sleepWatcher: BroadcastReceiver? = null
+        private var wakeWatcher: BroadcastReceiver? = null
+        private var lastSuspendClock = 0L
+        private const val SUSPEND_REARM_MS = 5_000L
 
-        private fun watchSleep(context: Context) {
-            if (sleepWatcher != null) return
-            val receiver = object : BroadcastReceiver() {
-                override fun onReceive(context: Context, intent: Intent) {
-                    if (intent.action != Intent.ACTION_SCREEN_OFF) return
-                    // E28 may suspend the retained process before delivering IG off.
-                    // Re-arm for the next verified driver power-on, without launching on screen-on.
-                    driverAwake = false
-                    P7WakeForeground.cancel()
-                    CarWakePrewarm.stop()
-                }
+        private fun suspendClockAdvanced(): Boolean {
+            // elapsedRealtime includes deep sleep; uptimeMillis does not. Retained E28 processes
+            // can miss both IG off and SCREEN_OFF, so a real suspend must also re-arm ignition.
+            val clock = SystemClock.elapsedRealtime() - SystemClock.uptimeMillis()
+            val suspended = clock - lastSuspendClock >= SUSPEND_REARM_MS
+            lastSuspendClock = clock
+            return suspended
+        }
+
+        internal fun install(context: Context) {
+            if (!LocalAdbDevicePolicy.isXpengP7() || wakeWatcher != null) return
+            lastSuspendClock = SystemClock.elapsedRealtime() - SystemClock.uptimeMillis()
+            val receiver = P7WakeReceiver()
+            val filter = android.content.IntentFilter(Intent.ACTION_SCREEN_OFF).apply {
+                addAction(ACTION_POWER_CHANGED)
             }
-            context.applicationContext.registerReceiver(receiver, android.content.IntentFilter(Intent.ACTION_SCREEN_OFF))
-            sleepWatcher = receiver
+            // Some XUI power events target registered receivers only. Install as soon as the app
+            // opens, not after its first manifest broadcast; keep it for the process lifetime.
+            val app = context.applicationContext
+            if (android.os.Build.VERSION.SDK_INT >= 33) {
+                app.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED)
+            } else {
+                app.registerReceiver(receiver, filter)
+            }
+            wakeWatcher = receiver
         }
 
         internal fun report(context: Context): String {
@@ -113,7 +140,7 @@ internal object P7WakeForeground {
     /**
      * The OEM launcher may take the foreground while restoring the car after sleep, and while
      * XPeng's parking scenario runs every start is dropped (XAppCheckPolicy ret 7) and never retried.
-     * Stop at the first focus, never retry throughout an established drive.
+     * Stop after stable focus, never retry throughout an established drive.
      */
     internal val ATTEMPT_DELAYS_MS: List<Long> =
         listOf(0L, 1_500L, 4_000L, 7_000L) + (10_000L..WINDOW_MS - RETRY_MS step RETRY_MS)
@@ -122,11 +149,15 @@ internal object P7WakeForeground {
     private var request = 0L
     private var finish: (() -> Unit)? = null
     private var app: Context? = null
+    private var windowFocused = false
+    private var focusGeneration = 0L
+    private const val STABLE_FOCUS_MS = 5_000L
 
     fun launch(context: Context, onFinished: () -> Unit) {
         cancel()
         app = context
         finish = onFinished
+        windowFocused = false
         request = SystemClock.elapsedRealtimeNanos()
         val id = request
         val prefs = context.getSharedPreferences("xplay_car_wake", Context.MODE_PRIVATE)
@@ -139,6 +170,7 @@ internal object P7WakeForeground {
                     cancel()
                     return@postDelayed
                 }
+                if (windowFocused) return@postDelayed
                 prefs.edit().putInt("foreground_attempts", index + 1)
                     .putLong("launch_at", System.currentTimeMillis()).apply()
                 try {
@@ -159,12 +191,20 @@ internal object P7WakeForeground {
         }, WINDOW_MS)
     }
 
-    /** Any DiPlay window in front ends the request, including one the driver opened by hand. */
-    fun focused() {
-        if (request == 0L) return
-        app?.getSharedPreferences("xplay_car_wake", Context.MODE_PRIVATE)?.edit()
-            ?.putString("foreground_result", "window-focused")?.apply()
-        complete()
+    /** OEM restoration may cover a retained Activity immediately after its first focus. */
+    fun focused() = focusChanged(true)
+
+    fun focusChanged(hasFocus: Boolean) {
+        windowFocused = hasFocus
+        val generation = ++focusGeneration
+        if (request == 0L || !hasFocus) return
+        val id = request
+        handler.postDelayed({
+            if (request != id || focusGeneration != generation || !windowFocused) return@postDelayed
+            app?.getSharedPreferences("xplay_car_wake", Context.MODE_PRIVATE)?.edit()
+                ?.putString("foreground_result", "window-focused")?.apply()
+            complete()
+        }, STABLE_FOCUS_MS)
     }
 
     fun cancel() {
