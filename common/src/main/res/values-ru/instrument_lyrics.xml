@@ -67,4 +67,8 @@
     <string name="settings_lyrics_unknown_source">Не записан</string>
     <string name="settings_lyrics_qqmusic">QQ Music</string>
     <string name="settings_lyrics_kugou">Kugou</string>
+    <string name="settings_floating_lyrics_background">Фон текста песни</string>
+    <string name="settings_floating_lyrics_with_background">С фоном</string>
+    <string name="settings_floating_lyrics_without_background">Без фона</string>
+    <string name="settings_floating_lyrics_background_desc">Применяется сразу. Без фона у текста появляется тёмная обводка для удобства чтения.</string>
 </resources>

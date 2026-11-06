@@ -83,3 +83,17 @@ The `ic_settings_*` vector drawables are adapted from [Lucide](https://github.co
 the other icons were obtained from the repository on 2026-10-22. SVG primitives are converted
 to Android vector paths with the original 24-unit canvas and 2-unit rounded stroke.
 The full ISC and applicable Feather MIT notices are retained in [LUCIDE.txt](licenses/LUCIDE.txt).
+
+
+## Timed lyrics sources and QRC decoding
+
+XPlay can fetch word timing from KuGou KRC, NetEase YRC, QQ Music QRC,
+and [AMLL TTML DB](https://github.com/amll-dev/amll-ttml-db). AMLL is queried
+by a conservatively matched NetEase or QQ catalogue ID. Community-authored
+AMLL data is CC0-1.0; external data follows its provider's terms.
+
+The modified DES S-box data in `InstrumentQrcCipher.kt` is adapted from
+[LDDC](https://github.com/chenmozhijin/LDDC/blob/main/LDDC/core/decryptor/tripledes.py),
+Copyright (C) 2024-2025 沉默の金 <cmzj@cmzj.org>, GPL-3.0-only (see the root LICENSE).
+The request and format implementations also reference LDDC's published
+[provider implementations](https://github.com/chenmozhijin/LDDC/tree/main/LDDC/core/api/lyrics).

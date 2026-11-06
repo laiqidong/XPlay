@@ -69,6 +69,7 @@ internal class FloatingLyricsView(context: Context) : View(context) {
         }
     }
     private var metadataTransition = false
+    private var transitionPrevious: InstrumentLyrics.FloatingSnapshot? = null
     private fun cancelPendingDrag() { pendingDrag = false; removeCallbacks(beginLongDrag) }
 
     init { visibility = GONE; importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }
@@ -80,7 +81,10 @@ internal class FloatingLyricsView(context: Context) : View(context) {
                 it.songKey.isNotBlank() && it.songKey == previous.songKey && it.motionEpoch == previous.motionEpoch &&
                 it.lineIndex > previous.lineIndex && previous.next == it.current &&
                 InstrumentLyricsSettings.floatingAnimation(context) && !dragging && animation?.isRunning != true
-            if (it != previous) {
+            val contentChanged = it.current != previous.current || it.next != previous.next ||
+                it.songKey != previous.songKey || it.lineIndex != previous.lineIndex ||
+                it.status != previous.status || it.motionEpoch != previous.motionEpoch || it.visible != previous.visible
+            if (contentChanged) {
                 if (it.current != previous.current || it.next != previous.next || it.songKey != previous.songKey)
                     marqueeStartedAt = android.os.SystemClock.uptimeMillis()
                 stopTransition()
@@ -88,9 +92,10 @@ internal class FloatingLyricsView(context: Context) : View(context) {
                     it.visible && previous.visible && it.status != previous.status &&
                     InstrumentLyricsSettings.floatingAnimation(context) && !dragging
                 pendingFrom = lastTextFrame.takeIf { advances || metadataTransition }
-            } else { stopTransition(); lastTextFrame = null }
+                transitionPrevious = previous.takeIf { pendingFrom != null }
+            }
             snapshot = it
-            backdrop.setActive(it.visible)
+            backdrop.setActive(it.visible && InstrumentLyricsSettings.floatingBackground(context))
             visibility = if (it.visible) VISIBLE else GONE
             if (!it.visible) { cancelPendingDrag(); dragging = false; box.setEmpty(); lightMaterial = null; pendingLight = null }
             invalidate()
@@ -117,8 +122,8 @@ internal class FloatingLyricsView(context: Context) : View(context) {
         val nextText = snapshot.next.takeIf { (snapshot.status || InstrumentLyricsSettings.floatingNext(context)) && it.isNotBlank() }
         val key = LayoutKey(snapshot.current, nextText, snapshot.status, font, width, height, density)
         val target = cachedTextFrame.takeIf { layoutKey == key } ?: run {
-            val currentSize = if (snapshot.status) STATUS_TITLE_DP else FONT_DP
-            val nextSize = if (snapshot.status) STATUS_DETAIL_DP else NEXT_FONT_DP
+            val currentSize = FONT_DP
+            val nextSize = NEXT_FONT_DP
             val measure = TextPaint(Paint.ANTI_ALIAS_FLAG).apply { typeface = currentTypeface; textSize = currentSize * density * font }
             val currentWidth = measure.measureText(snapshot.current)
             measure.typeface = nextTypeface; measure.textSize = nextSize * density * font
@@ -183,15 +188,15 @@ internal class FloatingLyricsView(context: Context) : View(context) {
             (dragY ?: InstrumentLyricsSettings.floatingValue(context, "y")).coerceIn(0, 100) / 100f
         box.set(x, y, x + boxWidth, y + boxHeight)
         backdrop.region = RectF(box)
-        val light = materialIsLight()
+        val withBackground = InstrumentLyricsSettings.floatingBackground(context)
+        val light = withBackground && materialIsLight()
         current.paint.color = if (light) Color.rgb(25, 29, 35) else Color.WHITE
-        next?.paint?.color = if (light) Color.rgb(85, 94, 107) else Color.rgb(190, 198, 210)
         background.color = if (light) Color.WHITE else Color.BLACK
         val opacity = InstrumentLyricsSettings.floatingValue(context, "opacity").coerceIn(0, 100) / 100f
-        if (opacity > 0f) {
+        if (withBackground && opacity > 0f) {
             val hasBackdrop = backdrop.frame?.bitmap?.isRecycled == false
-            // Keep the sampled colours; a very light neutral correction protects the text.
-            background.alpha = ((if (!hasBackdrop) 205 else if (light) 14 else 36) * opacity).toInt()
+            // Strengthen the light/dark material tint while retaining the blurred scene colours.
+            background.alpha = ((if (!hasBackdrop) BACKGROUND_FALLBACK_ALPHA else if (light) BACKGROUND_LIGHT_ALPHA else BACKGROUND_DARK_ALPHA) * opacity).toInt()
             val radius = minOf(CORNER_DP * density, box.height() / 2f, box.width() / 2f)
             for (step in SHADOW_STEPS downTo 1) {
                 val spread = step * density * .5f
@@ -224,8 +229,7 @@ internal class FloatingLyricsView(context: Context) : View(context) {
         canvas.clipPath(backgroundPath)
         canvas.clipRect(box.left + padding, box.top + verticalPadding, box.right - padding, box.bottom - verticalPadding)
         val primaryColor = current.paint.color
-        val secondaryColor = next?.paint?.color ?: if (light) Color.rgb(85, 94, 107) else Color.rgb(190, 198, 210)
-        fun drawLine(layout: StaticLayout, top: Float, scale: Float, alpha: Float, color: Int) {
+        fun drawLine(layout: StaticLayout, top: Float, scale: Float, alpha: Float, color: Int, timed: Boolean = false, timing: InstrumentLyrics.FloatingSnapshot = snapshot, unsung: Boolean = false) {
             if (alpha <= 0f) return
             val saved = canvas.save()
             val viewport = (box.width() - 2 * padding).coerceAtLeast(1f)
@@ -253,36 +257,68 @@ internal class FloatingLyricsView(context: Context) : View(context) {
             val oldAlpha = layout.paint.alpha
             layout.paint.color = color
             layout.paint.alpha = (255 * alpha.coerceIn(0f, 1f)).toInt()
-            layout.draw(canvas)
+            if (!withBackground) {
+                layout.paint.style = Paint.Style.STROKE
+                layout.paint.strokeJoin = Paint.Join.ROUND
+                layout.paint.strokeWidth = TEXT_OUTLINE_DP * density
+                layout.paint.color = Color.BLACK
+                layout.draw(canvas)
+                layout.paint.style = Paint.Style.FILL
+                layout.paint.color = color
+            }
+            val words = timing.words.takeIf { timed && !timing.status }.orEmpty()
+            if (words.isEmpty()) {
+                if (unsung) layout.paint.alpha = (255 * alpha.coerceIn(0f, 1f) * UNSUNG_TEXT_ALPHA).toInt()
+                layout.draw(canvas)
+            } else {
+                layout.paint.alpha = (255 * alpha.coerceIn(0f, 1f) * UNSUNG_TEXT_ALPHA).toInt()
+                layout.draw(canvas)
+                layout.paint.alpha = (255 * alpha.coerceIn(0f, 1f)).toInt()
+                val position = timing.position + if (timing.advancing)
+                    (android.os.SystemClock.elapsedRealtime() - timing.positionAt).coerceIn(0L, 1000L) else 0L
+                for (word in words) {
+                    if (word.from >= word.to || word.to > layout.text.length || position < word.start) continue
+                    val progress = if (word.end <= word.start) 1f else
+                        ((position - word.start).toFloat() / (word.end - word.start)).coerceIn(0f, 1f)
+                    val start = layout.getPrimaryHorizontal(word.from)
+                    val end = layout.getPrimaryHorizontal(word.to)
+                    val edge = start + (end - start) * progress
+                    val clip = canvas.save()
+                    canvas.clipRect(minOf(start, edge), 0f, maxOf(start, edge), layout.height.toFloat())
+                    layout.draw(canvas)
+                    canvas.restoreToCount(clip)
+                }
+                if (timing.advancing && words.any { position < it.end }) postInvalidateOnAnimation()
+            }
             layout.paint.color = oldColor; layout.paint.alpha = oldAlpha
             canvas.restoreToCount(saved)
         }
         if (from != null && metadataTransition) {
-            drawLine(from.current, 0f, 1f, 1f - progress, primaryColor)
-            from.next?.let { drawLine(it, from.current.height + from.gap, 1f, 1f - progress, secondaryColor) }
-            drawLine(current, 0f, 1f, progress, primaryColor)
-            next?.let { drawLine(it, current.height + gap, 1f, progress, secondaryColor) }
+            drawLine(from.current, 0f, 1f, 1f - progress, primaryColor, timed = true, timing = transitionPrevious ?: snapshot)
+            from.next?.let { drawLine(it, from.current.height + from.gap, 1f, 1f - progress, primaryColor, unsung = true) }
+            drawLine(current, 0f, 1f, progress, primaryColor, timed = true)
+            next?.let { drawLine(it, current.height + gap, 1f, progress, primaryColor, unsung = true) }
         } else if (from != null) {
             val oldNextTop = from.current.height + from.gap
             val promotedTop = interpolate(oldNextTop, 0f)
-            drawLine(from.current, -progress * (from.current.height + from.gap), 1f, 1f - progress, primaryColor)
+            drawLine(from.current, -progress * (from.current.height + from.gap), 1f, 1f - progress, primaryColor, timed = true, timing = transitionPrevious ?: snapshot)
             from.next?.let {
-                drawLine(it, promotedTop, interpolate(1f, FONT_DP / NEXT_FONT_DP), 1f - progress, secondaryColor)
+                drawLine(it, promotedTop, interpolate(1f, FONT_DP / NEXT_FONT_DP), 1f - progress, primaryColor, timed = true)
             }
-            drawLine(current, promotedTop, interpolate(NEXT_FONT_DP / FONT_DP, 1f), progress, primaryColor)
+            drawLine(current, promotedTop, interpolate(NEXT_FONT_DP / FONT_DP, 1f), progress, primaryColor, timed = true)
             next?.let {
-                drawLine(it, current.height + gap + (1f - progress) * it.height, 1f, progress, secondaryColor)
+                drawLine(it, current.height + gap + (1f - progress) * it.height, 1f, progress, primaryColor, unsung = true)
             }
         } else {
-            drawLine(current, 0f, 1f, 1f, primaryColor)
-            next?.let { drawLine(it, current.height + gap, 1f, 1f, secondaryColor) }
+            drawLine(current, 0f, 1f, 1f, primaryColor, timed = true)
+            next?.let { drawLine(it, current.height + gap, 1f, 1f, primaryColor, unsung = true) }
         }
         canvas.restoreToCount(textSave)
     }
 
     private fun stopTransition() {
         animation?.removeAllUpdateListeners(); animation?.cancel(); animation = null
-        animationFrom = null; pendingFrom = null; animationProgress = 1f
+        animationFrom = null; pendingFrom = null; transitionPrevious = null; animationProgress = 1f
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -365,23 +401,26 @@ internal class FloatingLyricsView(context: Context) : View(context) {
         private const val MARQUEE_OVERFLOW_TOLERANCE_DP = 2f
         private const val MARQUEE_SPEED_DP = 36f
         private const val MARQUEE_HOLD_MILLIS = 1200f
-        private const val STATUS_TITLE_DP = 32f
-        private const val STATUS_DETAIL_DP = 26f
         private const val MIN_CONTENT_DP = 180f
         private const val WIDTH_QUANTUM_DP = 16f
         private const val WIDTH_HOLD_DP = 32f
         private const val TRANSITION_MILLIS = 250L
+        private const val MATERIAL_HOLD_MILLIS = 600L
         private const val VERTICAL_PADDING_DP = 18f
         private const val MAX_WIDTH_FRACTION = .72f
-        private const val MATERIAL_HOLD_MILLIS = 600L
         private const val EDGE_DP = 12f
         private const val PADDING_DP = 24f
+        private const val UNSUNG_TEXT_ALPHA = .65f
+        private const val TEXT_OUTLINE_DP = 2f
         private const val FONT_DP = 54f
         private const val NEXT_FONT_DP = 40f
         private const val LINE_GAP_DP = 6f
         private const val CORNER_DP = 28f
         private const val EDGE_STROKE_DP = .8f
         private const val SHADOW_STEPS = 8
+        private const val BACKGROUND_FALLBACK_ALPHA = 205
+        private const val BACKGROUND_LIGHT_ALPHA = 210
+        private const val BACKGROUND_DARK_ALPHA = 80
         private const val SHADOW_ALPHA = 3
     }
 }

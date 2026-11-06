@@ -22,6 +22,7 @@ internal object InstrumentLyricsSettings {
         return prefs
     }
     fun floating(c: Context) = prefs(c).getBoolean("floating", false)
+    fun floatingBackground(c: Context) = prefs(c).getBoolean("floating_background", true)
     fun floatingNext(c: Context) = prefs(c).getBoolean("floating_next", true)
     fun floatingAnimation(c: Context) = prefs(c).getBoolean("floating_animation", true)
     fun floatingLocked(c: Context) = prefs(c).getBoolean("floating_locked", true)
@@ -44,9 +45,9 @@ internal object InstrumentLyricsSettings {
         InstrumentLyrics.timingChanged(c)
     }
     fun save(c: Context, key: String, value: Boolean) {
-        require(key in setOf("online", "floating", "floating_next", "floating_locked", "floating_animation"))
+        require(key in setOf("online", "floating", "floating_next", "floating_locked", "floating_animation", "floating_background"))
         prefs(c).edit().putBoolean(key, value).apply()
-        if (key in setOf("floating_next", "floating_locked", "floating_animation")) InstrumentLyrics.floatingStyleChanged()
+        if (key in setOf("floating_next", "floating_locked", "floating_animation", "floating_background")) InstrumentLyrics.floatingStyleChanged()
         else InstrumentLyrics.settingsChanged(c)
     }
 }

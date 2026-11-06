@@ -5393,6 +5393,17 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                 InstrumentLyricsSettings.floatingAnimation(this)) { InstrumentLyricsSettings.save(this, "floating_animation", it) }
             toggle(card, getString(R.string.settings_floating_lyrics_lock), getString(R.string.settings_floating_lyrics_lock_desc),
                 InstrumentLyricsSettings.floatingLocked(this)) { InstrumentLyricsSettings.save(this, "floating_locked", it) }
+            val backgroundChoices = arrayOf(getString(R.string.settings_floating_lyrics_with_background),
+                getString(R.string.settings_floating_lyrics_without_background))
+            card.addView(button(getString(R.string.settings_floating_lyrics_background) + " · " +
+                backgroundChoices[if (InstrumentLyricsSettings.floatingBackground(this)) 0 else 1], false) {
+                appDialogBuilder().setTitle(R.string.settings_floating_lyrics_background)
+                    .setSingleChoiceItems(backgroundChoices, if (InstrumentLyricsSettings.floatingBackground(this)) 0 else 1) { dialog, which ->
+                        InstrumentLyricsSettings.save(this, "floating_background", which == 0)
+                        dialog.dismiss(); render()
+                    }.setNegativeButton(R.string.cancel, null).show()
+            }, matchButton(0, SETTINGS_RAIL_ROW_HEIGHT_DP))
+            card.addView(label(getString(R.string.settings_floating_lyrics_background_desc), 16, MUTED))
             fun choice(key: String, title: Int, values: List<Int>, unit: String) {
                 card.addView(button(getString(title) + " · " + InstrumentLyricsSettings.floatingValue(this, key) + unit, false) {
                     appDialogBuilder().setTitle(title)
@@ -5406,7 +5417,8 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                 "opacity" to R.string.settings_floating_lyrics_opacity,
                 "x" to R.string.settings_floating_lyrics_x,
                 "y" to R.string.settings_floating_lyrics_y,
-            ).forEach { (key, title) ->
+            ).filter { (key, _) -> key != "opacity" || InstrumentLyricsSettings.floatingBackground(this) }
+                .forEach { (key, title) ->
                 card.addView(button(getString(title) + " · " +
                     InstrumentLyricsSettings.floatingValue(this, key) + "%", false) {
                     var pendingValue = InstrumentLyricsSettings.floatingValue(this, key)
@@ -5446,6 +5458,7 @@ class DiPlayActivity : ComponentActivity(), AppAppearanceOwner {
                     "qqmusic" -> getString(R.string.settings_lyrics_qqmusic)
                     "kugou" -> getString(R.string.settings_lyrics_kugou)
                     "lrclib" -> "LRCLIB"
+                    "amll" -> "AMLL TTML DB"
                     else -> getString(R.string.settings_lyrics_unknown_source)
                 }
                 val state = when (InstrumentLyrics.lyricState) {

@@ -67,4 +67,8 @@
     <string name="settings_lyrics_unknown_source">未記録</string>
     <string name="settings_lyrics_qqmusic">QQ Music</string>
     <string name="settings_lyrics_kugou">Kugou</string>
+    <string name="settings_floating_lyrics_background">歌詞の背景</string>
+    <string name="settings_floating_lyrics_with_background">背景あり</string>
+    <string name="settings_floating_lyrics_without_background">背景なし</string>
+    <string name="settings_floating_lyrics_background_desc">すぐに適用されます。背景なしでは文字に暗い縁取りを付け、読みやすくします。</string>
 </resources>

@@ -31,7 +31,9 @@ internal object InstrumentLyrics {
     private var boundSink: com.shilapi.xcertplay.media.AndroidMediaSink? = null
     @Volatile private var mapRenderer: P7InstrumentMapRenderer? = null
     data class FloatingSnapshot(val current: String = "", val next: String = "", val night: Boolean = true, val visible: Boolean = false, val status: Boolean = false,
-        val songKey: String = "", val lineIndex: Int = -1, val motionEpoch: Long = 0)
+        val songKey: String = "", val lineIndex: Int = -1, val motionEpoch: Long = 0,
+        val words: List<InstrumentLyricWord> = emptyList(), val position: Long = 0,
+        val positionAt: Long = 0, val advancing: Boolean = false)
     private var floatingMotionEpoch = 0L
     private var floatingSnapshot = FloatingSnapshot()
     private val floatingObservers = mutableSetOf<(FloatingSnapshot) -> Unit>()
@@ -234,12 +236,22 @@ internal object InstrumentLyrics {
             }
         }
     }
+    private const val TIMED_LYRIC_PREVIEW_MILLIS = 5000L
     private val lyricBoundary = Runnable { drawState() }
     private fun cueTime(index: Int, c: Context): Long {
         val line = lines[index]
         val lead = if (index > 0 && line.text.isNotBlank()) minOf(InstrumentLyricsSettings.lead(c).toLong(),
             (line.time - lines[index - 1].time).coerceAtLeast(0) / 2) else 0L
-        return line.time - lead
+        val normalCue = line.time - lead
+        val previous = lines.getOrNull(index - 1) ?: return normalCue
+        // Only promote timed lyrics: the next line stays dim until its own word times.
+        // Keep overlapping vocals and ordinary LRC on the existing cue policy.
+        if (line.text.isBlank() || line.words.isEmpty() || previous.words.isEmpty()) return normalCue
+        val sungUntil = previous.words.filter { it.to > it.from }.maxOfOrNull { it.end } ?: return normalCue
+        if (sungUntil < previous.time || sungUntil > line.time) return normalCue
+        // Short pauses advance at the final word; interludes preview at most five seconds early.
+        return minOf(normalCue, maxOf(sungUntil, line.time - TIMED_LYRIC_PREVIEW_MILLIS))
+            .coerceIn(sungUntil, line.time)
     }
     private fun drawState() {
         val c = context ?: return
@@ -282,7 +294,10 @@ internal object InstrumentLyrics {
             if (hasLine) simplified(lines[displayIndex].text) else simplified(info.title.orEmpty()),
             if (hasLine || (timeline && previewSoon)) simplified(next) else if (timeline) simplified(info.artist.orEmpty()) else c.getString(statusResource), night,
             attached && InstrumentLyricsSettings.floating(c) && info.playing && !info.title.isNullOrBlank(),
-            status = !hasLine, songKey = song?.key.orEmpty(), lineIndex = displayIndex, motionEpoch = floatingMotionEpoch)
+            status = !hasLine, songKey = song?.key.orEmpty(), lineIndex = displayIndex, motionEpoch = floatingMotionEpoch,
+            words = if (hasLine && simplified(lines[displayIndex].text).length == lines[displayIndex].text.length)
+                lines[displayIndex].words else emptyList(),
+            position = effectivePosition, positionAt = now, advancing = trusted && info.playing)
         if (floating != floatingSnapshot) {
             floatingSnapshot = floating; floatingObservers.toList().forEach { it(floating) }
         }

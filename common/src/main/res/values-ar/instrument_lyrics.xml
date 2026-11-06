@@ -67,4 +67,8 @@
     <string name="settings_lyrics_unknown_source">غير مسجل</string>
     <string name="settings_lyrics_qqmusic">QQ Music</string>
     <string name="settings_lyrics_kugou">Kugou</string>
+    <string name="settings_floating_lyrics_background">خلفية كلمات الأغنية</string>
+    <string name="settings_floating_lyrics_with_background">مع خلفية</string>
+    <string name="settings_floating_lyrics_without_background">بدون خلفية</string>
+    <string name="settings_floating_lyrics_background_desc">يُطبّق فورًا. بدون خلفية، يظهر النص بحدود داكنة لتسهيل القراءة.</string>
 </resources>

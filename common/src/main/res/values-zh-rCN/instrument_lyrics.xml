@@ -67,4 +67,8 @@
     <string name="settings_lyrics_unknown_source">未记录</string>
     <string name="settings_lyrics_qqmusic">QQ 音乐</string>
     <string name="settings_lyrics_kugou">酷狗音乐</string>
+    <string name="settings_floating_lyrics_background">歌词背景</string>
+    <string name="settings_floating_lyrics_with_background">有背景</string>
+    <string name="settings_floating_lyrics_without_background">无背景</string>
+    <string name="settings_floating_lyrics_background_desc">立即生效。无背景时使用文字描边，方便在复杂画面上阅读。</string>
 </resources>

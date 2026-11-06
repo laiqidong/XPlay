@@ -67,4 +67,8 @@
     <string name="settings_lyrics_unknown_source">Sin registrar</string>
     <string name="settings_lyrics_qqmusic">QQ Music</string>
     <string name="settings_lyrics_kugou">Kugou</string>
+    <string name="settings_floating_lyrics_background">Fondo de letras</string>
+    <string name="settings_floating_lyrics_with_background">Con fondo</string>
+    <string name="settings_floating_lyrics_without_background">Sin fondo</string>
+    <string name="settings_floating_lyrics_background_desc">Se aplica de inmediato. Sin fondo, el texto tiene un contorno oscuro para facilitar la lectura.</string>
 </resources>
